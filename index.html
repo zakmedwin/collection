@@ -352,10 +352,21 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <div class="s-tagline">Curated · Documented · Personal</div>
     <button class="s-enter" id="splashEnter">
       Time to Explore
-      <span class="s-arrow">→</span>
+      <span class="s-arrow">&#8594;</span>
     </button>
   </div>
 </div>
+<script>
+(function(){
+  function go(){var s=document.getElementById('splash');if(!s)return;s.style.transition='opacity 0.8s';s.style.opacity='0';setTimeout(function(){s.style.display='none';},850);}
+  function setC(){try{var n=new Date(),h=n.getHours()%12,m=n.getMinutes(),s=n.getSeconds();function r(id,d){var e=document.getElementById(id);if(e)e.style.transform='rotate('+d+'deg)';}r('sHour',(h+m/60)*30);r('sMin',(m+s/60)*6);r('sSec',s*6);}catch(e){}}
+  setC();setInterval(setC,1000);
+  var b=document.getElementById('splashEnter');
+  if(b){b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();go();});b.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();go();});}
+  setTimeout(function(){document.getElementById('splash').addEventListener('click',go,{once:true});},2000);
+  setTimeout(go,8000);
+})();
+</script>
 
 <header>
   <div class="h-left">
