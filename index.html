@@ -886,21 +886,24 @@ const momWHardcoded=[
 ];
 
 // ── SEED / MIGRATE ──
-// On first load, seed localStorage with hardcoded data.
-// Also migrate any old customWatches into main collection.
 let mainWatches;
 (function(){
-  const saved = loadMain();
-  if(saved){
-    mainWatches = saved;
-  } else {
-    // First time — seed with hardcoded + any old custom watches
-    const oldCustom = (()=>{try{return JSON.parse(localStorage.getItem('wc_custom_v5')||localStorage.getItem('wc_custom_v2')||'[]')}catch{return[]}})();
-    mainWatches = [...hardcoded.map(w=>({...w,_editable:true})), ...oldCustom.map(w=>({...w,_editable:true,_custom:true}))];
-    saveMain(mainWatches);
+  try {
+    const saved = loadMain();
+    if(saved && saved.length > 0){
+      mainWatches = saved;
+    } else {
+      const oldCustom=(()=>{try{return JSON.parse(localStorage.getItem('wc_custom_v5')||localStorage.getItem('wc_custom_v2')||'[]')}catch{return[]}})();
+      mainWatches=[...hardcoded.map(w=>({...w,_editable:true})),...oldCustom.map(w=>({...w,_editable:true,_custom:true}))];
+      try{saveMain(mainWatches);}catch(e){}
+    }
+  } catch(e){
+    mainWatches = hardcoded.map(w=>({...w,_editable:true}));
   }
-  // Seed mom watches if not yet stored
-  if(!loadMom()) saveMom(momWHardcoded.map(w=>({...w,_editable:true})));
+  if(!mainWatches || mainWatches.length===0){
+    mainWatches = hardcoded.map(w=>({...w,_editable:true}));
+  }
+  try{if(!loadMom()) saveMom(momWHardcoded.map(w=>({...w,_editable:true})));}catch(e){}
 })();
 
 function getMom(){return loadMom()||momWHardcoded;}
