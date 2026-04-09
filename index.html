@@ -329,8 +329,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 <body>
 
 <!-- ── SPLASH SCREEN ── -->
-<div id="splash" style="display:none">
-  <!-- floating particles injected by JS -->
+<div id="splash">
   <div class="splash-watch">
     <div class="s-ring"></div>
     <div class="s-ring"></div>
@@ -338,9 +337,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <div class="s-lug t"></div>
     <div class="s-lug b"></div>
     <div class="s-crown"></div>
-    <div class="s-face">
-      <!-- tick marks injected by JS -->
-    </div>
+    <div class="s-face"></div>
     <div class="s-hand s-hour" id="sHour"></div>
     <div class="s-hand s-min" id="sMin"></div>
     <div class="s-hand s-sec" id="sSec"></div>
@@ -349,13 +346,50 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   <div class="splash-txt">
     <div class="s-eyebrow">Personal Horology Archive</div>
     <div class="s-title">The <em>Collection</em></div>
-    <div class="s-tagline">Curated · Documented · Personal</div>
-    <button class="s-enter" id="splashEnter">
-      Time to Explore
-      <span class="s-arrow">&#8594;</span>
-    </button>
+    <div class="s-tagline">Curated &#183; Documented &#183; Personal</div>
+    <button class="s-enter" id="splashEnter">Time to Explore &#8594;</button>
   </div>
 </div>
+<script>
+(function(){
+  var dismissed=false;
+  function go(){
+    if(dismissed)return;dismissed=true;
+    var s=document.getElementById('splash');
+    if(!s)return;
+    s.style.transition='opacity 0.8s ease';
+    s.style.opacity='0';
+    setTimeout(function(){s.style.display='none';},850);
+  }
+  // Clock
+  function tick(){
+    try{
+      var n=new Date(),h=n.getHours()%12,m=n.getMinutes(),s=n.getSeconds();
+      function r(id,d){var e=document.getElementById(id);if(e)e.style.transform='rotate('+d+'deg)';}
+      r('sHour',(h+m/60)*30);r('sMin',(m+s/60)*6);r('sSec',s*6);
+    }catch(e){}
+  }
+  // Tick marks
+  try{
+    var face=document.querySelector('.s-face');
+    if(face){for(var i=0;i<60;i++){var t=document.createElement('div'),a=i*6,major=i%5===0,rad=(a-90)*Math.PI/180,rv=46,len=major?10:5,x=50+(rv-len/2)*Math.cos(rad),y=50+(rv-len/2)*Math.sin(rad);t.style.cssText='position:absolute;width:'+(major?2:1)+'px;height:'+len+'px;background:'+(major?'rgba(184,145,58,.9)':'rgba(184,145,58,.3)')+';left:'+x+'%;top:'+y+'%;transform:translate(-50%,-50%) rotate('+a+'deg)';face.appendChild(t);}}
+  }catch(e){}
+  tick();setInterval(tick,1000);
+  // Button
+  var btn=document.getElementById('splashEnter');
+  if(btn){
+    btn.onclick=function(e){e.preventDefault();e.stopPropagation();go();};
+    btn.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();go();},{passive:false});
+  }
+  // Tap anywhere after 2s
+  setTimeout(function(){
+    var s=document.getElementById('splash');
+    if(s)s.addEventListener('click',go,{once:true});
+  },2000);
+  // Auto-dismiss after 10s
+  setTimeout(go,10000);
+})();
+</script>
 
 <header>
   <div class="h-left">
@@ -818,55 +852,7 @@ const dsh = v => v||'—';
 function photoKey(w){return('w_'+(w.id||w.brand+w.series+w.model+w.ref)).replace(/[\s\/\.]/g,'_').toLowerCase().substring(0,60)}
 function genId(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
 
-// ── HARDCODED DATA ──
-const hardcoded=[
-  {id:'h0',brand:"Bell & Ross",series:"BR 05",model:"Chronograph",ref:"",serial:"",origin:"Switzerland",casemat:"Stainless Steel",dial:"Black",strap:"SS/Rubber with clasp",size:"42",thick:"",lug:"Integrated",movement:"Automatic",pr:42,wr:"",year:2021,condition:"New",price:6000,paid:null,service:"",sold:true,soldAmt:3500,notes:"Impulse buy from Old Northeast Jewelers. Gave to Alen to sell it — Alen bought it.",feb26:7000},
-  {id:'h1',brand:"Breitling",series:"Avenger",model:"Night Mission Chrono 45",ref:"V13317",serial:"7252308",origin:"Switzerland",casemat:"Titanium",dial:"Black",strap:"Fabric/Leather fold-over buckle",size:"45",thick:"14.6",lug:"22",movement:"Automatic",pr:48,wr:"",year:2021,condition:"New",price:6150,paid:5227.50,service:"",sold:false,soldAmt:null,notes:"Crypto purchase, Ackerman Jewelers, worked with Giovani. 15% discount.",feb26:null},
-  {id:'h2',brand:"Breitling",series:"Superocean",model:"II 44",ref:"A17392",serial:"2997671",origin:"Switzerland",casemat:"Stainless",dial:"Blue",strap:"Rubber/SS Bracelet",size:"44",thick:"14.2",lug:"22",movement:"Automatic",pr:38,wr:"",year:2018,condition:"New",price:4400,paid:null,service:"9/21 — Minute hand loose, repaired & sealed FREE",sold:false,soldAmt:null,notes:"Purchased from Old Northeast when it was still in the mall. Call it my Florida Watch.",feb26:null},
-  {id:'h3',brand:"Breitling",series:"Superocean",model:"Heritage B20 42",ref:"AB2010",serial:"5025563",origin:"Switzerland",casemat:"Stainless",dial:"Blue",strap:"Stainless Bracelet",size:"42",thick:"14.2",lug:"22",movement:"Automatic",pr:70,wr:"",year:2018,condition:"",price:5000,paid:4200,service:"",sold:false,soldAmt:null,notes:"Got this as a gift for Dad from North East Fine Jewelers.",feb26:null},
-  {id:'h4',brand:"Breitling",series:"Navitimer",model:"",ref:"",serial:"",origin:"Switzerland",casemat:"Stainless",dial:"Black/Silver",strap:"Black Alligator/Stainless Buckle",size:"41",thick:"",lug:"",movement:"Automatic",pr:null,wr:"",year:2008,condition:"",price:4950,paid:2900,service:"10/1/2021 — $1,262",sold:false,soldAmt:null,notes:"Purchased from NEFJ for cash before closing down Tri-City Luggage.",feb26:null},
-  {id:'h5',brand:"Cartier",series:"Santos",model:"Large",ref:"",serial:"",origin:"Switzerland",casemat:"Stainless Steel",dial:"White",strap:"Stainless Integrated",size:"",thick:"",lug:"",movement:"Automatic",pr:70,wr:100,year:2025,condition:"New",price:8250,paid:0,service:"",sold:false,soldAmt:null,notes:"Got from NEFJ.",feb26:8650},
-  {id:'h6',brand:"Casio",series:"G-Shock",model:"",ref:"",serial:"",origin:"",casemat:"Resin",dial:"",strap:"Resin",size:"",thick:"",lug:"",movement:"",pr:null,wr:null,year:null,condition:"",price:null,paid:null,service:"",sold:false,soldAmt:null,notes:"45th B-day present from mom.",feb26:null},
-  {id:'h7',brand:"David Yurman",series:"Thoroughbred",model:"GMT",ref:"",serial:"",origin:"",casemat:"Stainless/Sterling",dial:"Black",strap:"Alligator/Tan",size:"41",thick:"12",lug:"",movement:"Automatic",pr:42,wr:null,year:2007,condition:"",price:4400,paid:3900,service:"",sold:false,soldAmt:null,notes:"Purchased at a David Yurman store in Las Vegas right before Kerstin and I decided to get divorced.",feb26:null},
-  {id:'h8',brand:"Frédérique Constant",series:"Slimline",model:"Monolithic Manufacture",ref:"FC-810MC3S6",serial:"37487085",origin:"Switzerland",casemat:"Stainless",dial:"Silver",strap:"Alligator/Black",size:"40",thick:"",lug:"",movement:"Automatic",pr:80,wr:null,year:2021,condition:"New",price:4795,paid:2800,service:"",sold:false,soldAmt:null,notes:"Purchased from Cigar King — AZ Fine Time in Arizona. Haven't worn since buying but enjoy having it.",feb26:null},
-  {id:'h9',brand:"Hamilton",series:"Field Khaki",model:"",ref:"",serial:"",origin:"",casemat:"Stainless",dial:"Black",strap:"",size:"",thick:"",lug:"",movement:"Automatic",pr:null,wr:null,year:2022,condition:"",price:350,paid:null,service:"",sold:false,soldAmt:null,notes:"Small purchase at Dillards in International Plaza — felt like it was needed in my collection.",feb26:null},
-  {id:'h10',brand:"IWC",series:"Portuguese",model:"Chrono",ref:"",serial:"",origin:"Switzerland",casemat:"Stainless",dial:"White",strap:"Alligator/Blue",size:"40",thick:"",lug:"",movement:"Automatic",pr:42,wr:null,year:2014,condition:"New",price:8150,paid:0,service:"",sold:false,soldAmt:null,notes:"Got from NEFJ — still absolutely love this watch!!",feb26:null},
-  {id:'h11',brand:"IWC",series:"Pilot",model:"Spitfire",ref:"IW371702",serial:"",origin:"Switzerland",casemat:"Stainless",dial:"Silver/White",strap:"Alligator/Tan",size:"40",thick:"",lug:"",movement:"Automatic",pr:42,wr:null,year:2007,condition:"Gift/New",price:4100,paid:0,service:"",sold:false,soldAmt:null,notes:"30th birthday present from my mother. Purchased in Caesars in Vegas — forgot a watch for the Luggage Show.",feb26:null},
-  {id:'h12',brand:"IWC",series:"Pilot",model:"Big Pilot 43",ref:"IW329301",serial:"",origin:"Switzerland",casemat:"Stainless",dial:"Black",strap:"Leather",size:"43",thick:"13.6",lug:"21",movement:"Automatic",pr:60,wr:100,year:2021,condition:"New",price:8400,paid:0,service:"",sold:false,soldAmt:null,notes:"Got from NEFJ.",feb26:null},
-  {id:'h13',brand:"IWC",series:"Portugieser",model:"Automatic",ref:"IW500704",serial:"",origin:"Switzerland",casemat:"Stainless",dial:"White",strap:"Leather/Black Alligator",size:"42.3",thick:"14.1",lug:"22",movement:"Automatic",pr:168,wr:30,year:2023,condition:"New",price:13100,paid:6350,service:"",sold:false,soldAmt:null,notes:"",feb26:null},
-  {id:'h14',brand:"Mido",series:"Ocean Star",model:"GMT",ref:"M026.629.17.051.00",serial:"ZYGEFR2ZK",origin:"Switzerland",casemat:"Stainless",dial:"Black/Blue",strap:"Leather",size:"44",thick:"",lug:"22",movement:"Automatic",pr:80,wr:300,year:2022,condition:"New",price:1190,paid:null,service:"",sold:true,soldAmt:0,notes:"Used 140K United Airline points. Added Metal Bracelet for $175. Gifted to Zach, August 2025.",feb26:null},
-  {id:'h15',brand:"Muhle Glashuette",series:"Terra Sport",model:"Terra Sport II",ref:"M1-37-44-MB",serial:"",origin:"Germany",casemat:"Stainless",dial:"Black",strap:"SS Bracelet",size:"40",thick:"",lug:"",movement:"Automatic",pr:41,wr:null,year:2021,condition:"New",price:1900,paid:1500,service:"",sold:false,soldAmt:null,notes:"From Old North East in Downtown St. Pete — IWC lookalike from Germany. Doesn't keep great time but very comfortable.",feb26:null},
-  {id:'h16',brand:"NORQAIN",series:"Wild One",model:"Skeleton Turquoise",ref:"N3000.07Q27.B07",serial:"227173",origin:"Switzerland",casemat:"NORTEQ Carbon Fibre",dial:"Skeleton",strap:"Rubber",size:"42",thick:"12.3",lug:"22",movement:"Automatic",pr:41,wr:200,year:2026,condition:"New",price:6990,paid:6640,service:"",sold:false,soldAmt:null,notes:"Purchased at Provident Jewelers in Jupiter.",feb26:null},
-  {id:'h17',brand:"Omega",series:"Speedmaster",model:"Moonwatch Professional",ref:"310.30.42.50.01.002",serial:"83400861",origin:"Switzerland",casemat:"Stainless",dial:"Black",strap:"SS Bracelet",size:"42",thick:"13.2",lug:"20",movement:"Manual Wind",pr:50,wr:50,year:2021,condition:"New",price:7150,paid:7150,service:"2/12/2025",sold:false,soldAmt:null,notes:"Purchased at the Gardens Mall in Palm Beach Gardens with mom. Mom also bought her Omega at the same time.",feb26:9000},
-  {id:'h18',brand:"Omega",series:"Speedmaster",model:"Moonwatch Moonshine Gold",ref:"310.20.42.50.02.001",serial:"83728073",origin:"Switzerland",casemat:"Stainless/Gold",dial:"Silver",strap:"Stainless/Gold",size:"42",thick:"13.2",lug:"20",movement:"Manual Wind",pr:50,wr:50,year:2024,condition:"New",price:18100,paid:18100,service:"",sold:false,soldAmt:null,notes:"Gardens Mall with mom — she bought her Omega at the same time. ROUND 2… haha.",feb26:20400},
-  {id:'h19',brand:"Omega",series:"Seamaster",model:"Aqua Terra Small Seconds",ref:"220.10.14.21.02.004",serial:"83352106",origin:"Switzerland",casemat:"Stainless",dial:"White",strap:"SS Bracelet",size:"41",thick:"13.2",lug:"20",movement:"Automatic",pr:60,wr:150,year:2021,condition:"New",price:6450,paid:6450,service:"",sold:false,soldAmt:null,notes:"Omega boutique in Palm Beach Gardens. Celebrates winning the first ever presidential award from Davidoff, presented by Dylan Austin.",feb26:7700},
-  {id:'h20',brand:"Omega",series:"Seamaster Professional",model:"Diver 300",ref:"21032422010001",serial:"84257282",origin:"Switzerland",casemat:"Stainless",dial:"Green",strap:"Green Rubber/SS Bracelet",size:"42",thick:"13.6",lug:"20",movement:"Automatic",pr:55,wr:300,year:2022,condition:"New",price:5100,paid:5100,service:"",sold:false,soldAmt:null,notes:"From the Omega Boutique — holiday purchase. Told everyone it was a 45th birthday gift from my mother.",feb26:6300},
-  {id:'h21',brand:"Omega",series:"Speedmaster",model:"Snoopy 50th Anniversary",ref:"310.32.42.50.02.001",serial:"",origin:"Switzerland",casemat:"Stainless",dial:"Silver",strap:"Nylon/Rubber",size:"41",thick:"13.2",lug:"20",movement:"Automatic",pr:50,wr:50,year:2023,condition:"New",price:10000,paid:10000,service:"",sold:false,soldAmt:null,notes:"Selected by Omega to purchase. Had to pick up in person and have my picture taken.",feb26:11900},
-  {id:'h22',brand:"Omega",series:"Seamaster",model:"Heritage 75th Anniversary",ref:"234.30.41.21.03.002",serial:"84368123",origin:"Switzerland",casemat:"Stainless",dial:"Blue (Grey)",strap:"SS Bracelet",size:"41",thick:"13.9",lug:"20",movement:"Automatic",pr:60,wr:300,year:2023,condition:"New",price:7400,paid:0,service:"",sold:false,soldAmt:null,notes:"Gift from mom. Did not expect it. Meant to celebrate my new Director of Sales role with Davidoff — she loves me. 11/24/23.",feb26:8300},
-  {id:'h23',brand:"Omega",series:"Seamaster Professional",model:"Diver 300M 007 No Time to Die",ref:"210.92.42.20.01.001",serial:"",origin:"Switzerland",casemat:"Titanium",dial:"Brown",strap:"NATO Strap",size:"42",thick:"13",lug:"20",movement:"Automatic",pr:55,wr:300,year:2024,condition:"New",price:8900,paid:8900,service:"",sold:false,soldAmt:null,notes:"Bought in Aruba while at TAA.",feb26:null},
-  {id:'h24',brand:"Omega",series:"Speedmaster Professional",model:"Professional White",ref:"310.32.42.50.04.001",serial:"",origin:"Switzerland",casemat:"Stainless",dial:"White",strap:"Rubber/Stainless",size:"42",thick:"13.2",lug:"20",movement:"Manual Wind",pr:50,wr:50,year:2024,condition:"New",price:7800,paid:7800,service:"",sold:false,soldAmt:null,notes:"Guilt watch — bought at Omega Tampa. Love it but too soon after the last purchase.",feb26:8700},
-  {id:'h25',brand:"Omega",series:"Seamaster",model:"Aqua Terra",ref:"220.32.41.21.03.001",serial:"",origin:"",casemat:"",dial:"",strap:"",size:"",thick:"",lug:"",movement:"Automatic",pr:null,wr:null,year:null,condition:"",price:7800,paid:7800,service:"",sold:false,soldAmt:null,notes:"Gift from mom. Tried to tell her not to buy it. Celebration of my new career. She really is the best!",feb26:null},
-  {id:'h26',brand:"Omega",series:"Speedmaster 38",model:"Milano Cortina 2026",ref:"522.38.50.04.002",serial:"",origin:"Switzerland",casemat:"Stainless Steel",dial:"White",strap:"SS Bracelet",size:"38",thick:"14.75",lug:"18",movement:"Automatic",pr:52,wr:100,year:2026,condition:"New",price:6800,paid:6800,service:"",sold:false,soldAmt:null,notes:"Jordan asked me to help him out.",feb26:null},
-  {id:'h27',brand:"Oris",series:"Big Crown",model:"X Cervo Volante",ref:"01 754 7779 4067",serial:"3951146",origin:"Switzerland",casemat:"Stainless",dial:"Green",strap:"Leather/Tan",size:"38",thick:"",lug:"19",movement:"Automatic",pr:38,wr:5,year:2022,condition:"Gift/New",price:2000,paid:0,service:"",sold:false,soldAmt:null,notes:"Gift from Harry, owner of Robust's Cigar Bar in Michigan — I gave him a lighter, this is how he reciprocated.",feb26:null},
-  {id:'h28',brand:"Oris",series:"New York Harbor LE",model:"",ref:"01 733 7766 4187-Set",serial:"4037349",origin:"Switzerland",casemat:"Stainless",dial:"Green/MOP",strap:"Rubber & Bracelet Set",size:"41.4",thick:"",lug:"",movement:"Automatic",pr:38,wr:null,year:2022,condition:"New",price:2700,paid:2200,service:"",sold:false,soldAmt:null,notes:"Impulse buy from Lucido Jewelers (friend of Harry's). JT and I both got the same watch… haha.",feb26:null},
-  {id:'h29',brand:"Porsche Design by IWC",series:"",model:"",ref:"IW371702",serial:"",origin:"",casemat:"Titanium",dial:"Black",strap:"Titanium",size:"",thick:"",lug:"",movement:"Automatic",pr:null,wr:null,year:null,condition:"",price:null,paid:null,service:"",sold:false,soldAmt:null,notes:"",feb26:null},
-  {id:'h30',brand:"Rolex",series:"Submariner",model:"Date",ref:"126610LN",serial:"P0L90115",origin:"Switzerland",casemat:"Stainless",dial:"Black",strap:"Oyster Bracelet",size:"41",thick:"",lug:"",movement:"Automatic",pr:70,wr:null,year:2021,condition:"New",price:9150,paid:9150,service:"",sold:false,soldAmt:null,notes:"",feb26:null},
-  {id:'h31',brand:"Rolex",series:"GMT Master II",model:"Pepsi",ref:"16710",serial:"",origin:"Switzerland",casemat:"Stainless",dial:"Black",strap:"Oyster Bracelet",size:"40",thick:"",lug:"",movement:"Automatic",pr:42,wr:null,year:2014,condition:"Gift/Used",price:5500,paid:0,service:"",sold:false,soldAmt:null,notes:"",feb26:null},
-  {id:'h32',brand:"Rolex",series:"GMT Master",model:"Black/Gold",ref:"16753",serial:"6459273",origin:"Switzerland",casemat:"Stainless/Gold",dial:"Black",strap:"Oyster/Gold",size:"40",thick:"",lug:"",movement:"Automatic",pr:42,wr:null,year:1981,condition:"Gift/Used",price:null,paid:980,service:"",sold:false,soldAmt:null,notes:"",feb26:null},
-  {id:'h33',brand:"Rolex",series:"GMT Master II",model:"Batman",ref:"126710BLNR",serial:"",origin:"Switzerland",casemat:"Stainless",dial:"Black",strap:"Oyster Steel Bracelet",size:"40",thick:"",lug:"",movement:"Automatic",pr:70,wr:null,year:2022,condition:"New",price:10550,paid:10650,service:"",sold:false,soldAmt:null,notes:"",feb26:null},
-  {id:'h34',brand:"Swatch",series:"MoonSwatch",model:"Mission to Mercury",ref:"SO33A100",serial:"",origin:"Switzerland",casemat:"Bioceramic",dial:"Ivory",strap:"Velcro",size:"42",thick:"13.25",lug:"",movement:"Quartz",pr:null,wr:3,year:2022,condition:"New",price:260,paid:260,service:"",sold:false,soldAmt:null,notes:"Purchased in Switzerland.",feb26:null},
-  {id:'h35',brand:"Swatch",series:"MoonSwatch",model:"Mission to Mars",ref:"SO33R100",serial:"",origin:"Switzerland",casemat:"Bioceramic",dial:"Red",strap:"Velcro",size:"42",thick:"13.25",lug:"",movement:"Quartz",pr:null,wr:3,year:2022,condition:"New",price:260,paid:260,service:"",sold:false,soldAmt:null,notes:"Purchased in Switzerland.",feb26:null},
-  {id:'h36',brand:"Swatch",series:"MoonSwatch",model:"Mission to Uranus",ref:"SO33L100",serial:"",origin:"Switzerland",casemat:"Bioceramic",dial:"Teal",strap:"Velcro",size:"42",thick:"13.25",lug:"",movement:"Quartz",pr:null,wr:3,year:2022,condition:"New",price:260,paid:260,service:"",sold:false,soldAmt:null,notes:"Purchased in Switzerland.",feb26:null},
-  {id:'h37',brand:"Swatch",series:"MoonSwatch",model:"Mission on Earth",ref:"",serial:"",origin:"",casemat:"Bioceramic",dial:"Black",strap:"Velcro",size:"42",thick:"",lug:"",movement:"Quartz",pr:null,wr:3,year:2025,condition:"New",price:null,paid:null,service:"",sold:false,soldAmt:null,notes:"",feb26:null},
-  {id:'h38',brand:"Swatch",series:"MoonSwatch",model:"White Snoopy",ref:"",serial:"",origin:"",casemat:"Bioceramic",dial:"White",strap:"Velcro",size:"42",thick:"",lug:"",movement:"Quartz",pr:null,wr:3,year:2025,condition:"New",price:null,paid:null,service:"",sold:false,soldAmt:null,notes:"",feb26:null},
-  {id:'h39',brand:"Tag Heuer",series:"Tiger Woods",model:"Chronograph",ref:"",serial:"",origin:"Switzerland",casemat:"",dial:"",strap:"",size:"",thick:"",lug:"",movement:"Quartz",pr:null,wr:null,year:null,condition:"",price:1800,paid:null,service:"",sold:false,soldAmt:null,notes:"",feb26:null},
-  {id:'h40',brand:"Tissot",series:"PRX",model:"Powermatic 80 — Navy",ref:"T137.407.11.041.00",serial:"",origin:"Switzerland",casemat:"Stainless Steel",dial:"Navy Blue",strap:"SS Bracelet",size:"40",thick:"10.9",lug:"12 integrated",movement:"Automatic",pr:80,wr:100,year:2022,condition:"New",price:650,paid:520,service:"",sold:false,soldAmt:null,notes:"Gift from mom for Hanukkah. I LOVE THE WATCH! Have the navy alligator strap from Tissot.",feb26:null},
-  {id:'h41',brand:"Tissot",series:"PRX",model:"Powermatic 80 — Ice Blue",ref:"T137.407.11.351.00",serial:"",origin:"Switzerland",casemat:"Stainless Steel",dial:"Ice Blue",strap:"SS Bracelet",size:"40",thick:"10.9",lug:"12 integrated",movement:"Automatic",pr:80,wr:100,year:null,condition:"New",price:650,paid:null,service:"",sold:false,soldAmt:null,notes:"Gift from mom. Have the ice blue rubber strap from Tissot.",feb26:null},
-  {id:'h42',brand:"Tudor",series:"Heritage",model:"Chrono",ref:"70330B",serial:"",origin:"Switzerland",casemat:"Stainless Steel",dial:"Cream",strap:"NATO Blue/Bracelet SS",size:"40",thick:"",lug:"22",movement:"Automatic",pr:42,wr:150,year:2021,condition:"New",price:5400,paid:4005,service:"",sold:false,soldAmt:null,notes:"",feb26:null},
-  {id:'h43',brand:"Tudor",series:"Black Bay",model:"Pro",ref:"M79470-0001",serial:"43HR901",origin:"Switzerland",casemat:"Stainless Steel",dial:"Black",strap:"SS Bracelet",size:"39",thick:"14.6",lug:"20",movement:"Automatic",pr:70,wr:200,year:2022,condition:"New",price:4000,paid:4000,service:"",sold:false,soldAmt:null,notes:"",feb26:null},
-  {id:'h44',brand:"Tudor",series:"Black Bay 58",model:"Red",ref:"7939A1A0RU",serial:"4NM6486",origin:"Switzerland",casemat:"Stainless Steel",dial:"Red",strap:"SS Bracelet",size:"39",thick:"11.7",lug:"20",movement:"Automatic",pr:65,wr:200,year:2025,condition:"Gift/New",price:4725,paid:0,service:"",sold:false,soldAmt:null,notes:"Surprise gift from Swish — beautiful leather 3-watch holder. Gifted: August 29, 2025.",feb26:null},
-  {id:'h45',brand:"Universal Geneve",series:"",model:"",ref:"",serial:"",origin:"",casemat:"Gold",dial:"",strap:"",size:"",thick:"",lug:"",movement:"Automatic",pr:null,wr:null,year:null,condition:"",price:null,paid:0,service:"",sold:false,soldAmt:null,notes:"",feb26:null},
-];
+// Collection data is user-managed via localStorage
 
 const momW=[
   {id:'m0',brand:"Cartier",series:"Ballon Bleu 36",model:"",ref:"W4BB0036",serial:"4372183694EY",origin:"Switzerland",casemat:"Stainless Steel",dial:"Silver/Diamonds",strap:"SS Bracelet",size:"36",thick:"",lug:"",movement:"Automatic",pr:null,wr:30,year:2025,condition:"New",price:14800,paid:14800,service:""},
@@ -876,9 +862,9 @@ const momW=[
 ];
 
 // ── COMBINE ALL ──
-function allWatches(){return [...hardcoded,...customWatches];}
-function active(){return allWatches().filter(w=>!w.sold);}
-function soldW(){return allWatches().filter(w=>w.sold);}
+function allWatches(){return customWatches;}
+function active(){return customWatches.filter(w=>!w.sold);}
+function soldW(){return customWatches.filter(w=>w.sold);}
 
 // ── STATE ──
 let filtered=[], curF='all', curS='brand';
@@ -984,7 +970,7 @@ function makeCard(w,i,type){
 // ── RENDER GRID ──
 function renderGrid(data,elId,type){
   const el=document.getElementById(elId);
-  if(!data.length){el.innerHTML='<div class="empty">No timepieces here.</div>';return;}
+  if(!data.length){el.innerHTML='<div class="empty">No timepieces yet — tap <strong style="color:var(--gold)">+ Add Watch</strong> to begin your collection.</div>';return;}
   el.innerHTML=data.map((w,i)=>makeCard(w,i,type)).join('');
   // photo buttons
   el.querySelectorAll('.add-photo-btn,.change-photo-btn').forEach(btn=>{
@@ -1046,7 +1032,6 @@ function openModal(w){
   modalWatch=w;
   const isMom=momW.some(m=>m.id===w.id);
   const isBeth=bethWatches.some(b=>b.id===w.id);
-  const isCustom=!!w._custom;
   // photo
   const pk=photoKey(w);
   const mImg=document.getElementById('mPhotoImg'),mPh=document.getElementById('mPhotoPh'),mDel=document.getElementById('mPhotoDelBtn');
@@ -1055,13 +1040,16 @@ function openModal(w){
   document.getElementById('mBrand').textContent=w.brand;
   document.getElementById('mModel').textContent=[w.series,w.model].filter(Boolean).join(' · ')||w.brand;
   document.getElementById('mRefLbl').textContent=w.ref||'';
-  // actions — edit/delete only for custom watches
   const actEl=document.getElementById('mActions');
-  if(isCustom||isBeth){
+  // All watches are user-managed — show Edit and Delete on everything
+  if(!isMom){
     actEl.innerHTML=`<button class="m-edit-btn" id="mEditBtn">Edit</button><button class="m-del-btn" id="mDelBtn">Remove</button>`;
     document.getElementById('mEditBtn').onclick=()=>{closeModal();openForm(w, isBeth?'beth':'custom');};
     document.getElementById('mDelBtn').onclick=()=>{closeModal();openConfirm(w, isBeth?'beth':'custom');};
-  } else { actEl.innerHTML=''; }
+  } else {
+    actEl.innerHTML=`<button class="m-edit-btn" id="mEditBtn">Edit</button>`;
+    document.getElementById('mEditBtn').onclick=()=>{closeModal();openForm(w,'mom');};
+  }
   // financials
   const pV=w.paid||0,rV=w.price||0,f26V=w.feb26||0;
   const glV=f26V&&pV?f26V-pV:null;
@@ -1404,79 +1392,7 @@ document.getElementById('restoreFileIn').addEventListener('change',e=>{
   });
 })();
 
-// ── SPLASH SCREEN ──
-(function(){
-  const splash = document.getElementById('splash');
-  const face = splash.querySelector('.s-face');
-
-  // Draw tick marks
-  for(let i=0;i<60;i++){
-    const tick = document.createElement('div');
-    const angle = i * 6;
-    const isMajor = i % 5 === 0;
-    const r = 46; // radius in px from center of face (face is ~116px dia, 58px radius)
-    const rad = (angle - 90) * Math.PI / 180;
-    const len = isMajor ? 10 : 5;
-    const x = 50 + (r - len/2) * Math.cos(rad);
-    const y = 50 + (r - len/2) * Math.sin(rad);
-    tick.style.cssText = `
-      position:absolute;
-      width:${isMajor?'2':'1'}px;
-      height:${len}px;
-      background:${isMajor?'rgba(184,145,58,.9)':'rgba(184,145,58,.35)'};
-      left:${x}%;top:${y}%;
-      transform:translate(-50%,-50%) rotate(${angle}deg);
-    `;
-    face.appendChild(tick);
-  }
-
-  // Set hands to current time
-  function setHands(){
-    const now = new Date();
-    const h = now.getHours() % 12;
-    const m = now.getMinutes();
-    const s = now.getSeconds();
-    const ms = now.getMilliseconds();
-    const secDeg   = (s + ms/1000) * 6;
-    const minDeg   = (m + s/60) * 6;
-    const hourDeg  = (h + m/60) * 30;
-    document.getElementById('sHour').style.transform = `rotate(${hourDeg}deg)`;
-    document.getElementById('sMin').style.transform  = `rotate(${minDeg}deg)`;
-    document.getElementById('sSec').style.transform  = `rotate(${secDeg}deg)`;
-    // Override animations to start from correct position
-    document.getElementById('sHour').style.animation = `sHour ${43200 - (h*3600+m*60+s)}s linear forwards`;
-    document.getElementById('sMin').style.animation  = `sMin ${3600 - (m*60+s)}s linear forwards`;
-    document.getElementById('sSec').style.animation  = `sSec ${60-s}s linear forwards`;
-  }
-  setHands();
-
-  // Floating gold particles
-  for(let i=0;i<18;i++){
-    const p = document.createElement('div');
-    p.className='s-particle';
-    const size = Math.random()*2.5+0.5;
-    const left = Math.random()*100;
-    const dur  = Math.random()*14+8;
-    const delay= Math.random()*10;
-    p.style.cssText=`left:${left}%;bottom:-10px;width:${size}px;height:${size}px;animation-duration:${dur}s;animation-delay:${delay}s`;
-    splash.appendChild(p);
-  }
-
-  // Dismiss
-  function dismiss(){
-    splash.classList.add('fade-out');
-    setTimeout(()=>{ splash.style.display='none'; }, 900);
-  }
-
-  document.getElementById('splashEnter').addEventListener('click', e=>{
-    e.stopPropagation();
-    dismiss();
-  });
-  // Also tap anywhere on splash after 1.5s
-  setTimeout(()=>{
-    splash.addEventListener('click', dismiss, {once:true});
-  }, 1500);
-})();
+// ── PWA BANNER ──
 // Show install prompt if not already installed as PWA
 function isPWA(){
   return window.navigator.standalone === true ||
