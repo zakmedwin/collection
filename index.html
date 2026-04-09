@@ -329,7 +329,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 <body>
 
 <!-- ── SPLASH SCREEN ── -->
-<div id="splash">
+<div id="splash" style="display:none">
   <!-- floating particles injected by JS -->
   <div class="splash-watch">
     <div class="s-ring"></div>
@@ -363,7 +363,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   setC();setInterval(setC,1000);
   var b=document.getElementById('splashEnter');
   if(b){b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();go();});b.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();go();});}
-  setTimeout(function(){document.getElementById('splash').addEventListener('click',go,{once:true});},2000);
+  setTimeout(function(){var s=document.getElementById('splash');if(s)s.addEventListener('click',go,{once:true});},2000);
   setTimeout(go,8000);
 })();
 </script>
