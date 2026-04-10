@@ -647,16 +647,6 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
           <div class="field"><label>Serial No.</label><input type="text" id="fSerial" placeholder=""></div>
           <div class="field"><label>Origin</label><input type="text" id="fOrigin" placeholder="e.g. Switzerland"></div>
           <div class="field"><label>Year Purchased</label><input type="number" id="fYear" placeholder="e.g. 2024" min="1900" max="2100"></div>
-          <div class="field"><label>Condition</label>
-            <select id="fCondition">
-              <option value="">— Select —</option>
-              <option>New</option>
-              <option>Gift/New</option>
-              <option>Used</option>
-              <option>Gift/Used</option>
-              <option>Pre-Owned</option>
-            </select>
-          </div>
         </div>
       </div>
 
@@ -674,14 +664,15 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
               <option>Kinetic</option>
             </select>
           </div>
+          <div class="field"><label>Power Reserve (h)</label><input type="number" id="fPr" placeholder="e.g. 70"></div>
+          <div class="field"><label>Water Resist. (M)</label><input type="number" id="fWr" placeholder="e.g. 300"></div>
           <div class="field"><label>Case Material</label><input type="text" id="fCasemat" placeholder="e.g. Stainless Steel"></div>
           <div class="field"><label>Dial Color</label><input type="text" id="fDial" placeholder="e.g. Black"></div>
           <div class="field"><label>Bracelet / Strap</label><input type="text" id="fStrap" placeholder="e.g. Oyster Bracelet"></div>
           <div class="field"><label>Case Size (mm)</label><input type="text" id="fSize" placeholder="e.g. 41"></div>
           <div class="field"><label>Thickness (mm)</label><input type="text" id="fThick" placeholder="e.g. 13.2"></div>
           <div class="field"><label>Lug Width (mm)</label><input type="text" id="fLug" placeholder="e.g. 20"></div>
-          <div class="field"><label>Power Reserve (h)</label><input type="number" id="fPr" placeholder="e.g. 70"></div>
-          <div class="field"><label>Water Resist. (M)</label><input type="number" id="fWr" placeholder="e.g. 300"></div>
+          <div class="field"><label>Lug to Lug (mm)</label><input type="text" id="fLugToLug" placeholder="e.g. 47"></div>
         </div>
       </div>
 
@@ -709,14 +700,16 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
           <div class="field"><label>Purchase Source</label>
             <select id="fSource">
               <option value="">— Select —</option>
-              <option>Authorized Dealer</option>
-              <option>Grey Market Dealer</option>
-              <option>Private Sale</option>
-              <option>Auction</option>
-              <option>Gift</option>
+              <option>New — Authorized Dealer</option>
+              <option>New — Brand Boutique</option>
+              <option>New — Grey Market</option>
+              <option>Pre-Owned — Dealer</option>
+              <option>Pre-Owned — Private Sale</option>
+              <option>Pre-Owned — Auction</option>
+              <option>Pre-Owned — Online Marketplace</option>
+              <option>Gift — New</option>
+              <option>Gift — Pre-Owned</option>
               <option>Inherited</option>
-              <option>Brand Boutique</option>
-              <option>Online Marketplace</option>
             </select>
           </div>
           <div class="field"><label>Dealer / Seller Name</label><input type="text" id="fDealer" placeholder="e.g. North East Fine Jewelers"></div>
@@ -1169,7 +1162,7 @@ function openModal(w){
   const glC=glV==null?'':(glV>0?'gain':'loss');
   const glT=glV!=null?((glV>=0?'+':'−')+fmtP(Math.abs(glV))):'—';
   document.getElementById('mFin').innerHTML=`<div><div class="mfl">Paid</div><div class="mfv">${pV?fmtP(pV):'—'}</div></div><div><div class="mfl">Retail</div><div class="mfv">${rV?fmtP(rV):'—'}</div></div><div><div class="mfl">Feb '26</div><div class="mfv">${f26V?fmtP(f26V):'—'}</div></div><div><div class="mfl">Gain/Loss</div><div class="mfv ${glC}">${glT}</div></div>`;
-  document.getElementById('mSpec').innerHTML=`<div><div class="msk">Year</div><div class="msv">${dsh(w.year)}</div></div><div><div class="msk">Movement</div><div class="msv">${dsh(w.movement)}</div></div><div><div class="msk">Power reserve</div><div class="msv">${w.pr?w.pr+'h':'—'}</div></div><div><div class="msk">Case material</div><div class="msv">${dsh(w.casemat)}</div></div><div><div class="msk">Dial</div><div class="msv">${dsh(w.dial)}</div></div><div><div class="msk">Bracelet/strap</div><div class="msv">${dsh(w.strap)}</div></div><div><div class="msk">Case size</div><div class="msv">${w.size?w.size+'mm':'—'}</div></div><div><div class="msk">Thickness</div><div class="msv">${w.thick?w.thick+'mm':'—'}</div></div><div><div class="msk">Lug width</div><div class="msv">${w.lug?w.lug+'mm':'—'}</div></div><div><div class="msk">Water resist.</div><div class="msv">${w.wr?w.wr+'M':'—'}</div></div><div><div class="msk">Condition</div><div class="msv">${dsh(w.condition)}</div></div><div><div class="msk">Origin</div><div class="msv">${dsh(w.origin)}</div></div>`;
+  document.getElementById('mSpec').innerHTML=`<div><div class="msk">Year</div><div class="msv">${dsh(w.year)}</div></div><div><div class="msk">Movement</div><div class="msv">${dsh(w.movement)}</div></div><div><div class="msk">Power reserve</div><div class="msv">${w.pr?w.pr+'h':'—'}</div></div><div><div class="msk">Water resist.</div><div class="msv">${w.wr?w.wr+'M':'—'}</div></div><div><div class="msk">Case material</div><div class="msv">${dsh(w.casemat)}</div></div><div><div class="msk">Dial</div><div class="msv">${dsh(w.dial)}</div></div><div><div class="msk">Bracelet/strap</div><div class="msv">${dsh(w.strap)}</div></div><div><div class="msk">Case size</div><div class="msv">${w.size?w.size+'mm':'—'}</div></div><div><div class="msk">Thickness</div><div class="msv">${w.thick?w.thick+'mm':'—'}</div></div><div><div class="msk">Lug width</div><div class="msv">${w.lug?w.lug+'mm':'—'}</div></div><div><div class="msk">Lug to lug</div><div class="msv">${w.lugToLug?w.lugToLug+'mm':'—'}</div></div><div><div class="msk">Origin</div><div class="msv">${dsh(w.origin)}</div></div>`;
   document.getElementById('mRef2').innerHTML=(w.ref||w.serial)?`<div class="m-rref"><strong>Ref:</strong> ${w.ref||'—'} &nbsp;|&nbsp; <strong>Serial:</strong> ${w.serial||'—'}</div>`:'';
 
   // box & papers badges
@@ -1301,7 +1294,6 @@ function openForm(watchToEdit, context){
   document.getElementById('fSerial').value=v.serial||'';
   document.getElementById('fOrigin').value=v.origin||'';
   document.getElementById('fYear').value=v.year||'';
-  document.getElementById('fCondition').value=v.condition||'';
   document.getElementById('fMovement').value=v.movement||'';
   document.getElementById('fCasemat').value=v.casemat||'';
   document.getElementById('fDial').value=v.dial||'';
@@ -1309,6 +1301,7 @@ function openForm(watchToEdit, context){
   document.getElementById('fSize').value=v.size||'';
   document.getElementById('fThick').value=v.thick||'';
   document.getElementById('fLug').value=v.lug||'';
+  document.getElementById('fLugToLug').value=v.lugToLug||'';
   document.getElementById('fPr').value=v.pr||'';
   document.getElementById('fWr').value=v.wr||'';
   document.getElementById('fPrice').value=v.price||'';
@@ -1375,7 +1368,6 @@ document.getElementById('formSaveBtn').addEventListener('click',()=>{
     serial:document.getElementById('fSerial').value.trim(),
     origin:document.getElementById('fOrigin').value.trim(),
     year:parseInt(document.getElementById('fYear').value)||null,
-    condition:document.getElementById('fCondition').value,
     movement:document.getElementById('fMovement').value,
     casemat:document.getElementById('fCasemat').value.trim(),
     dial:document.getElementById('fDial').value.trim(),
@@ -1383,6 +1375,7 @@ document.getElementById('formSaveBtn').addEventListener('click',()=>{
     size:document.getElementById('fSize').value.trim(),
     thick:document.getElementById('fThick').value.trim(),
     lug:document.getElementById('fLug').value.trim(),
+    lugToLug:document.getElementById('fLugToLug').value.trim(),
     pr:parseFloat(document.getElementById('fPr').value)||null,
     wr:parseFloat(document.getElementById('fWr').value)||null,
     price:parseFloat(document.getElementById('fPrice').value)||null,
