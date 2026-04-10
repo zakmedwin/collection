@@ -26,8 +26,8 @@
 
 /* ── LIGHT THEME ── */
 body.light{
-  --ink:#f5f0e8;--card:#faf6ef;--card2:#f0ebe0;
-  --border:#ddd8cc;--border2:#ccc6b8;
+  --ink:#f8f8f6;--card:#ffffff;--card2:#f2f2f0;
+  --border:#e0e0dc;--border2:#cacac4;
   --gold:#9a7a2a;--gold2:#b8913a;
   --stone:#9a9288;--cream:#1a1814;
   --green:#2a6a3a;--danger:#8B1A1A;
@@ -89,13 +89,10 @@ h1 em{color:var(--gold);font-style:italic}
 .s-lug.b{bottom:-16px;border-radius:0 0 3px 3px}
 .s-crown{position:absolute;right:-14px;top:50%;transform:translateY(-50%);width:13px;height:24px;border:1px solid rgba(184,145,58,.5);border-left:none;border-radius:0 3px 3px 0;background:linear-gradient(to right,#252520,#1a1918)}
 .s-hand{position:absolute;bottom:50%;left:50%;transform-origin:bottom center;border-radius:2px 2px 0 0}
-.s-hour{width:3px;height:30px;margin-left:-1.5px;background:linear-gradient(to top,var(--gold2),var(--gold));box-shadow:0 0 5px rgba(184,145,58,.35);animation:sHour 43200s linear infinite}
-.s-min{width:2px;height:42px;margin-left:-1px;background:linear-gradient(to top,var(--cream),rgba(242,237,228,.5));animation:sMin 3600s linear infinite}
-.s-sec{width:1px;height:46px;margin-left:-.5px;background:#c0392b;bottom:calc(50% - 12px);animation:sSec 60s linear infinite}
+.s-hour{width:3px;height:30px;margin-left:-1.5px;background:linear-gradient(to top,var(--gold2),var(--gold));box-shadow:0 0 5px rgba(184,145,58,.35)}
+.s-min{width:2px;height:42px;margin-left:-1px;background:linear-gradient(to top,var(--cream),rgba(242,237,228,.5))}
+.s-sec{width:1px;height:46px;margin-left:-.5px;background:#c0392b;bottom:calc(50% - 12px)}
 .s-center{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px rgba(184,145,58,.5)}
-@keyframes sHour{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes sMin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes sSec{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 .splash-txt{text-align:center;animation:sTxtRise 1s ease both;animation-delay:.2s}
 @keyframes sTxtRise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
 .s-eyebrow{font-size:.55rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:14px;opacity:.85}
@@ -313,14 +310,14 @@ input.file-in{display:none}
 .ws-close:hover{border-color:var(--danger);color:var(--danger)}
 .ws-eyebrow{font-size:.55rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
 .ws-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:var(--cream);margin-bottom:28px;letter-spacing:.06em}
-.ws-clock{position:relative;width:220px;height:220px;margin:0 auto 24px}
-.ws-face{position:absolute;inset:0;border-radius:50%;background:radial-gradient(ellipse at 38% 35%,#232118 0%,#0c0c0a 65%);border:2px solid rgba(184,145,58,.5);box-shadow:0 0 30px rgba(184,145,58,.08),inset 0 1px 0 rgba(255,255,255,.03)}
-.ws-hand{position:absolute;bottom:50%;left:50%;transform-origin:bottom center;border-radius:2px 2px 0 0}
-.ws-hour{width:4px;height:60px;margin-left:-2px;background:linear-gradient(to top,var(--gold2),var(--gold));box-shadow:0 0 6px rgba(184,145,58,.3)}
-.ws-min{width:2px;height:85px;margin-left:-1px;background:linear-gradient(to top,var(--cream),rgba(242,237,228,.5))}
-.ws-sec{width:1px;height:95px;margin-left:-.5px;background:#c0392b;bottom:calc(50% - 20px)}
-.ws-center{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--gold);top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 8px rgba(184,145,58,.5);z-index:2}
-.ws-digital{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:300;color:var(--cream);letter-spacing:.12em;margin-bottom:8px;font-variant-numeric:tabular-nums}
+.ws-clock{position:relative;width:240px;height:240px;margin:0 auto 24px}
+.ws-face{position:absolute;inset:0;border-radius:50%;background:radial-gradient(ellipse at 40% 38%,#2e2c28 0%,#181614 70%);border:2px solid rgba(184,145,58,.7);box-shadow:0 0 0 6px rgba(184,145,58,.08),0 0 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)}
+.ws-hand{position:absolute;bottom:50%;left:50%;transform-origin:bottom center;border-radius:3px 3px 1px 1px}
+.ws-hour{width:5px;height:68px;margin-left:-2.5px;background:linear-gradient(to top,var(--gold),var(--gold2));box-shadow:0 0 6px rgba(184,145,58,.25)}
+.ws-min{width:3px;height:96px;margin-left:-1.5px;background:linear-gradient(to top,rgba(242,237,228,.95),rgba(242,237,228,.5));border-radius:2px 2px 1px 1px}
+.ws-sec{position:absolute;width:1.5px;height:120px;left:50%;top:calc(50% - 90px);background:#e74c3c;border-radius:1px;transform-origin:50% 90px}
+.ws-center{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--gold);top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 2px #181614,0 0 8px rgba(184,145,58,.5);z-index:3}
+.ws-digital{font-family:'Courier New',Courier,monospace;font-size:2.4rem;font-weight:700;color:var(--cream);letter-spacing:.06em;margin-bottom:8px;font-variant-numeric:tabular-nums}
 .ws-hint{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)}
 
 /* CONFIRM DIALOG */
@@ -455,7 +452,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
       <div class="ws-face" id="wsFace"></div>
       <div class="ws-hand ws-hour" id="wsHour"></div>
       <div class="ws-hand ws-min" id="wsMin"></div>
-      <div class="ws-hand ws-sec" id="wsSec"></div>
+      <div class="ws-sec" id="wsSec"></div>
       <div class="ws-center"></div>
     </div>
     <!-- Digital readout -->
@@ -1612,27 +1609,29 @@ function openWatchSetter(){
   if(!overlay) return;
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
-  // Draw tick marks once
+  // Build clock face once
   const face = document.getElementById('wsFace');
   if(face && !face.dataset.built){
     face.dataset.built = '1';
+    // Tick marks
     for(let i=0;i<60;i++){
+      const a=i*6, major=i%5===0, rad=(a-90)*Math.PI/180;
+      const outerR=47, len=major?10:4, w=major?2.5:1;
+      const x=50+outerR*Math.cos(rad), y=50+outerR*Math.sin(rad);
       const t=document.createElement('div');
-      const a=i*6, major=i%5===0;
-      const rad=(a-90)*Math.PI/180, rv=47, len=major?12:5;
-      const x=50+(rv-len/2)*Math.cos(rad), y=50+(rv-len/2)*Math.sin(rad);
-      t.style.cssText=`position:absolute;width:${major?3:1}px;height:${len}px;background:${major?'rgba(184,145,58,.95)':'rgba(184,145,58,.3)'};left:${x}%;top:${y}%;transform:translate(-50%,-50%) rotate(${a}deg);border-radius:1px`;
+      t.style.cssText=`position:absolute;width:${w}px;height:${len}px;background:${major?'rgba(184,145,58,1)':'rgba(184,145,58,.5)'};left:${x}%;top:${y}%;transform:translate(-50%,-50%) rotate(${a}deg);border-radius:1px`;
       face.appendChild(t);
-      // Hour numerals at major marks
-      if(major && i>0){
-        const num=document.createElement('div');
-        const nr=34, nx=50+nr*Math.cos(rad), ny=50+nr*Math.sin(rad);
-        const label=[12,1,2,3,4,5,6,7,8,9,10,11][i/5];
-        num.style.cssText=`position:absolute;font-family:'Cormorant Garamond',serif;font-size:11px;color:rgba(184,145,58,.8);left:${nx}%;top:${ny}%;transform:translate(-50%,-50%);line-height:1`;
-        num.textContent=label;
-        face.appendChild(num);
-      }
     }
+    // Arabic numerals at all 12 hour positions
+    const labels=['12','1','2','3','4','5','6','7','8','9','10','11'];
+    labels.forEach((label,i)=>{
+      const a=(i*30-90)*Math.PI/180, nr=34;
+      const nx=50+nr*Math.cos(a), ny=50+nr*Math.sin(a);
+      const num=document.createElement('div');
+      num.style.cssText=`position:absolute;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:500;color:rgba(242,237,228,.9);left:${nx}%;top:${ny}%;transform:translate(-50%,-50%);line-height:1;letter-spacing:0`;
+      num.textContent=label;
+      face.appendChild(num);
+    });
   }
   function tickWS(){
     const n=new Date(), h=n.getHours()%12, m=n.getMinutes(), s=n.getSeconds(), ms=n.getMilliseconds();
@@ -1641,12 +1640,14 @@ function openWatchSetter(){
     if(rh) rh.style.transform=`rotate(${hd}deg)`;
     if(rm) rm.style.transform=`rotate(${md}deg)`;
     if(rs) rs.style.transform=`rotate(${sd}deg)`;
+    // 12-hour digital with seconds
     const dig=document.getElementById('wsDigital');
     if(dig){
-      const hh=n.getHours().toString().padStart(2,'0');
+      const hr12=n.getHours()%12||12;
+      const ampm=n.getHours()>=12?'PM':'AM';
       const mm=m.toString().padStart(2,'0');
       const ss=s.toString().padStart(2,'0');
-      dig.textContent=`${hh}:${mm}:${ss}`;
+      dig.textContent=`${hr12}:${mm}:${ss} ${ampm}`;
     }
   }
   tickWS();
