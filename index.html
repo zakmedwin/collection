@@ -1612,54 +1612,65 @@ document.getElementById('statsToggleBtn').addEventListener('click', () => {
 let wsInterval = null;
 let wsChimeOn = localStorage.getItem('ws_chime') !== 'off';
 let wsLastChimeSec = -1;
+let wsAudioCtx = null;
 
-// Web Audio API chime generator
+function getAudioCtx(){
+  if(!wsAudioCtx || wsAudioCtx.state === 'closed'){
+    wsAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if(wsAudioCtx.state === 'suspended') wsAudioCtx.resume();
+  return wsAudioCtx;
+}
+
 function playChime(type){
   try{
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
     if(type === 'tick'){
-      // Soft bell tone for :55-:59
+      // Soft bell — single tone, descending
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.18, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.4);
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(660, now + 0.35);
+      gain.gain.setValueAtTime(0.22, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      osc.start(now);
+      osc.stop(now + 0.5);
     } else {
-      // Fuller tone for :00 — two-note chime
+      // Top of minute — two-note chime
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.connect(gain1); gain1.connect(ctx.destination);
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(1046, now);
+      osc1.frequency.exponentialRampToValueAtTime(784, now + 0.6);
+      gain1.gain.setValueAtTime(0.25, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+      osc1.start(now); osc1.stop(now + 0.8);
+
       const osc2 = ctx.createOscillator();
       const gain2 = ctx.createGain();
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1046, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(784, ctx.currentTime + 0.5);
-      gain.gain.setValueAtTime(0.22, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.7);
+      osc2.connect(gain2); gain2.connect(ctx.destination);
       osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(1318, ctx.currentTime + 0.15);
-      osc2.frequency.exponentialRampToValueAtTime(1046, ctx.currentTime + 0.65);
-      gain2.gain.setValueAtTime(0, ctx.currentTime);
-      gain2.gain.setValueAtTime(0.18, ctx.currentTime + 0.15);
-      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
-      osc2.start(ctx.currentTime + 0.15);
-      osc2.stop(ctx.currentTime + 0.8);
+      osc2.frequency.setValueAtTime(1318, now + 0.2);
+      osc2.frequency.exponentialRampToValueAtTime(1046, now + 0.8);
+      gain2.gain.setValueAtTime(0, now);
+      gain2.gain.setValueAtTime(0.2, now + 0.2);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+      osc2.start(now + 0.2); osc2.stop(now + 0.9);
     }
-    setTimeout(()=>ctx.close(), 1000);
-  } catch(e){}
+  } catch(e){ console.warn('Chime error:', e); }
 }
 function openWatchSetter(){
   const overlay = document.getElementById('wsOverlay');
   if(!overlay) return;
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
+  // Initialize audio context on user gesture
+  getAudioCtx();
   // Build clock face once
   const face = document.getElementById('wsFace');
   if(face && !face.dataset.built){
