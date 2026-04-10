@@ -38,7 +38,6 @@ html{-webkit-text-size-adjust:100%}
 body{background:var(--ink);color:var(--cream);font-family:'Montserrat',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom);transition:background .3s,color .3s}
 
 /* theme toggle button */
-.theme-toggle{background:transparent;border:1px solid var(--border2);color:var(--stone);width:36px;height:36px;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;-webkit-appearance:none;border-radius:0}
 .theme-toggle:hover{border-color:var(--gold);color:var(--gold)}
 
 /* PWA INSTALL BANNER */
@@ -64,12 +63,12 @@ header{padding:40px 40px 28px;border-bottom:1px solid var(--border);display:flex
 h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,6vw,3.8rem);font-weight:300;letter-spacing:.08em;line-height:1}
 h1 em{color:var(--gold);font-style:italic}
 .h-sub{margin-top:6px;font-size:.58rem;letter-spacing:.25em;text-transform:uppercase;color:var(--stone)}
-.add-watch-btn{background:rgba(184,145,58,.1);border:1px solid var(--gold);color:var(--gold);padding:11px 22px;font-family:'Montserrat',sans-serif;font-size:.62rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.add-watch-btn{background:rgba(184,145,58,.1);border:1px solid var(--gold);color:var(--gold);padding:0 22px;height:40px;font-family:'Montserrat',sans-serif;font-size:.62rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center}
 .add-watch-btn:hover{background:rgba(184,145,58,.22)}
 .hdr-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.backup-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);padding:11px 18px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.backup-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);padding:0 18px;height:40px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center}
 .backup-btn:hover{border-color:var(--stone);color:var(--cream)}
-.restore-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);padding:11px 18px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.restore-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);padding:0 18px;height:40px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center}
 .restore-btn:hover{border-color:var(--green);color:var(--green)}
 .backup-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--green);color:var(--green);padding:12px 24px;font-family:'Montserrat',sans-serif;font-size:.62rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;z-index:800;opacity:0;transition:opacity .3s;pointer-events:none}
 .backup-toast.show{opacity:1}
@@ -174,6 +173,10 @@ h1 em{color:var(--gold);font-style:italic}
 .photo-btn{background:rgba(184,145,58,.15);border:1px solid var(--gold);color:var(--gold);padding:7px 14px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0}
 .photo-btn:hover{background:rgba(184,145,58,.3)}
 .photo-btn.del-btn{border-color:var(--danger);color:var(--danger);background:rgba(158,90,90,.1)}
+.photo-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.6);border:none;color:#fff;font-size:1.8rem;width:32px;height:48px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;opacity:0;transition:opacity .2s;-webkit-appearance:none;border-radius:0;line-height:1}
+.photo-prev{left:0}.photo-next{right:0}
+.wcard:hover .photo-nav{opacity:1}
+.photo-count{position:absolute;bottom:6px;right:8px;font-size:.5rem;letter-spacing:.1em;color:rgba(255,255,255,.8);background:rgba(0,0,0,.5);padding:2px 6px;z-index:2;pointer-events:none}
 input.file-in{display:none}
 
 /* CARD BODY */
@@ -296,8 +299,10 @@ input.file-in{display:none}
 .btn-save.green:hover{background:rgba(74,154,106,.25)}
 
 /* WATCH SETTER BUTTON */
-.watch-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;-webkit-appearance:none;border-radius:0;margin-top:4px}
+.watch-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;-webkit-appearance:none;border-radius:0}
 .watch-btn:hover{border-color:var(--gold);color:var(--gold)}
+.theme-toggle{background:transparent;border:1px solid var(--border2);color:var(--stone);width:40px;height:40px;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;-webkit-appearance:none;border-radius:0}
+.theme-toggle:hover{border-color:var(--gold);color:var(--gold)}
 
 /* WATCH SETTER OVERLAY */
 .ws-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:900;align-items:center;justify-content:center;padding:20px}
@@ -580,6 +585,9 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
         <span>No photo yet</span>
       </div>
       <img id="mPhotoImg" src="" alt="" style="display:none">
+      <button class="photo-nav photo-prev" id="mPhotoPrev" style="display:none">&#8249;</button>
+      <button class="photo-nav photo-next" id="mPhotoNext" style="display:none">&#8250;</button>
+      <div class="photo-count" id="mPhotoCount" style="display:none"></div>
       <div class="m-photo-actions">
         <button class="m-photo-btn" id="mPhotoAddBtn">+ Photo</button>
         <button class="m-photo-btn del" id="mPhotoDelBtn" style="display:none">Remove</button>
@@ -982,10 +990,35 @@ function renderBreakdown(){
 }
 
 // ── PHOTO HTML FOR CARD ──
+// ── MULTI-PHOTO HELPERS ──
+// photos[pk] can be a string (legacy) or array (new)
+function getPhotos(pk){ const p=photos[pk]; if(!p) return []; if(Array.isArray(p)) return p; return [p]; }
+function setPhotos(pk, arr){ photos[pk]=arr.length===0?undefined:arr; if(photos[pk]===undefined) delete photos[pk]; savePhotos(photos); }
+function addPhoto(pk, dataUrl){ const arr=getPhotos(pk); arr.push(dataUrl); setPhotos(pk, arr); }
+function removePhoto(pk, idx){ const arr=getPhotos(pk); arr.splice(idx,1); setPhotos(pk, arr); }
+
+// Per-card photo index state
+const cardPhotoIndex = {};
+
 function photoHtml(pk){
-  const img=photos[pk];
-  if(img) return `<div class="photo-area" data-pk="${pk}"><img src="${img}" alt=""><div class="photo-overlay"><button class="photo-btn change-photo-btn" data-pk="${pk}">Change</button><button class="photo-btn del-btn remove-photo-btn" data-pk="${pk}">Remove</button></div><input type="file" accept="image/*" class="file-in card-file-in" data-pk="${pk}"></div>`;
-  return `<div class="photo-area" data-pk="${pk}"><div class="photo-placeholder">${camIcon}<span>Tap to add photo</span></div><div class="photo-overlay"><button class="photo-btn add-photo-btn" data-pk="${pk}">+ Add Photo</button></div><input type="file" accept="image/*" class="file-in card-file-in" data-pk="${pk}"></div>`;
+  const imgs = getPhotos(pk);
+  const idx = cardPhotoIndex[pk] || 0;
+  const cur = imgs[idx];
+  const multi = imgs.length > 1;
+  if(cur) return `<div class="photo-area" data-pk="${pk}">
+    <img src="${cur}" alt="">
+    ${multi ? `<button class="photo-nav photo-prev" data-pk="${pk}">&#8249;</button><button class="photo-nav photo-next" data-pk="${pk}">&#8250;</button><div class="photo-count">${idx+1}/${imgs.length}</div>` : ''}
+    <div class="photo-overlay">
+      <button class="photo-btn add-photo-btn" data-pk="${pk}">+ Add</button>
+      <button class="photo-btn del-btn remove-photo-btn" data-pk="${pk}" data-idx="${idx}">Remove</button>
+    </div>
+    <input type="file" accept="image/*" class="file-in card-file-in" data-pk="${pk}">
+  </div>`;
+  return `<div class="photo-area" data-pk="${pk}">
+    <div class="photo-placeholder">${camIcon}<span>Tap to add photo</span><span style="font-size:.5rem;opacity:.5;margin-top:2px">On Mac: select Photos from sidebar</span></div>
+    <div class="photo-overlay"><button class="photo-btn add-photo-btn" data-pk="${pk}">+ Add Photo</button></div>
+    <input type="file" accept="image/*" class="file-in card-file-in" data-pk="${pk}">
+  </div>`;
 }
 
 // ── CARD ──
@@ -1025,23 +1058,49 @@ function renderGrid(data,elId,type){
   const el=document.getElementById(elId);
   if(!data.length){el.innerHTML='<div class="empty">No timepieces yet — tap <strong style="color:var(--gold)">+ Add Watch</strong> to begin your collection.</div>';return;}
   el.innerHTML=data.map((w,i)=>makeCard(w,i,type)).join('');
-  // photo buttons
-  el.querySelectorAll('.add-photo-btn,.change-photo-btn').forEach(btn=>{
+  // Add photo buttons
+  el.querySelectorAll('.add-photo-btn').forEach(btn=>{
     btn.addEventListener('click',e=>{e.stopPropagation();btn.closest('.photo-area').querySelector('.card-file-in').click();});
   });
+  // Remove current photo
   el.querySelectorAll('.remove-photo-btn').forEach(btn=>{
-    btn.addEventListener('click',e=>{e.stopPropagation();const pk=btn.dataset.pk;delete photos[pk];savePhotos(photos);renderAll();});
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const pk=btn.dataset.pk, idx=parseInt(btn.dataset.idx||0);
+      removePhoto(pk, idx);
+      if(cardPhotoIndex[pk]>=getPhotos(pk).length) cardPhotoIndex[pk]=Math.max(0,getPhotos(pk).length-1);
+      renderAll();
+    });
   });
+  // Photo nav prev/next
+  el.querySelectorAll('.photo-prev').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const pk=btn.dataset.pk, len=getPhotos(pk).length;
+      cardPhotoIndex[pk]=((cardPhotoIndex[pk]||0)-1+len)%len;
+      renderAll();
+    });
+  });
+  el.querySelectorAll('.photo-next').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const pk=btn.dataset.pk, len=getPhotos(pk).length;
+      cardPhotoIndex[pk]=((cardPhotoIndex[pk]||0)+1)%len;
+      renderAll();
+    });
+  });
+  // File input — add new photo to array
   el.querySelectorAll('.card-file-in').forEach(inp=>{
     inp.addEventListener('change',e=>{
       e.stopPropagation();
       const pk=inp.dataset.pk;
       const file=inp.files[0];
       if(!file)return;
-      savePhotoForWatch(pk, file,
-        (compressed)=>{ renderAll(); },
-        ()=>{ showToast('Photo too large — try a smaller image'); }
-      );
+      compressImage(file, compressed=>{
+        addPhoto(pk, compressed);
+        cardPhotoIndex[pk]=getPhotos(pk).length-1; // jump to new photo
+        renderAll();
+      });
       inp.value='';
     });
   });
@@ -1083,13 +1142,11 @@ function renderAll(){
 // ── MODAL ──
 function openModal(w){
   modalWatch=w;
+  modalPhotoIdx=0;
   const isMom=momW.some(m=>m.id===w.id);
   const isBeth=bethWatches.some(b=>b.id===w.id);
   // photo
-  const pk=photoKey(w);
-  const mImg=document.getElementById('mPhotoImg'),mPh=document.getElementById('mPhotoPh'),mDel=document.getElementById('mPhotoDelBtn');
-  if(photos[pk]){mImg.src=photos[pk];mImg.style.display='block';mPh.style.display='none';mDel.style.display='inline-block';}
-  else{mImg.src='';mImg.style.display='none';mPh.style.display='flex';mDel.style.display='none';}
+  refreshModalPhoto();
   document.getElementById('mBrand').textContent=w.brand;
   document.getElementById('mModel').textContent=[w.series,w.model].filter(Boolean).join(' · ')||w.brand;
   document.getElementById('mRefLbl').textContent=w.ref||'';
@@ -1148,30 +1205,73 @@ function openModal(w){
 }
 function closeModal(){document.getElementById('overlay').classList.remove('open');document.body.style.overflow='';modalWatch=null;}
 
+// ── MODAL PHOTO HELPERS ──
+let modalPhotoIdx = 0;
+function refreshModalPhoto(){
+  if(!modalWatch) return;
+  const pk = photoKey(modalWatch);
+  const imgs = getPhotos(pk);
+  const img = document.getElementById('mPhotoImg');
+  const ph = document.getElementById('mPhotoPh');
+  const del = document.getElementById('mPhotoDelBtn');
+  const prev = document.getElementById('mPhotoPrev');
+  const next = document.getElementById('mPhotoNext');
+  const count = document.getElementById('mPhotoCount');
+  if(imgs.length > 0){
+    if(modalPhotoIdx >= imgs.length) modalPhotoIdx = imgs.length - 1;
+    img.src = imgs[modalPhotoIdx];
+    img.style.display = 'block';
+    ph.style.display = 'none';
+    del.style.display = 'inline-block';
+    const multi = imgs.length > 1;
+    prev.style.display = multi ? 'flex' : 'none';
+    next.style.display = multi ? 'flex' : 'none';
+    count.style.display = multi ? 'block' : 'none';
+    count.textContent = `${modalPhotoIdx+1}/${imgs.length}`;
+  } else {
+    img.src=''; img.style.display='none';
+    ph.style.display='flex';
+    del.style.display='none';
+    prev.style.display='none';
+    next.style.display='none';
+    count.style.display='none';
+  }
+}
+
 // ── MODAL PHOTO HANDLERS ──
 document.getElementById('mPhotoAddBtn').addEventListener('click',()=>document.getElementById('mFileIn').click());
+document.getElementById('mPhotoPrev').addEventListener('click',e=>{
+  e.stopPropagation();
+  if(!modalWatch) return;
+  const pk=photoKey(modalWatch), len=getPhotos(pk).length;
+  modalPhotoIdx=(modalPhotoIdx-1+len)%len;
+  refreshModalPhoto();
+});
+document.getElementById('mPhotoNext').addEventListener('click',e=>{
+  e.stopPropagation();
+  if(!modalWatch) return;
+  const pk=photoKey(modalWatch), len=getPhotos(pk).length;
+  modalPhotoIdx=(modalPhotoIdx+1)%len;
+  refreshModalPhoto();
+});
 document.getElementById('mPhotoDelBtn').addEventListener('click',()=>{
-  if(!modalWatch)return;
-  const pk=photoKey(modalWatch);delete photos[pk];savePhotos(photos);
-  document.getElementById('mPhotoImg').style.display='none';
-  document.getElementById('mPhotoPh').style.display='flex';
-  document.getElementById('mPhotoDelBtn').style.display='none';
+  if(!modalWatch) return;
+  const pk=photoKey(modalWatch);
+  removePhoto(pk, modalPhotoIdx);
+  if(modalPhotoIdx >= getPhotos(pk).length) modalPhotoIdx = Math.max(0, getPhotos(pk).length-1);
+  refreshModalPhoto();
   renderAll();
 });
 document.getElementById('mFileIn').addEventListener('change',e=>{
-  if(!modalWatch)return;
-  const file=e.target.files[0];if(!file)return;
+  if(!modalWatch) return;
+  const file=e.target.files[0]; if(!file) return;
   const pk=photoKey(modalWatch);
-  savePhotoForWatch(pk, file,
-    (compressed)=>{
-      document.getElementById('mPhotoImg').src=compressed;
-      document.getElementById('mPhotoImg').style.display='block';
-      document.getElementById('mPhotoPh').style.display='none';
-      document.getElementById('mPhotoDelBtn').style.display='inline-block';
-      renderAll();
-    },
-    ()=>{ showToast('Photo too large — try a smaller image'); }
-  );
+  compressImage(file, compressed=>{
+    addPhoto(pk, compressed);
+    modalPhotoIdx = getPhotos(pk).length - 1;
+    refreshModalPhoto();
+    renderAll();
+  });
   e.target.value='';
 });
 
