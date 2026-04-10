@@ -1,62 +1,1836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Collection">
+<meta name="theme-color" content="#0b0b09">
+<title>The Collection</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230b0b09'/><text y='.9em' font-size='80' x='10'>⌚</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
+/* ── DARK THEME (default) ── */
+:root{
+  --ink:#141210;--card:#1c1a16;--card2:#242018;
+  --border:#2e2c26;--border2:#3a3830;
+  --gold:#b8913a;--gold2:#c9a04a;
+  --stone:#8a8478;--cream:#f0ebe0;
+  --green:#6a9e6a;--danger:#9e5a5a;
+  --theme-toggle-icon:'☀';
+}
 
+/* ── LIGHT THEME ── */
+body.light{
+  --ink:#f8f8f6;--card:#ffffff;--card2:#f2f2f0;
+  --border:#e0e0dc;--border2:#cacac4;
+  --gold:#9a7a2a;--gold2:#b8913a;
+  --stone:#9a9288;--cream:#1a1814;
+  --green:#2a6a3a;--danger:#8B1A1A;
+  --theme-toggle-icon:'☾';
+}
 
+html{-webkit-text-size-adjust:100%}
+body{background:var(--ink);color:var(--cream);font-family:'Montserrat',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom);transition:background .3s,color .3s}
 
+/* theme toggle button */
+.theme-toggle:hover{border-color:var(--gold);color:var(--gold)}
 
+/* PWA INSTALL BANNER */
+.pwa-banner{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card2);border-top:1px solid var(--gold);padding:14px 20px calc(14px + env(safe-area-inset-bottom));z-index:800;align-items:center;gap:14px;animation:slideUp .3s ease}
+.pwa-banner.show{display:flex}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.pwa-banner-text{flex:1}
+.pwa-banner-title{font-size:.72rem;font-weight:500;color:var(--cream);margin-bottom:3px}
+.pwa-banner-sub{font-size:.6rem;color:var(--stone);line-height:1.4}
+.pwa-banner-btn{background:rgba(184,145,58,.15);border:1px solid var(--gold);color:var(--gold);padding:8px 16px;font-family:'Montserrat',sans-serif;font-size:.6rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;white-space:nowrap;-webkit-appearance:none;border-radius:0}
+.pwa-banner-dismiss{background:transparent;border:none;color:var(--stone);font-size:1.2rem;cursor:pointer;padding:4px;line-height:1}
+body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.5}
 
+/* theme transitions */
+header,footer,.tabs,.stats,.controls,.wcard,.modal,.form-modal,.stat,.tab,
+.m-fin,.m-spec,.m-rref,.m-svc,.breakdown,.bd-track,.rcount{transition:background .3s,border-color .3s,color .3s}
 
+/* HEADER */
+header{padding:40px 40px 28px;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.h-left{}
+.h-eye{font-size:.56rem;letter-spacing:.32em;text-transform:uppercase;color:var(--stone);margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.h-eye::before{content:'';display:block;width:32px;height:1px;background:var(--gold)}
+h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,6vw,3.8rem);font-weight:300;letter-spacing:.08em;line-height:1}
+h1 em{color:var(--gold);font-style:italic}
+.h-sub{margin-top:6px;font-size:.58rem;letter-spacing:.25em;text-transform:uppercase;color:var(--stone)}
+.add-watch-btn{background:rgba(184,145,58,.1);border:1px solid var(--gold);color:var(--gold);padding:0 22px;height:40px;font-family:'Montserrat',sans-serif;font-size:.62rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center}
+.add-watch-btn:hover{background:rgba(184,145,58,.22)}
+.hdr-btns{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.backup-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);padding:0 18px;height:40px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center}
+.backup-btn:hover{border-color:var(--stone);color:var(--cream)}
+.restore-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);padding:0 18px;height:40px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center}
+.restore-btn:hover{border-color:var(--green);color:var(--green)}
+.backup-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card2);border:1px solid var(--green);color:var(--green);padding:12px 24px;font-family:'Montserrat',sans-serif;font-size:.62rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;z-index:800;opacity:0;transition:opacity .3s;pointer-events:none}
+.backup-toast.show{opacity:1}
 
+/* ── SPLASH SCREEN ── */
+#splash{position:fixed;inset:0;z-index:10000;background:#0b0b09;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#splash.fade-out{animation:splashFade .9s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none}
+@keyframes splashFade{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05)}}
+.splash-watch{position:relative;width:200px;height:200px;margin-bottom:44px;flex-shrink:0}
+.s-ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(184,145,58,.2);animation:sRing 3s ease-in-out infinite}
+.s-ring:nth-child(2){inset:14px;border-color:rgba(184,145,58,.35);animation-delay:.5s}
+.s-ring:nth-child(3){inset:28px;border-color:rgba(184,145,58,.55);animation-delay:1s}
+@keyframes sRing{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:1;transform:scale(1.015)}}
+.s-face{position:absolute;inset:42px;border-radius:50%;background:radial-gradient(ellipse at 38% 35%,#232118 0%,#0c0c0a 65%);border:1px solid rgba(184,145,58,.45);display:flex;align-items:center;justify-content:center;box-shadow:0 0 32px rgba(184,145,58,.06),inset 0 1px 0 rgba(255,255,255,.03)}
+.s-tick-wrap{position:absolute;inset:42px;border-radius:50%}
+.s-lug{position:absolute;left:50%;width:12px;height:24px;background:linear-gradient(to bottom,#272520,#181715);border:1px solid rgba(184,145,58,.25);transform:translateX(-50%)}
+.s-lug.t{top:-16px;border-radius:3px 3px 0 0}
+.s-lug.b{bottom:-16px;border-radius:0 0 3px 3px}
+.s-crown{position:absolute;right:-14px;top:50%;transform:translateY(-50%);width:13px;height:24px;border:1px solid rgba(184,145,58,.5);border-left:none;border-radius:0 3px 3px 0;background:linear-gradient(to right,#252520,#1a1918)}
+.s-hand{position:absolute;bottom:50%;left:50%;transform-origin:bottom center;border-radius:2px 2px 0 0}
+.s-hour{width:3px;height:30px;margin-left:-1.5px;background:linear-gradient(to top,var(--gold2),var(--gold));box-shadow:0 0 5px rgba(184,145,58,.35)}
+.s-min{width:2px;height:42px;margin-left:-1px;background:linear-gradient(to top,var(--cream),rgba(242,237,228,.5))}
+.s-sec{width:1px;height:46px;margin-left:-.5px;background:#c0392b;bottom:calc(50% - 12px)}
+.s-center{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px rgba(184,145,58,.5)}
+.splash-txt{text-align:center;animation:sTxtRise 1s ease both;animation-delay:.2s}
+@keyframes sTxtRise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.s-eyebrow{font-size:.55rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:14px;opacity:.85}
+.s-eyebrow::before,.s-eyebrow::after{content:'';display:block;width:24px;height:1px;background:var(--gold);opacity:.5}
+.s-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.6rem,9vw,5rem);font-weight:300;letter-spacing:.14em;color:var(--cream);line-height:1;margin-bottom:6px}
+.s-title em{color:var(--gold);font-style:italic}
+.s-tagline{font-size:.56rem;letter-spacing:.28em;text-transform:uppercase;color:var(--stone);margin-bottom:48px}
+.s-enter{display:inline-flex;align-items:center;gap:14px;background:transparent;border:1px solid rgba(184,145,58,.45);color:var(--gold);padding:14px 38px;font-family:'Montserrat',sans-serif;font-size:.62rem;font-weight:500;letter-spacing:.28em;text-transform:uppercase;cursor:pointer;animation:sTxtRise 1s ease both,sBorderPulse 2.5s ease-in-out 1.5s infinite;animation-delay:.5s;position:relative;overflow:hidden;-webkit-appearance:none;border-radius:0}
+.s-enter::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(184,145,58,.1),transparent);transform:translateX(-100%);animation:sShimmer 2.5s ease-in-out 1.5s infinite}
+@keyframes sShimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+@keyframes sBorderPulse{0%,100%{border-color:rgba(184,145,58,.4);box-shadow:none}50%{border-color:rgba(184,145,58,.9);box-shadow:0 0 18px rgba(184,145,58,.12)}}
+.s-arrow{font-size:.85rem;animation:sArrow 1.4s ease-in-out 2s infinite}
+@keyframes sArrow{0%,100%{transform:translateX(0);opacity:.6}50%{transform:translateX(5px);opacity:1}}
+.s-particle{position:absolute;width:2px;height:2px;border-radius:50%;background:var(--gold);opacity:0;animation:sParticle linear infinite}
+@keyframes sParticle{0%{opacity:0;transform:translateY(0) scale(1)}8%{opacity:.5}85%{opacity:.15}100%{opacity:0;transform:translateY(-100vh) scale(0)}}
 
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;padding:0 40px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:16px 20px 14px;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--stone);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Montserrat',sans-serif;font-weight:500;transition:color .2s}
+.tab:hover{color:var(--cream)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tbadge{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 4px;background:var(--border2);border-radius:9px;font-size:.52rem;margin-left:7px;color:var(--stone)}
+.tab.active .tbadge{background:rgba(184,145,58,.18);color:var(--gold)}
 
-PERSONAL HOROLOGY ARCHIVE
-The Collection
-CURATED · DOCUMENTED · PERSONAL
-TIME TO EXPLORE →
-PERSONAL HOROLOGY ARCHIVE
-The Collection
-CURATED · DOCUMENTED · PERSONAL
+/* STATS */
+.stats{display:flex;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border)}
+.stats::-webkit-scrollbar{display:none}
+.stat{flex:1;min-width:95px;padding:20px 24px;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.sv{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:var(--gold2);line-height:1}
+.sl{margin-top:4px;font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone)}
 
-☀
+/* CONTROLS */
+.controls{padding:16px 40px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.srch{flex:1;min-width:160px;position:relative}
+.srch input{width:100%;background:transparent;border:1px solid var(--border2);color:var(--cream);padding:8px 12px 8px 34px;font-family:'Montserrat',sans-serif;font-size:.72rem;font-weight:300;outline:none;transition:border-color .2s;-webkit-appearance:none;border-radius:0}
+.srch input::placeholder{color:var(--stone)}
+.srch input:focus{border-color:var(--gold)}
+.si{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--stone);font-size:.8rem}
+.pills{display:flex;gap:5px;flex-wrap:wrap}
+.pill{background:transparent;border:1px solid var(--border2);color:var(--stone);padding:6px 12px;font-family:'Montserrat',sans-serif;font-size:.57rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap;-webkit-appearance:none;border-radius:0}
+.pill.active,.pill:hover{border-color:var(--gold);color:var(--gold);background:rgba(184,145,58,.07)}
+.ssel{background:transparent;border:1px solid var(--border2);color:var(--stone);padding:7px 11px;font-family:'Montserrat',sans-serif;font-size:.57rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;outline:none;-webkit-appearance:none;border-radius:0}
+.ssel option{background:#1a1a18;color:var(--cream)}
 
-⬇ BACKUP ⬆ RESTORE + ADD WATCH
+/* RESULT COUNT */
+.rcount{padding:11px 40px;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);border-bottom:1px solid var(--border)}
+.rcount span{color:var(--gold2)}
 
-COLLECTION —
-FORMER —
-MOM'S WATCHES —
-BETH'S COLLECTION —
-WISH LIST 3
-HIDE STATS ▲
-—
-PIECES
-—
-BRANDS
-—
-TOTAL PAID
-—
-RETAIL
-—
-FEB '26
-—
-GAIN
-—
-MECHANICAL
-⌕
-ALL
-AUTO
-MANUAL
-QUARTZ
-NEW
-GIFTED
-      BRAND A–Z
-      YEAR ↓
-      YEAR ↑
-      PAID ↓
-      PAID ↑
-      RETAIL ↓
-      GAIN ↓
-    
-SHOWING — TIMEPIECES
-BRAND BREAKDOWN
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:2px;padding:2px}
 
-PRIVATE ARCHIVE · NOT FOR DISTRIBUTION
-Time, collected.
+/* WATCH CARD */
+.wcard{background:var(--card);border:1px solid var(--border);cursor:pointer;transition:all .25s;position:relative;overflow:hidden;animation:fadeUp .4s ease both}
+.wcard:hover{background:var(--card2);border-color:var(--border2)}
+.wcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.wcard:hover::before{transform:scaleX(1)}
+.wcard.sold-c{opacity:.55}
+.wcard.sold-c::before{background:linear-gradient(90deg,var(--stone),#555)}
+.wcard.mom-c::before{background:linear-gradient(90deg,#6a3a7a,#a06ab0)}
+.wcard.beth-c::before{background:linear-gradient(90deg,#1a4a5a,#3a8aaa)}
+.c-brand.bb{color:#3a9aba}
+.wcard.custom-c::before{background:linear-gradient(90deg,#2a5a3a,#4a9a6a)}
+
+/* PHOTO AREA */
+.photo-area{width:100%;aspect-ratio:4/3;background:var(--ink);position:relative;overflow:hidden}
+.photo-area img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s}
+.wcard:hover .photo-area img{transform:scale(1.03)}
+.photo-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--stone);border-bottom:1px solid var(--border)}
+.ph-icon{width:32px;height:32px;opacity:.3}
+.photo-placeholder span{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;opacity:.45}
+.photo-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.wcard:hover .photo-overlay{opacity:1}
+.photo-btn{background:rgba(184,145,58,.15);border:1px solid var(--gold);color:var(--gold);padding:7px 14px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0}
+.photo-btn:hover{background:rgba(184,145,58,.3)}
+.photo-btn.del-btn{border-color:var(--danger);color:var(--danger);background:rgba(158,90,90,.1)}
+.photo-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.6);border:none;color:#fff;font-size:1.8rem;width:32px;height:48px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;opacity:0;transition:opacity .2s;-webkit-appearance:none;border-radius:0;line-height:1}
+.photo-prev{left:0}.photo-next{right:0}
+.wcard:hover .photo-nav{opacity:1}
+.photo-count{position:absolute;bottom:6px;right:8px;font-size:.5rem;letter-spacing:.1em;color:rgba(255,255,255,.8);background:rgba(0,0,0,.5);padding:2px 6px;z-index:2;pointer-events:none}
+input.file-in{display:none}
+
+/* CARD BODY */
+.cbody{padding:20px 22px}
+.c-brand{font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.c-brand.sb{color:var(--stone)}
+.c-brand.mb{color:#a070b8}
+.c-brand.cb2{color:#4a9a6a}
+.c-model{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:400;color:var(--cream);line-height:1.2;margin-bottom:3px}
+.c-ref{font-size:.64rem;color:var(--stone);font-style:italic;margin-bottom:12px}
+.c-div{width:20px;height:1px;background:var(--border2);margin-bottom:12px}
+.cmeta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.mk{font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;color:var(--stone);margin-bottom:2px}
+.mv{font-size:.72rem;color:var(--cream);font-weight:400}
+.cbot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.cp{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:300;color:var(--gold2)}
+.mbadge{font-size:.5rem;padding:2px 8px;border:1px solid var(--border2);letter-spacing:.14em;text-transform:uppercase;color:var(--stone)}
+.ma{border-color:#2a4a2a;color:var(--green)}
+.mm{border-color:#4a3820;color:#c8905a}
+.mq{border-color:#2a3050;color:#6a7aae}
+.stag{display:inline-block;margin-top:8px;padding:2px 8px;border:1px solid #4a2020;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:var(--danger)}
+.custom-tag{display:inline-block;margin-top:8px;padding:2px 8px;border:1px solid #2a4a3a;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:#4a9a6a}
+.gl-pos{color:var(--green);font-size:.68rem;font-weight:500}
+.gl-neg{color:var(--danger);font-size:.68rem;font-weight:500}
+.cnote{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:.66rem;color:var(--stone);line-height:1.55;font-style:italic;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* WISHLIST */
+.wl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:2px;padding:2px}
+.wl-card{background:var(--card);border:1px solid var(--border);padding:24px;border-top:2px solid #2a4060}
+.wl-brand{font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;color:#5a8aaa;margin-bottom:5px}
+.wl-model{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--cream);line-height:1.2}
+.wl-sub{font-size:.68rem;color:var(--stone);font-style:italic;margin-top:3px}
+.wl-tag{display:inline-block;margin-top:12px;padding:2px 8px;border:1px solid #2a4060;font-size:.5rem;letter-spacing:.15em;text-transform:uppercase;color:#5a8aaa}
+
+/* BREAKDOWN */
+.breakdown{padding:24px 40px 32px;border-top:1px solid var(--border)}
+.bd-title{font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;color:var(--stone);margin-bottom:16px}
+.bd-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.bd-brand{width:148px;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--cream);text-align:right;flex-shrink:0}
+.bd-track{flex:1;height:1px;background:var(--border)}
+.bd-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .9s cubic-bezier(.16,1,.3,1)}
+.bd-n{width:20px;text-align:right;font-family:'Cormorant Garamond',serif;font-size:.95rem;color:var(--gold2);flex-shrink:0}
+
+/* ── DETAIL MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.87);z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px}
+.modal-overlay.open{display:block}
+.modal{background:var(--card);border:1px solid var(--border2);max-width:640px;margin:0 auto;position:relative;animation:mIn .22s ease}
+@keyframes mIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.m-topbar{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold))}
+.m-photo{width:100%;aspect-ratio:16/9;background:var(--ink);position:relative;overflow:hidden}
+.m-photo img{width:100%;height:100%;object-fit:cover}
+.m-photo-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--stone)}
+.m-photo-ph svg{width:40px;height:40px;opacity:.22}
+.m-photo-ph span{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;opacity:.38}
+.m-photo-actions{position:absolute;bottom:12px;right:12px;display:flex;gap:8px}
+.m-photo-btn{background:rgba(0,0,0,.65);border:1px solid var(--gold);color:var(--gold);padding:6px 12px;font-family:'Montserrat',sans-serif;font-size:.55rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;-webkit-appearance:none;border-radius:0}
+.m-photo-btn.del{border-color:var(--danger);color:var(--danger)}
+.m-close{position:absolute;top:14px;right:16px;background:rgba(0,0,0,.6);border:1px solid var(--border2);color:var(--stone);width:28px;height:28px;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;-webkit-appearance:none;border-radius:0}
+.m-close:hover{border-color:var(--gold);color:var(--gold)}
+.m-head{padding:24px 32px 18px;border-bottom:1px solid var(--border)}
+.m-brand-lbl{font-size:.54rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.m-model-lbl{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:400;color:var(--cream);line-height:1.1}
+.m-ref-lbl{font-size:.72rem;color:var(--stone);font-style:italic;margin-top:3px}
+.m-actions{display:flex;gap:8px;margin-top:14px}
+.m-edit-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);padding:6px 14px;font-family:'Montserrat',sans-serif;font-size:.56rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0}
+.m-edit-btn:hover{border-color:var(--gold);color:var(--gold)}
+.m-del-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);padding:6px 14px;font-family:'Montserrat',sans-serif;font-size:.56rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0}
+.m-del-btn:hover{border-color:var(--danger);color:var(--danger)}
+.m-body{padding:22px 32px}
+.m-fin{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;background:rgba(184,145,58,.06);border:1px solid rgba(184,145,58,.15);padding:16px 18px;margin-bottom:20px}
+.mfl{font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone);margin-bottom:4px}
+.mfv{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:300;color:var(--gold2);line-height:1}
+.mfv.gain{color:var(--green)}
+.mfv.loss{color:var(--danger)}
+.m-spec{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.msk{font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone);margin-bottom:3px}
+.msv{font-size:.8rem;color:var(--cream);font-weight:400;line-height:1.35}
+.m-rref{padding:10px 14px;border:1px dashed var(--border2);font-size:.68rem;color:var(--stone);margin-bottom:16px;letter-spacing:.05em}
+.m-rref strong{color:var(--cream);font-weight:500}
+.m-svc{padding:9px 13px;background:rgba(42,74,42,.14);border-left:2px solid #2e4a2e;font-size:.68rem;color:var(--green);margin-bottom:14px}
+.m-nl{font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.m-nt{font-size:.78rem;line-height:1.8;color:var(--stone);font-style:italic}
+
+/* ── ADD/EDIT FORM MODAL ── */
+.form-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:600;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px}
+.form-overlay.open{display:block}
+.form-modal{background:var(--card);border:1px solid var(--border2);max-width:600px;margin:0 auto;position:relative;animation:mIn .22s ease}
+.form-topbar{height:3px;background:linear-gradient(90deg,#2a5a3a,#4a9a6a,#2a5a3a)}
+.form-topbar.edit-bar{background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold))}
+.form-head{padding:22px 28px 18px;border-bottom:1px solid var(--border)}
+.form-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:400;color:var(--cream)}
+.form-sub{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);margin-top:4px}
+.form-close{position:absolute;top:14px;right:16px;background:rgba(0,0,0,.4);border:1px solid var(--border2);color:var(--stone);width:28px;height:28px;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;-webkit-appearance:none;border-radius:0}
+.form-close:hover{border-color:var(--gold);color:var(--gold)}
+.form-body{padding:22px 28px 28px}
+.form-section{margin-bottom:24px}
+.form-section-title{font-size:.56rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid.cols3{grid-template-columns:1fr 1fr 1fr}
+.form-grid.cols1{grid-template-columns:1fr}
+.field{}
+.field label{display:block;font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:transparent;border:1px solid var(--border2);color:var(--cream);padding:8px 11px;font-family:'Montserrat',sans-serif;font-size:.75rem;font-weight:300;outline:none;transition:border-color .2s;-webkit-appearance:none;border-radius:0}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold)}
+.field input::placeholder,.field textarea::placeholder{color:var(--stone)}
+.field select option{background:#1a1a18;color:var(--cream)}
+.field textarea{resize:vertical;min-height:72px;line-height:1.5}
+.field.full{grid-column:1/-1}
+.form-photo-area{border:1px dashed var(--border2);padding:20px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:4px}
+.form-photo-area:hover{border-color:var(--gold)}
+.form-photo-area img{width:100%;max-height:200px;object-fit:cover;display:none}
+.form-photo-area .ph-hint{font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:var(--stone)}
+.form-photo-area .ph-hint span{display:block;font-size:.52rem;margin-top:4px;opacity:.6}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--border)}
+.btn-cancel{background:transparent;border:1px solid var(--border2);color:var(--stone);padding:10px 20px;font-family:'Montserrat',sans-serif;font-size:.6rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0}
+.btn-cancel:hover{border-color:var(--danger);color:var(--danger)}
+.btn-save{background:rgba(184,145,58,.12);border:1px solid var(--gold);color:var(--gold);padding:10px 24px;font-family:'Montserrat',sans-serif;font-size:.6rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0}
+.btn-save:hover{background:rgba(184,145,58,.28)}
+.btn-save.green{border-color:#4a9a6a;color:#4a9a6a;background:rgba(74,154,106,.1)}
+.btn-save.green:hover{background:rgba(74,154,106,.25)}
+
+/* WATCH SETTER BUTTON */
+.watch-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;-webkit-appearance:none;border-radius:0}
+.watch-btn:hover{border-color:var(--gold);color:var(--gold)}
+.theme-toggle{background:transparent;border:1px solid var(--border2);color:var(--stone);width:40px;height:40px;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;-webkit-appearance:none;border-radius:0}
+.theme-toggle:hover{border-color:var(--gold);color:var(--gold)}
+
+/* WATCH SETTER OVERLAY */
+.ws-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:900;align-items:center;justify-content:center;padding:20px}
+.ws-overlay.open{display:flex}
+.ws-modal{background:var(--card);border:1px solid var(--border2);max-width:380px;width:100%;padding:32px;position:relative;text-align:center}
+.ws-topbar{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold2));position:absolute;top:0;left:0;right:0}
+.ws-close{position:absolute;top:14px;right:14px;background:transparent;border:1px solid var(--border2);color:var(--stone);width:28px;height:28px;cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;transition:all .2s;-webkit-appearance:none;border-radius:0}
+.ws-close:hover{border-color:var(--danger);color:var(--danger)}
+.ws-eyebrow{font-size:.55rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+.ws-title{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:var(--cream);margin-bottom:28px;letter-spacing:.06em}
+.ws-clock{position:relative;width:240px;height:240px;margin:0 auto 24px}
+.ws-face{position:absolute;inset:0;border-radius:50%;background:radial-gradient(ellipse at 40% 38%,#2e2c28 0%,#181614 70%);border:2px solid rgba(184,145,58,.7);box-shadow:0 0 0 6px rgba(184,145,58,.08),0 0 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)}
+.ws-hand{position:absolute;bottom:50%;left:50%;transform-origin:bottom center;border-radius:3px 3px 1px 1px}
+.ws-hour{width:5px;height:68px;margin-left:-2.5px;background:linear-gradient(to top,var(--gold),var(--gold2));box-shadow:0 0 6px rgba(184,145,58,.25)}
+.ws-min{width:3px;height:96px;margin-left:-1.5px;background:linear-gradient(to top,rgba(242,237,228,.95),rgba(242,237,228,.5));border-radius:2px 2px 1px 1px}
+.ws-sec{position:absolute;width:1.5px;height:120px;left:50%;top:calc(50% - 90px);background:#e74c3c;border-radius:1px;transform-origin:50% 90px}
+.ws-center{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--gold);top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 2px #181614,0 0 8px rgba(184,145,58,.5);z-index:3}
+.ws-digital{font-family:'Courier New',Courier,monospace;font-size:2.4rem;font-weight:700;color:var(--cream);letter-spacing:.06em;margin-bottom:8px;font-variant-numeric:tabular-nums}
+.ws-hint{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)}
+.ws-chime-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);padding:6px 16px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0}
+.ws-chime-btn.on{border-color:var(--gold);color:var(--gold);background:rgba(184,145,58,.08)}
+.ws-chime-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* CONFIRM DIALOG */
+.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:700;align-items:center;justify-content:center;padding:20px}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--card);border:1px solid var(--border2);padding:28px 32px;max-width:360px;width:100%}
+.confirm-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--cream);margin-bottom:8px}
+.confirm-msg{font-size:.75rem;color:var(--stone);line-height:1.6;margin-bottom:24px}
+.confirm-actions{display:flex;gap:10px;justify-content:flex-end}
+
+/* EMPTY / FOOTER */
+.empty{padding:60px;text-align:center;color:var(--stone);font-style:italic;font-size:.9rem}
+footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.fl{font-size:.52rem;letter-spacing:.22em;text-transform:uppercase;color:var(--border2)}
+.fr{font-family:'Cormorant Garamond',serif;font-size:.85rem;color:var(--stone);font-style:italic}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:640px){
+  header{flex-direction:column;align-items:flex-start;padding:28px 18px 20px}
+  .tabs,.controls,.rcount,.breakdown,footer{padding-left:16px;padding-right:16px}
+  .tabs{padding-left:16px}
+  .grid{grid-template-columns:1fr}
+  .m-fin{grid-template-columns:1fr 1fr}
+  .m-spec{grid-template-columns:1fr 1fr}
+  .m-body,.m-head,.form-body,.form-head{padding-left:18px;padding-right:18px}
+  .m-model-lbl{font-size:1.4rem}
+  .stat{padding:16px 18px;min-width:85px}
+  .form-grid{grid-template-columns:1fr}
+  .form-grid.cols3{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ── SPLASH SCREEN ── -->
+<div id="splash">
+  <div class="splash-watch">
+    <div class="s-ring"></div>
+    <div class="s-ring"></div>
+    <div class="s-ring"></div>
+    <div class="s-lug t"></div>
+    <div class="s-lug b"></div>
+    <div class="s-crown"></div>
+    <div class="s-face"></div>
+    <div class="s-hand s-hour" id="sHour"></div>
+    <div class="s-hand s-min" id="sMin"></div>
+    <div class="s-hand s-sec" id="sSec"></div>
+    <div class="s-center"></div>
+  </div>
+  <div class="splash-txt">
+    <div class="s-eyebrow">Personal Horology Archive</div>
+    <div class="s-title">The <em>Collection</em></div>
+    <div class="s-tagline">Curated &#183; Documented &#183; Personal</div>
+    <button class="s-enter" id="splashEnter">Time to Explore &#8594;</button>
+  </div>
+</div>
+<script>
+(function(){
+  var dismissed=false;
+  function go(){
+    if(dismissed)return;dismissed=true;
+    var s=document.getElementById('splash');
+    if(!s)return;
+    s.style.transition='opacity 0.8s ease';
+    s.style.opacity='0';
+    setTimeout(function(){s.style.display='none';},850);
+  }
+  // Static 10:10 — classic watch display position
+  function r(id,d){var e=document.getElementById(id);if(e)e.style.transform='rotate('+d+'deg)';}
+  r('sHour', 300);   // 10 o'clock = 300deg
+  r('sMin',  60);    // 2 o'clock (10 min mark) = 60deg
+  r('sSec',  0);     // 12 o'clock
+  // Tick marks
+  try{
+    var face=document.querySelector('.s-face');
+    if(face){for(var i=0;i<60;i++){var t=document.createElement('div'),a=i*6,major=i%5===0,rad=(a-90)*Math.PI/180,rv=46,len=major?10:5,x=50+(rv-len/2)*Math.cos(rad),y=50+(rv-len/2)*Math.sin(rad);t.style.cssText='position:absolute;width:'+(major?2:1)+'px;height:'+len+'px;background:'+(major?'rgba(184,145,58,.9)':'rgba(184,145,58,.3)')+';left:'+x+'%;top:'+y+'%;transform:translate(-50%,-50%) rotate('+a+'deg)';face.appendChild(t);}}
+  }catch(e){}
+  // Button
+  var btn=document.getElementById('splashEnter');
+  if(btn){
+    btn.onclick=function(e){e.preventDefault();e.stopPropagation();go();};
+    btn.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();go();},{passive:false});
+  }
+  // Tap anywhere after 2s
+  setTimeout(function(){
+    var s=document.getElementById('splash');
+    if(s)s.addEventListener('click',go,{once:true});
+  },2000);
+  // Auto-dismiss after 10s
+  setTimeout(go,10000);
+})();
+</script>
+
+<header>
+  <div class="h-left">
+    <div class="h-eye">Personal Horology Archive</div>
+    <h1>The <em>Collection</em></h1>
+    <div class="h-sub">Curated · Documented · Personal</div>
+  </div>
+  <div class="hdr-btns">
+    <span id="syncIndicator" style="font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--stone);min-width:60px;text-align:right"></span>
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">☀</button>
+    <button class="watch-btn" id="watchBtn" title="Watch Setter">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" width="18" height="18">
+        <circle cx="12" cy="12" r="7.5"/>
+        <circle cx="12" cy="12" r="9" stroke-width=".6" opacity=".4"/>
+        <line x1="12" y1="5.5" x2="12" y2="4" stroke-width="1.5"/>
+        <line x1="12" y1="20" x2="12" y2="18.5" stroke-width="1.5"/>
+        <line x1="4" y1="12" x2="5.5" y2="12" stroke-width="1.5"/>
+        <line x1="18.5" y1="12" x2="20" y2="12" stroke-width="1.5"/>
+        <line x1="12" y1="12" x2="12" y2="7.5" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="12" y1="12" x2="15.5" y2="12" stroke-width="1.2" stroke-linecap="round"/>
+        <circle cx="12" cy="12" r=".8" fill="currentColor"/>
+      </svg>
+    </button>
+    <button class="backup-btn" id="backupBtn">⬇ Backup</button>
+    <button class="restore-btn" id="restoreBtn">⬆ Restore</button>
+    <button class="add-watch-btn" id="addWatchBtn">+ Add Watch</button>
+    <input type="file" accept=".json" id="restoreFileIn" style="display:none">
+  </div>
+</header>
+
+<!-- WATCH SETTER OVERLAY -->
+<div class="ws-overlay" id="wsOverlay">
+  <div class="ws-modal">
+    <div class="ws-topbar"></div>
+    <button class="ws-close" id="wsClose">&#10005;</button>
+    <div class="ws-eyebrow">Watch Setter</div>
+    <div class="ws-title">Current Time</div>
+    <!-- Analog clock -->
+    <div class="ws-clock" id="wsClock">
+      <div class="ws-face" id="wsFace"></div>
+      <div class="ws-hand ws-hour" id="wsHour"></div>
+      <div class="ws-hand ws-min" id="wsMin"></div>
+      <div class="ws-sec" id="wsSec"></div>
+      <div class="ws-center"></div>
+    </div>
+    <!-- Digital readout -->
+    <div class="ws-digital" id="wsDigital">--:--:--</div>
+    <div class="ws-hint">Set your watch to the time shown above</div>
+    <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:10px">
+      <button class="ws-chime-btn" id="wsChimeBtn" title="Toggle chime">&#9836; Chime On</button>
+    </div>
+  </div>
+</div>
+<div class="backup-toast" id="backupToast"></div>
+
+<!-- PWA INSTALL BANNER -->
+<div class="pwa-banner" id="pwaBanner">
+  <div class="pwa-banner-text">
+    <div class="pwa-banner-title">Add to Home Screen</div>
+    <div class="pwa-banner-sub">Tap Share → "Add to Home Screen" to install The Collection as an app</div>
+  </div>
+  <button class="pwa-banner-btn" id="pwaBannerHow">How?</button>
+  <button class="pwa-banner-dismiss" id="pwaBannerDismiss">✕</button>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="col">Collection <span class="tbadge" id="bCol">—</span></button>
+  <button class="tab" data-tab="fmr">Former <span class="tbadge" id="bFmr">—</span></button>
+  <button class="tab" data-tab="mom">Mom's Watches <span class="tbadge" id="bMom">—</span></button>
+  <button class="tab" data-tab="beth">Beth's Collection <span class="tbadge" id="bBeth">—</span></button>
+  <button class="tab" data-tab="wl">Wish List <span class="tbadge">3</span></button>
+</div>
+
+<!-- COLLECTION TAB -->
+<div id="tab-col">
+  <div style="display:flex;justify-content:flex-end;padding:8px 40px 0;border-bottom:0px">
+    <button id="statsToggleBtn" style="background:transparent;border:none;color:var(--stone);font-family:'Montserrat',sans-serif;font-size:.55rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:6px 0;transition:color .2s" onmouseover="this.style.color='var(--cream)'" onmouseout="this.style.color='var(--stone)'">Hide Stats ▲</button>
+  </div>
+  <div class="stats" id="statsBar">
+    <div class="stat"><div class="sv" id="sTot">—</div><div class="sl">Pieces</div></div>
+    <div class="stat"><div class="sv" id="sBr">—</div><div class="sl">Brands</div></div>
+    <div class="stat"><div class="sv" id="sPd">—</div><div class="sl">Total Paid</div></div>
+    <div class="stat"><div class="sv" id="sRt">—</div><div class="sl">Retail</div></div>
+    <div class="stat"><div class="sv" id="sF26">—</div><div class="sl">Feb '26</div></div>
+    <div class="stat"><div class="sv" id="sGL">—</div><div class="sl">Gain</div></div>
+    <div class="stat"><div class="sv" id="sMc">—</div><div class="sl">Mechanical</div></div>
+  </div>
+  <div class="controls">
+    <div class="srch"><span class="si">⌕</span><input type="text" id="srchIn" placeholder="Search brand, model, reference…"></div>
+    <div class="pills" id="pillG">
+      <button class="pill active" data-f="all">All</button>
+      <button class="pill" data-f="Automatic">Auto</button>
+      <button class="pill" data-f="Manual Wind">Manual</button>
+      <button class="pill" data-f="Quartz">Quartz</button>
+      <button class="pill" data-f="New">New</button>
+      <button class="pill" data-f="Gift">Gifted</button>
+    </div>
+    <select class="ssel" id="sortS">
+      <option value="brand">Brand A–Z</option>
+      <option value="year-d">Year ↓</option>
+      <option value="year-a">Year ↑</option>
+      <option value="paid-d">Paid ↓</option>
+      <option value="paid-a">Paid ↑</option>
+      <option value="retail-d">Retail ↓</option>
+      <option value="gl-d">Gain ↓</option>
+    </select>
+  </div>
+  <div class="rcount">Showing <span id="rcN">—</span> timepieces</div>
+  <div class="grid" id="gridEl"></div>
+  <div class="breakdown"><div class="bd-title">Brand breakdown</div><div id="bdB"></div></div>
+</div>
+
+<!-- FORMER TAB -->
+<div id="tab-fmr" style="display:none">
+  <div class="stats">
+    <div class="stat"><div class="sv" id="fTot">—</div><div class="sl">Sold</div></div>
+    <div class="stat"><div class="sv" id="fPd">—</div><div class="sl">Total Paid</div></div>
+    <div class="stat"><div class="sv" id="fRc">—</div><div class="sl">Recovered</div></div>
+    <div class="stat"><div class="sv" id="fNt">—</div><div class="sl">Net</div></div>
+  </div>
+  <div class="grid" id="fmrGrid" style="margin-top:2px"></div>
+</div>
+
+<!-- MOM TAB -->
+<div id="tab-mom" style="display:none">
+  <div class="stats">
+    <div class="stat"><div class="sv" id="mTot">—</div><div class="sl">Pieces</div></div>
+    <div class="stat"><div class="sv" id="mVal">—</div><div class="sl">Total Value</div></div>
+    <div class="stat"><div class="sv" id="mPd">—</div><div class="sl">Total Paid</div></div>
+  </div>
+  <div class="grid" id="momGrid" style="margin-top:2px"></div>
+</div>
+
+<!-- BETH TAB -->
+<div id="tab-beth" style="display:none">
+  <div class="stats">
+    <div class="stat"><div class="sv" id="btTot">—</div><div class="sl">Pieces</div></div>
+    <div class="stat"><div class="sv" id="btVal">—</div><div class="sl">Total Value</div></div>
+    <div class="stat"><div class="sv" id="btPd">—</div><div class="sl">Total Paid</div></div>
+  </div>
+  <div style="padding:14px 40px;border-bottom:1px solid var(--border);display:flex;justify-content:flex-end">
+    <button class="add-watch-btn" id="addBethBtn" style="font-size:.58rem;padding:9px 18px">+ Add to Beth's Collection</button>
+  </div>
+  <div class="grid" id="bethGrid" style="margin-top:2px"></div>
+</div>
+
+<!-- WISHLIST TAB -->
+<div id="tab-wl" style="display:none">
+  <div style="padding:28px 40px">
+    <div class="wl-grid">
+      <div class="wl-card"><div class="wl-brand">Rolex</div><div class="wl-model">Daytona</div><div class="wl-sub">White Dial</div><div class="wl-tag">On the list</div></div>
+      <div class="wl-card"><div class="wl-brand">Patek Philippe</div><div class="wl-model">Nautilus</div><div class="wl-sub">&nbsp;</div><div class="wl-tag">On the list</div></div>
+      <div class="wl-card"><div class="wl-brand">IWC</div><div class="wl-model">Ingenieur</div><div class="wl-sub">Blue Dial</div><div class="wl-tag">On the list</div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="fl">Private Archive · Not for Distribution</div>
+  <div class="fr">Time, collected.</div>
+</footer>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="overlay">
+  <div class="modal">
+    <div class="m-topbar"></div>
+    <button class="m-close" id="mClose">✕</button>
+    <div class="m-photo" id="mPhotoWrap">
+      <div class="m-photo-ph" id="mPhotoPh">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+        </svg>
+        <span>No photo yet</span>
+      </div>
+      <img id="mPhotoImg" src="" alt="" style="display:none">
+      <button class="photo-nav photo-prev" id="mPhotoPrev" style="display:none">&#8249;</button>
+      <button class="photo-nav photo-next" id="mPhotoNext" style="display:none">&#8250;</button>
+      <div class="photo-count" id="mPhotoCount" style="display:none"></div>
+      <div class="m-photo-actions">
+        <button class="m-photo-btn" id="mPhotoAddBtn">+ Photo</button>
+        <button class="m-photo-btn del" id="mPhotoDelBtn" style="display:none">Remove</button>
+      </div>
+      <input type="file" accept="image/*" id="mFileIn" style="display:none">
+    </div>
+    <div class="m-head">
+      <div class="m-brand-lbl" id="mBrand"></div>
+      <div class="m-model-lbl" id="mModel"></div>
+      <div class="m-ref-lbl" id="mRefLbl"></div>
+      <div class="m-actions" id="mActions"></div>
+    </div>
+    <div class="m-body">
+      <div class="m-fin" id="mFin"></div>
+      <div class="m-spec" id="mSpec"></div>
+      <div id="mRef2"></div>
+      <div id="mNotes"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT FORM MODAL -->
+<div class="form-overlay" id="formOverlay">
+  <div class="form-modal" id="formModal">
+    <div class="form-topbar" id="formTopBar"></div>
+    <button class="form-close" id="formClose">✕</button>
+    <div class="form-head">
+      <div class="form-title" id="formTitle">Add Watch</div>
+      <div class="form-sub" id="formSub">New timepiece to the collection</div>
+    </div>
+    <div class="form-body">
+
+      <!-- Photo -->
+      <div class="form-section">
+        <div class="form-section-title">Photo</div>
+        <div class="form-photo-area" id="formPhotoArea">
+          <img id="formPhotoPreview" src="" alt="">
+          <div class="ph-hint" id="formPhotoHint">
+            Tap to add a photo
+            <span>JPG, PNG — from your camera roll</span>
+          </div>
+        </div>
+        <input type="file" accept="image/*" id="formFileIn" style="display:none">
+      </div>
+
+      <!-- Identity -->
+      <div class="form-section">
+        <div class="form-section-title">Identity</div>
+        <div class="form-grid">
+          <div class="field"><label>Brand *</label><input type="text" id="fBrand" placeholder="e.g. Rolex"></div>
+          <div class="field"><label>Series / Line</label><input type="text" id="fSeries" placeholder="e.g. Submariner"></div>
+          <div class="field full"><label>Model / Name</label><input type="text" id="fModel" placeholder="e.g. Date"></div>
+          <div class="field"><label>Reference No.</label><input type="text" id="fRef" placeholder="e.g. 126610LN"></div>
+          <div class="field"><label>Serial No.</label><input type="text" id="fSerial" placeholder=""></div>
+          <div class="field"><label>Origin</label><input type="text" id="fOrigin" placeholder="e.g. Switzerland"></div>
+          <div class="field"><label>Year Purchased</label><input type="number" id="fYear" placeholder="e.g. 2024" min="1900" max="2100"></div>
+        </div>
+      </div>
+
+      <!-- Specs -->
+      <div class="form-section">
+        <div class="form-section-title">Specifications</div>
+        <div class="form-grid">
+          <div class="field"><label>Movement</label>
+            <select id="fMovement">
+              <option value="">— Select —</option>
+              <option>Automatic</option>
+              <option>Manual Wind</option>
+              <option>Quartz</option>
+              <option>Solar</option>
+              <option>Kinetic</option>
+            </select>
+          </div>
+          <div class="field"><label>Power Reserve (h)</label><input type="number" id="fPr" placeholder="e.g. 70"></div>
+          <div class="field"><label>Water Resist. (M)</label><input type="number" id="fWr" placeholder="e.g. 300"></div>
+          <div class="field"><label>Case Material</label><input type="text" id="fCasemat" placeholder="e.g. Stainless Steel"></div>
+          <div class="field"><label>Dial Color</label><input type="text" id="fDial" placeholder="e.g. Black"></div>
+          <div class="field"><label>Bracelet / Strap</label><input type="text" id="fStrap" placeholder="e.g. Oyster Bracelet"></div>
+          <div class="field"><label>Case Size (mm)</label><input type="text" id="fSize" placeholder="e.g. 41"></div>
+          <div class="field"><label>Thickness (mm)</label><input type="text" id="fThick" placeholder="e.g. 13.2"></div>
+          <div class="field"><label>Lug Width (mm)</label><input type="text" id="fLug" placeholder="e.g. 20"></div>
+          <div class="field"><label>Lug to Lug (mm)</label><input type="text" id="fLugToLug" placeholder="e.g. 47"></div>
+        </div>
+      </div>
+
+      <!-- Financials -->
+      <div class="form-section">
+        <div class="form-section-title">Financials</div>
+        <div class="form-grid">
+          <div class="field"><label>Price / Retail ($)</label><input type="number" id="fPrice" placeholder="e.g. 9150" min="0"></div>
+          <div class="field"><label>Amount Paid ($)</label><input type="number" id="fPaid" placeholder="e.g. 9150" min="0"></div>
+          <div class="field"><label>Current Value ($)</label><input type="number" id="fFeb26" placeholder="Optional" min="0"></div>
+          <div class="field"><label>Status</label>
+            <select id="fSold">
+              <option value="false">Active — In Collection</option>
+              <option value="true">Sold / Former</option>
+            </select>
+          </div>
+          <div class="field" id="fSoldAmtField" style="display:none"><label>Sold For ($)</label><input type="number" id="fSoldAmt" placeholder="e.g. 3500" min="0"></div>
+        </div>
+      </div>
+
+      <!-- Provenance & Acquisition -->
+      <div class="form-section">
+        <div class="form-section-title">Provenance & Acquisition</div>
+        <div class="form-grid">
+          <div class="field"><label>Purchase Source</label>
+            <select id="fSource">
+              <option value="">— Select —</option>
+              <option>New — Authorized Dealer</option>
+              <option>New — Brand Boutique</option>
+              <option>New — Grey Market</option>
+              <option>Pre-Owned — Dealer</option>
+              <option>Pre-Owned — Private Sale</option>
+              <option>Pre-Owned — Auction</option>
+              <option>Pre-Owned — Online Marketplace</option>
+              <option>Gift — New</option>
+              <option>Gift — Pre-Owned</option>
+              <option>Inherited</option>
+            </select>
+          </div>
+          <div class="field"><label>Dealer / Seller Name</label><input type="text" id="fDealer" placeholder="e.g. North East Fine Jewelers"></div>
+          <div class="field"><label>Purchase Location</label><input type="text" id="fLocation" placeholder="e.g. St. Pete, FL"></div>
+          <div class="field"><label>Purchase Currency</label>
+            <select id="fCurrency">
+              <option value="">USD (default)</option>
+              <option>USD</option>
+              <option>CHF</option>
+              <option>EUR</option>
+              <option>GBP</option>
+              <option>AED</option>
+              <option>JPY</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Condition -->
+      <div class="form-section">
+        <div class="form-section-title">Condition</div>
+        <div class="form-grid">
+          <div class="field"><label>Condition Grade</label>
+            <select id="fGrade">
+              <option value="">— Select —</option>
+              <option>Mint / Unworn</option>
+              <option>Excellent</option>
+              <option>Very Good</option>
+              <option>Good</option>
+              <option>Fair</option>
+            </select>
+          </div>
+          <div class="field"><label>Case Finish</label>
+            <select id="fFinish">
+              <option value="">— Select —</option>
+              <option>Unpolished (Original)</option>
+              <option>Lightly Polished</option>
+              <option>Polished</option>
+              <option>Unknown</option>
+            </select>
+          </div>
+          <div class="field"><label>Previous Owners</label>
+            <select id="fOwners">
+              <option value="">— Select —</option>
+              <option value="0">0 — New / Unworn</option>
+              <option value="1">1 — One Previous Owner</option>
+              <option value="2">2</option>
+              <option value="3">3+</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Box & Papers -->
+      <div class="form-section">
+        <div class="form-section-title">Box & Papers</div>
+        <div class="form-grid cols3">
+          <div class="field"><label>Original Box</label>
+            <select id="fBox">
+              <option value="">— Select —</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="partial">Partial / Inner Only</option>
+            </select>
+          </div>
+          <div class="field"><label>Papers / Card</label>
+            <select id="fPapers">
+              <option value="">— Select —</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+              <option value="extract">Extract Only</option>
+            </select>
+          </div>
+          <div class="field"><label>Extras</label><input type="text" id="fExtras" placeholder="e.g. Hangtags, links, tool"></div>
+        </div>
+      </div>
+
+      <!-- Service -->
+      <div class="form-section">
+        <div class="form-section-title">Service</div>
+        <div class="form-grid">
+          <div class="field full"><label>Service History</label><input type="text" id="fService" placeholder="e.g. 10/2024 — Full service $800 at Tourneau"></div>
+          <div class="field"><label>Next Service Due</label><input type="text" id="fServiceNext" placeholder="e.g. 2029 or Oct 2030"></div>
+          <div class="field"><label>Warranty Expires</label><input type="text" id="fWarranty" placeholder="e.g. March 2027"></div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-section">
+        <div class="form-section-title">Notes & Story</div>
+        <div class="form-grid cols1">
+          <div class="field"><label>Notes</label><textarea id="fNotes" placeholder="Where you got it, why it matters, stories…"></textarea></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-cancel" id="formCancelBtn">Cancel</button>
+        <button class="btn-save green" id="formSaveBtn">Save to Collection</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title">Remove this watch?</div>
+    <div class="confirm-msg" id="confirmMsg">This will permanently remove the watch from your collection. This cannot be undone.</div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" id="confirmNo">Keep it</button>
+      <button class="btn-save" style="border-color:var(--danger);color:var(--danger);background:rgba(158,90,90,.1)" id="confirmYes">Remove</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CLOUD SYNC CONFIG ──
+const WORKER_URL = 'https://watch-api.zakmedwin.workers.dev';
+const AUTH_TOKEN = 'there4remanyWatches!';
+
+// ── SYNC STATE ──
+let syncStatus = 'idle'; // idle, syncing, error
+let syncTimer = null;
+const SYNC_DEBOUNCE = 2000; // save 2s after last change
+
+function showSyncStatus(status){
+  const el = document.getElementById('syncIndicator');
+  if(!el) return;
+  if(status === 'syncing'){ el.textContent = '⟳ Saving…'; el.style.color = 'var(--stone)'; }
+  else if(status === 'saved'){ el.textContent = '✓ Saved'; el.style.color = 'var(--green)'; }
+  else if(status === 'error'){ el.textContent = '✕ Sync error'; el.style.color = 'var(--danger)'; }
+  else { el.textContent = ''; }
+}
+
+// ── CLOUD READ ──
+async function cloudLoad(){
+  try {
+    showSyncStatus('syncing');
+    const res = await fetch(WORKER_URL + '/collection', {
+      headers: { 'X-Auth-Token': AUTH_TOKEN }
+    });
+    if(!res.ok) throw new Error('Load failed');
+    const data = await res.json();
+    // Populate app state from cloud
+    if(data.customWatches) customWatches = data.customWatches;
+    if(data.bethWatches) bethWatches = data.bethWatches;
+    if(data.momWatches) { localStorage.setItem('wc_mom_cloud', JSON.stringify(data.momWatches)); }
+    if(data.photos) {
+      photos = data.photos;
+      // Also cache photos locally for faster loads
+      try{ localStorage.setItem(PHOTO_KEY, JSON.stringify(photos)); }catch(e){}
+    }
+    showSyncStatus('saved');
+    setTimeout(()=>showSyncStatus('idle'), 2000);
+    return true;
+  } catch(e) {
+    console.warn('Cloud load failed, using local data:', e);
+    showSyncStatus('error');
+    setTimeout(()=>showSyncStatus('idle'), 3000);
+    return false;
+  }
+}
+
+// ── CLOUD SAVE ──
+async function cloudSave(){
+  try {
+    showSyncStatus('syncing');
+    const data = {
+      customWatches,
+      bethWatches,
+      momWatches: getMom(),
+      photos,
+      lastSaved: new Date().toISOString()
+    };
+    const res = await fetch(WORKER_URL + '/collection', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Auth-Token': AUTH_TOKEN
+      },
+      body: JSON.stringify(data)
+    });
+    if(!res.ok) throw new Error('Save failed');
+    showSyncStatus('saved');
+    setTimeout(()=>showSyncStatus('idle'), 2000);
+  } catch(e) {
+    console.warn('Cloud save failed:', e);
+    showSyncStatus('error');
+    setTimeout(()=>showSyncStatus('idle'), 3000);
+  }
+}
+
+// Debounced save — waits 2s after last change before saving
+function scheduleSave(){
+  if(syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(cloudSave, SYNC_DEBOUNCE);
+}
+
+// ── LOCAL STORAGE (fallback + photos cache) ──
+const PHOTO_KEY  = 'wc_photos_v9';
+const CUSTOM_KEY = 'wc_custom_v9';
+const BETH_KEY   = 'wc_beth_v9';
+
+function loadPhotos(){try{return JSON.parse(localStorage.getItem(PHOTO_KEY)||'{}')}catch{return{}}}
+function savePhotos(p){
+  try{ localStorage.setItem(PHOTO_KEY,JSON.stringify(p)); scheduleSave(); return true; }
+  catch(e){ console.warn('Storage full',e); return false; }
+}
+function loadCustom(){try{return JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]')}catch{return[]}}
+function saveCustom(c){ localStorage.setItem(CUSTOM_KEY,JSON.stringify(c)); scheduleSave(); }
+function loadBeth(){try{return JSON.parse(localStorage.getItem(BETH_KEY)||'[]')}catch{return[]}}
+function saveBeth(b){ localStorage.setItem(BETH_KEY,JSON.stringify(b)); scheduleSave(); }
+
+let photos = loadPhotos();
+let customWatches = loadCustom();
+let bethWatches = loadBeth();
+
+// ── IMAGE COMPRESSION ──
+// Compresses an image file to a base64 JPEG at reduced size/quality
+// Target: ~150KB max per photo to stay well within 5MB localStorage limit
+function compressImage(file, callback){
+  const MAX_W = 800, MAX_H = 800, QUALITY = 0.72;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      // Scale down if needed
+      if(w > MAX_W || h > MAX_H){
+        const ratio = Math.min(MAX_W/w, MAX_H/h);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', QUALITY);
+      callback(compressed);
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Safe photo save — compresses first, then stores
+function savePhotoForWatch(pk, file, onSuccess, onError){
+  compressImage(file, compressed => {
+    photos[pk] = compressed;
+    const ok = savePhotos(photos);
+    if(ok){
+      if(onSuccess) onSuccess(compressed);
+    } else {
+      // Try removing oldest photos to make room
+      const keys = Object.keys(photos);
+      if(keys.length > 1){
+        // Remove oldest (first key) and retry
+        delete photos[keys[0]];
+        photos[pk] = compressed;
+        const retry = savePhotos(photos);
+        if(retry){ if(onSuccess) onSuccess(compressed); }
+        else { delete photos[pk]; if(onError) onError(); }
+      } else {
+        delete photos[pk];
+        if(onError) onError();
+      }
+    }
+  });
+}
+
+// ── UTILS ──
+const fmtP = n => n!=null&&n!==''&&Number(n)!==0 ? '$'+Number(n).toLocaleString() : (n===0||n==='0'?'$0':'—');
+const dsh = v => v||'—';
+function photoKey(w){return('w_'+(w.id||w.brand+w.series+w.model+w.ref)).replace(/[\s\/\.]/g,'_').toLowerCase().substring(0,60)}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
+
+// Collection data is user-managed via localStorage
+
+const momW=[
+  {id:'m0',brand:"Cartier",series:"Ballon Bleu 36",model:"",ref:"W4BB0036",serial:"4372183694EY",origin:"Switzerland",casemat:"Stainless Steel",dial:"Silver/Diamonds",strap:"SS Bracelet",size:"36",thick:"",lug:"",movement:"Automatic",pr:null,wr:30,year:2025,condition:"New",price:14800,paid:14800,service:""},
+  {id:'m1',brand:"Omega",series:"Constellation",model:"",ref:"13115292052001",serial:"89321255",origin:"Switzerland",casemat:"Stainless Steel",dial:"Silver",strap:"SS Bracelet",size:"29",thick:"",lug:"",movement:"Automatic",pr:50,wr:50,year:2021,condition:"New",price:9750,paid:null,service:"2/12/2025"},
+  {id:'m2',brand:"Omega",series:"Constellation",model:"Meteorite Dial",ref:"13125292099001",serial:"83448080",origin:"Switzerland",casemat:"Stainless/Gold",dial:"Meteorite (Silver)",strap:"Stainless/Gold",size:"29",thick:"12",lug:"",movement:"Automatic",pr:50,wr:50,year:2024,condition:"New",price:16100,paid:16100,service:"Next: 2029"},
+  {id:'m3',brand:"Omega",series:"DeVille",model:"Tressot",ref:"42818366004002",serial:"93244543",origin:"Switzerland",casemat:"Stainless Steel",dial:"White",strap:"Leather/Red",size:"36",thick:"8.85",lug:"",movement:"Quartz",pr:null,wr:30,year:2025,condition:"New",price:5500,paid:5500,service:"Next: 2030"},
+];
+
+function getMom(){
+  try{
+    const cloud = localStorage.getItem('wc_mom_cloud');
+    if(cloud) return JSON.parse(cloud);
+  }catch(e){}
+  return momW;
+}
+
+// ── COMBINE ALL ──
+function allWatches(){return customWatches;}
+function active(){return customWatches.filter(w=>!w.sold);}
+function soldW(){return customWatches.filter(w=>w.sold);}
+
+// ── STATE ──
+let filtered=[], curF='all', curS='brand';
+let modalWatch=null, editingId=null;
+let formPhotoData=null;
+
+// ── HELPERS ──
+function mvC(m){if(!m)return'';if(m.includes('Auto'))return'ma';if(m.includes('Manual'))return'mm';if(m.includes('Quartz'))return'mq';return'';}
+
+// ── SVG ICON ──
+const camIcon=`<svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`;
+
+// ── STATS ──
+function renderStats(){
+  const act=active(), sld=soldW();
+  document.getElementById('bCol').textContent=act.length;
+  document.getElementById('bFmr').textContent=sld.length;
+  document.getElementById('bMom').textContent=momW.length;
+  document.getElementById('bBeth').textContent=bethWatches.length;
+  const tPd=act.reduce((s,w)=>s+(w.paid||0),0);
+  const tRt=act.reduce((s,w)=>s+(w.price||0),0);
+  const tF26=act.reduce((s,w)=>s+(w.feb26||0),0);
+  const gl=tF26-tPd;
+  const mech=act.filter(w=>w.movement==='Automatic'||w.movement==='Manual Wind').length;
+  document.getElementById('sTot').textContent=act.length;
+  document.getElementById('sBr').textContent=new Set(act.map(w=>w.brand)).size;
+  document.getElementById('sPd').textContent='$'+Math.round(tPd/1000)+'K';
+  document.getElementById('sRt').textContent='$'+Math.round(tRt/1000)+'K';
+  document.getElementById('sF26').textContent=tF26?'$'+Math.round(tF26/1000)+'K':'—';
+  const glEl=document.getElementById('sGL');
+  glEl.textContent=(gl>=0?'+':'−')+'$'+Math.round(Math.abs(gl)/1000)+'K';
+  glEl.style.color=gl>=0?'var(--green)':'var(--danger)';
+  document.getElementById('sMc').textContent=mech;
+  const fPd=sld.reduce((s,w)=>s+(w.paid||0),0);
+  const fRc=sld.reduce((s,w)=>s+(w.soldAmt||0),0);
+  const fNt=fRc-fPd;
+  document.getElementById('fTot').textContent=sld.length;
+  document.getElementById('fPd').textContent=fmtP(fPd);
+  document.getElementById('fRc').textContent=fmtP(fRc);
+  const fEl=document.getElementById('fNt');
+  fEl.textContent=(fNt>=0?'+':'−')+fmtP(Math.abs(fNt));
+  fEl.style.color=fNt>=0?'var(--green)':'var(--danger)';
+  const mVal=momW.reduce((s,w)=>s+(w.price||0),0);
+  document.getElementById('mTot').textContent=momW.length;
+  document.getElementById('mVal').textContent=fmtP(mVal);
+  document.getElementById('mPd').textContent=fmtP(momW.reduce((s,w)=>s+(w.paid||0),0));
+  // beth
+  const btVal=bethWatches.reduce((s,w)=>s+(w.price||0),0);
+  document.getElementById('btTot').textContent=bethWatches.length;
+  document.getElementById('btVal').textContent=fmtP(btVal);
+  document.getElementById('btPd').textContent=fmtP(bethWatches.reduce((s,w)=>s+(w.paid||0),0));
+}
+
+// ── BREAKDOWN ──
+function renderBreakdown(){
+  const act=active();
+  const counts={};act.forEach(w=>{counts[w.brand]=(counts[w.brand]||0)+1;});
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const max=sorted[0]?.[1]||1;
+  document.getElementById('bdB').innerHTML=sorted.map(([b,c])=>`
+    <div class="bd-row"><div class="bd-brand">${b}</div><div class="bd-track"><div class="bd-fill" style="width:${Math.round((c/max)*100)}%"></div></div><div class="bd-n">${c}</div></div>`).join('');
+}
+
+// ── PHOTO HTML FOR CARD ──
+// ── MULTI-PHOTO HELPERS ──
+// photos[pk] can be a string (legacy) or array (new)
+function getPhotos(pk){ const p=photos[pk]; if(!p) return []; if(Array.isArray(p)) return p; return [p]; }
+function setPhotos(pk, arr){ photos[pk]=arr.length===0?undefined:arr; if(photos[pk]===undefined) delete photos[pk]; savePhotos(photos); }
+function addPhoto(pk, dataUrl){ const arr=getPhotos(pk); arr.push(dataUrl); setPhotos(pk, arr); }
+function removePhoto(pk, idx){ const arr=getPhotos(pk); arr.splice(idx,1); setPhotos(pk, arr); }
+
+// Per-card photo index state
+const cardPhotoIndex = {};
+
+function photoHtml(pk){
+  const imgs = getPhotos(pk);
+  const idx = cardPhotoIndex[pk] || 0;
+  const cur = imgs[idx];
+  const multi = imgs.length > 1;
+  if(cur) return `<div class="photo-area" data-pk="${pk}">
+    <img src="${cur}" alt="">
+    ${multi ? `<button class="photo-nav photo-prev" data-pk="${pk}">&#8249;</button><button class="photo-nav photo-next" data-pk="${pk}">&#8250;</button><div class="photo-count">${idx+1}/${imgs.length}</div>` : ''}
+    <div class="photo-overlay">
+      <button class="photo-btn add-photo-btn" data-pk="${pk}">+ Add</button>
+      <button class="photo-btn del-btn remove-photo-btn" data-pk="${pk}" data-idx="${idx}">Remove</button>
+    </div>
+    <input type="file" accept="image/*" class="file-in card-file-in" data-pk="${pk}">
+  </div>`;
+  return `<div class="photo-area" data-pk="${pk}">
+    <div class="photo-placeholder">${camIcon}<span>Tap to add photo</span><span style="font-size:.5rem;opacity:.5;margin-top:2px">On Mac: select Photos from sidebar</span></div>
+    <div class="photo-overlay"><button class="photo-btn add-photo-btn" data-pk="${pk}">+ Add Photo</button></div>
+    <input type="file" accept="image/*" class="file-in card-file-in" data-pk="${pk}">
+  </div>`;
+}
+
+// ── CARD ──
+function makeCard(w,i,type){
+  const isSold=type==='sold',isMom=type==='mom',isBeth=type==='beth',isCustom=!!w._custom;
+  const pk=photoKey(w);
+  const bCls='c-brand'+(isSold?' sb':isMom?' mb':isBeth?' bb':isCustom?' cb2':'');
+  const cCls='wcard'+(isSold?' sold-c':isMom?' mom-c':isBeth?' beth-c':isCustom?' custom-c':'');
+  const gl=(!isSold&&!isMom&&w.feb26&&w.paid)?w.feb26-w.paid:null;
+  const glH=gl!=null?(gl>=0?`<div class="gl-pos">▲ ${fmtP(gl)}</div>`:`<div class="gl-neg">▼ ${fmtP(Math.abs(gl))}</div>`):'';
+  const dispP=isSold?fmtP(w.soldAmt):(w.price?fmtP(w.price):(w.paid?fmtP(w.paid):'—'));
+  return `<div class="${cCls}" style="animation-delay:${(i%16)*.03}s" data-type="${type}" data-id="${w.id}">
+    ${photoHtml(pk)}
+    <div class="cbody">
+      <div class="${bCls}">${w.brand}</div>
+      <div class="c-model">${[w.series,w.model].filter(Boolean).join(' · ')||w.brand}</div>
+      <div class="c-ref">${w.ref||'&nbsp;'}</div>
+      <div class="c-div"></div>
+      <div class="cmeta">
+        <div><div class="mk">Year</div><div class="mv">${w.year||'—'}</div></div>
+        <div><div class="mk">Size</div><div class="mv">${w.size?w.size+'mm':'—'}</div></div>
+        <div><div class="mk">Dial</div><div class="mv">${w.dial||'—'}</div></div>
+        <div><div class="mk">Origin</div><div class="mv">${w.origin||'—'}</div></div>
+      </div>
+      <div class="cbot"><div class="cp">${dispP}</div>${w.movement?`<div class="mbadge ${mvC(w.movement)}">${w.movement}</div>`:''}</div>
+      ${glH}
+      ${isSold?`<div class="stag">Sold · ${fmtP(w.soldAmt)}</div>`:''}
+      ${isCustom&&!isSold?`<div class="custom-tag">Added by you</div>`:''}
+      ${w.box==='yes'?`<span style="display:inline-block;margin-top:6px;margin-right:4px;padding:1px 7px;border:1px solid #2a4a2a;font-size:.48rem;letter-spacing:.12em;text-transform:uppercase;color:var(--green)">Box</span>`:''}${w.papers==='yes'?`<span style="display:inline-block;margin-top:6px;padding:1px 7px;border:1px solid #2a4a2a;font-size:.48rem;letter-spacing:.12em;text-transform:uppercase;color:var(--green)">Papers</span>`:''}
+      ${w.notes?`<div class="cnote">${w.notes}</div>`:''}
+    </div>
+  </div>`;
+}
+
+// ── RENDER GRID ──
+function renderGrid(data,elId,type){
+  const el=document.getElementById(elId);
+  if(!data.length){el.innerHTML='<div class="empty">No timepieces yet — tap <strong style="color:var(--gold)">+ Add Watch</strong> to begin your collection.</div>';return;}
+  el.innerHTML=data.map((w,i)=>makeCard(w,i,type)).join('');
+  // Add photo buttons
+  el.querySelectorAll('.add-photo-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{e.stopPropagation();btn.closest('.photo-area').querySelector('.card-file-in').click();});
+  });
+  // Remove current photo
+  el.querySelectorAll('.remove-photo-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const pk=btn.dataset.pk, idx=parseInt(btn.dataset.idx||0);
+      removePhoto(pk, idx);
+      if(cardPhotoIndex[pk]>=getPhotos(pk).length) cardPhotoIndex[pk]=Math.max(0,getPhotos(pk).length-1);
+      renderAll();
+    });
+  });
+  // Photo nav prev/next
+  el.querySelectorAll('.photo-prev').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const pk=btn.dataset.pk, len=getPhotos(pk).length;
+      cardPhotoIndex[pk]=((cardPhotoIndex[pk]||0)-1+len)%len;
+      renderAll();
+    });
+  });
+  el.querySelectorAll('.photo-next').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const pk=btn.dataset.pk, len=getPhotos(pk).length;
+      cardPhotoIndex[pk]=((cardPhotoIndex[pk]||0)+1)%len;
+      renderAll();
+    });
+  });
+  // File input — add new photo to array
+  el.querySelectorAll('.card-file-in').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      e.stopPropagation();
+      const pk=inp.dataset.pk;
+      const file=inp.files[0];
+      if(!file)return;
+      compressImage(file, compressed=>{
+        addPhoto(pk, compressed);
+        cardPhotoIndex[pk]=getPhotos(pk).length-1; // jump to new photo
+        renderAll();
+      });
+      inp.value='';
+    });
+  });
+  // card click → modal
+  el.querySelectorAll('.wcard').forEach(card=>{
+    card.addEventListener('click',e=>{
+      if(e.target.closest('.photo-area'))return;
+      const id=card.dataset.id;
+      const w=allWatches().find(x=>x.id===id)||momW.find(x=>x.id===id)||bethWatches.find(x=>x.id===id);
+      if(w) openModal(w);
+    });
+  });
+}
+
+// ── FILTER + SORT ──
+function applyFS(){
+  const q=document.getElementById('srchIn').value.toLowerCase();
+  const act=active();
+  filtered=act.filter(w=>{
+    const ms=!q||[w.brand,w.series,w.model,w.ref,w.dial,w.strap,w.notes,w.casemat].join(' ').toLowerCase().includes(q);
+    let mf=true;
+    if(curF!=='all'){if(curF==='Gift')mf=(w.condition||'').includes('Gift');else if(curF==='New')mf=w.condition==='New'||w.condition==='Gift/New';else mf=w.movement===curF;}
+    return ms&&mf;
+  });
+  filtered.sort((a,b)=>{switch(curS){case'brand':return a.brand.localeCompare(b.brand);case'year-d':return(b.year||0)-(a.year||0);case'year-a':return(a.year||0)-(b.year||0);case'paid-d':return(b.paid||0)-(a.paid||0);case'paid-a':return(a.paid||0)-(b.paid||0);case'retail-d':return(b.price||0)-(a.price||0);case'gl-d':return((b.feb26||0)-(b.paid||0))-((a.feb26||0)-(a.paid||0));default:return 0;}});
+  document.getElementById('rcN').textContent=filtered.length;
+  renderGrid(filtered,'gridEl','active');
+}
+
+function renderAll(){
+  renderStats();
+  renderBreakdown();
+  applyFS();
+  renderGrid(soldW(),'fmrGrid','sold');
+  renderGrid(momW,'momGrid','mom');
+  renderGrid(bethWatches,'bethGrid','beth');
+}
+
+// ── MODAL ──
+function openModal(w){
+  modalWatch=w;
+  modalPhotoIdx=0;
+  const isMom=momW.some(m=>m.id===w.id);
+  const isBeth=bethWatches.some(b=>b.id===w.id);
+  // photo
+  refreshModalPhoto();
+  document.getElementById('mBrand').textContent=w.brand;
+  document.getElementById('mModel').textContent=[w.series,w.model].filter(Boolean).join(' · ')||w.brand;
+  document.getElementById('mRefLbl').textContent=w.ref||'';
+  const actEl=document.getElementById('mActions');
+  // All watches are user-managed — show Edit and Delete on everything
+  if(!isMom){
+    actEl.innerHTML=`<button class="m-edit-btn" id="mEditBtn">Edit</button><button class="m-del-btn" id="mDelBtn">Remove</button>`;
+    document.getElementById('mEditBtn').onclick=()=>{closeModal();openForm(w, isBeth?'beth':'custom');};
+    document.getElementById('mDelBtn').onclick=()=>{closeModal();openConfirm(w, isBeth?'beth':'custom');};
+  } else {
+    actEl.innerHTML=`<button class="m-edit-btn" id="mEditBtn">Edit</button>`;
+    document.getElementById('mEditBtn').onclick=()=>{closeModal();openForm(w,'mom');};
+  }
+  // financials
+  const pV=w.paid||0,rV=w.price||0,f26V=w.feb26||0;
+  const glV=f26V&&pV?f26V-pV:null;
+  const glC=glV==null?'':(glV>0?'gain':'loss');
+  const glT=glV!=null?((glV>=0?'+':'−')+fmtP(Math.abs(glV))):'—';
+  document.getElementById('mFin').innerHTML=`<div><div class="mfl">Paid</div><div class="mfv">${pV?fmtP(pV):'—'}</div></div><div><div class="mfl">Retail</div><div class="mfv">${rV?fmtP(rV):'—'}</div></div><div><div class="mfl">Feb '26</div><div class="mfv">${f26V?fmtP(f26V):'—'}</div></div><div><div class="mfl">Gain/Loss</div><div class="mfv ${glC}">${glT}</div></div>`;
+  document.getElementById('mSpec').innerHTML=`<div><div class="msk">Year</div><div class="msv">${dsh(w.year)}</div></div><div><div class="msk">Movement</div><div class="msv">${dsh(w.movement)}</div></div><div><div class="msk">Power reserve</div><div class="msv">${w.pr?w.pr+'h':'—'}</div></div><div><div class="msk">Water resist.</div><div class="msv">${w.wr?w.wr+'M':'—'}</div></div><div><div class="msk">Case material</div><div class="msv">${dsh(w.casemat)}</div></div><div><div class="msk">Dial</div><div class="msv">${dsh(w.dial)}</div></div><div><div class="msk">Bracelet/strap</div><div class="msv">${dsh(w.strap)}</div></div><div><div class="msk">Case size</div><div class="msv">${w.size?w.size+'mm':'—'}</div></div><div><div class="msk">Thickness</div><div class="msv">${w.thick?w.thick+'mm':'—'}</div></div><div><div class="msk">Lug width</div><div class="msv">${w.lug?w.lug+'mm':'—'}</div></div><div><div class="msk">Lug to lug</div><div class="msv">${w.lugToLug?w.lugToLug+'mm':'—'}</div></div><div><div class="msk">Origin</div><div class="msv">${dsh(w.origin)}</div></div>`;
+  document.getElementById('mRef2').innerHTML=(w.ref||w.serial)?`<div class="m-rref"><strong>Ref:</strong> ${w.ref||'—'} &nbsp;|&nbsp; <strong>Serial:</strong> ${w.serial||'—'}</div>`:'';
+
+  // box & papers badges
+  let bpHtml='';
+  if(w.box||w.papers||w.grade||w.finish||w.source){
+    bpHtml+=`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">`;
+    if(w.grade) bpHtml+=`<span style="padding:3px 10px;border:1px solid var(--border2);font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)">${w.grade}</span>`;
+    if(w.box==='yes') bpHtml+=`<span style="padding:3px 10px;border:1px solid #2a4a2a;font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--green)">Box ✓</span>`;
+    else if(w.box&&w.box!=='yes') bpHtml+=`<span style="padding:3px 10px;border:1px solid var(--border2);font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--stone)">Box: ${w.box}</span>`;
+    if(w.papers==='yes') bpHtml+=`<span style="padding:3px 10px;border:1px solid #2a4a2a;font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--green)">Papers ✓</span>`;
+    else if(w.papers&&w.papers!=='yes') bpHtml+=`<span style="padding:3px 10px;border:1px solid var(--border2);font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--stone)">Papers: ${w.papers}</span>`;
+    if(w.finish) bpHtml+=`<span style="padding:3px 10px;border:1px solid var(--border2);font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--stone)">${w.finish}</span>`;
+    if(w.source) bpHtml+=`<span style="padding:3px 10px;border:1px solid var(--border2);font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--stone)">${w.source}</span>`;
+    bpHtml+=`</div>`;
+  }
+
+  // provenance / extra details grid
+  let provHtml='';
+  const provFields=[
+    ['Dealer/Seller',w.dealer],['Purchase Location',w.location],['Currency',w.currency&&w.currency!=='USD (default)'?w.currency:''],
+    ['Previous Owners',w.owners!==undefined&&w.owners!==''?w.owners+' prev. owner(s)':''],
+    ['Extras / Accessories',w.extras],['Warranty Expires',w.warranty],
+  ].filter(([,v])=>v);
+  if(provFields.length){
+    provHtml=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">`;
+    provFields.forEach(([k,v])=>{ provHtml+=`<div><div class="msk">${k}</div><div class="msv">${v}</div></div>`; });
+    provHtml+=`</div>`;
+  }
+
+  let nh=bpHtml+provHtml;
+  if(w.service||w.serviceNext) nh+=`<div class="m-svc">🔧 ${w.service||''}${w.service&&w.serviceNext?' &nbsp;|&nbsp; ':''}${w.serviceNext?'Next due: '+w.serviceNext:''}</div>`;
+  if(w.notes) nh+=`<div class="m-nl">Notes & provenance</div><div class="m-nt">${w.notes}</div>`;
+  document.getElementById('mNotes').innerHTML=nh;
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){document.getElementById('overlay').classList.remove('open');document.body.style.overflow='';modalWatch=null;}
+
+// ── MODAL PHOTO HELPERS ──
+let modalPhotoIdx = 0;
+function refreshModalPhoto(){
+  if(!modalWatch) return;
+  const pk = photoKey(modalWatch);
+  const imgs = getPhotos(pk);
+  const img = document.getElementById('mPhotoImg');
+  const ph = document.getElementById('mPhotoPh');
+  const del = document.getElementById('mPhotoDelBtn');
+  const prev = document.getElementById('mPhotoPrev');
+  const next = document.getElementById('mPhotoNext');
+  const count = document.getElementById('mPhotoCount');
+  if(imgs.length > 0){
+    if(modalPhotoIdx >= imgs.length) modalPhotoIdx = imgs.length - 1;
+    img.src = imgs[modalPhotoIdx];
+    img.style.display = 'block';
+    ph.style.display = 'none';
+    del.style.display = 'inline-block';
+    const multi = imgs.length > 1;
+    prev.style.display = multi ? 'flex' : 'none';
+    next.style.display = multi ? 'flex' : 'none';
+    count.style.display = multi ? 'block' : 'none';
+    count.textContent = `${modalPhotoIdx+1}/${imgs.length}`;
+  } else {
+    img.src=''; img.style.display='none';
+    ph.style.display='flex';
+    del.style.display='none';
+    prev.style.display='none';
+    next.style.display='none';
+    count.style.display='none';
+  }
+}
+
+// ── MODAL PHOTO HANDLERS ──
+document.getElementById('mPhotoAddBtn').addEventListener('click',()=>document.getElementById('mFileIn').click());
+document.getElementById('mPhotoPrev').addEventListener('click',e=>{
+  e.stopPropagation();
+  if(!modalWatch) return;
+  const pk=photoKey(modalWatch), len=getPhotos(pk).length;
+  modalPhotoIdx=(modalPhotoIdx-1+len)%len;
+  refreshModalPhoto();
+});
+document.getElementById('mPhotoNext').addEventListener('click',e=>{
+  e.stopPropagation();
+  if(!modalWatch) return;
+  const pk=photoKey(modalWatch), len=getPhotos(pk).length;
+  modalPhotoIdx=(modalPhotoIdx+1)%len;
+  refreshModalPhoto();
+});
+document.getElementById('mPhotoDelBtn').addEventListener('click',()=>{
+  if(!modalWatch) return;
+  const pk=photoKey(modalWatch);
+  removePhoto(pk, modalPhotoIdx);
+  if(modalPhotoIdx >= getPhotos(pk).length) modalPhotoIdx = Math.max(0, getPhotos(pk).length-1);
+  refreshModalPhoto();
+  renderAll();
+});
+document.getElementById('mFileIn').addEventListener('change',e=>{
+  if(!modalWatch) return;
+  const file=e.target.files[0]; if(!file) return;
+  const pk=photoKey(modalWatch);
+  compressImage(file, compressed=>{
+    addPhoto(pk, compressed);
+    modalPhotoIdx = getPhotos(pk).length - 1;
+    refreshModalPhoto();
+    renderAll();
+  });
+  e.target.value='';
+});
+
+// ── FORM ──
+let formContext='custom'; // 'custom' or 'beth'
+
+function openForm(watchToEdit, context){
+  formContext = context || 'custom';
+  editingId = watchToEdit ? watchToEdit.id : null;
+  formPhotoData = null;
+  const isEdit=!!watchToEdit;
+  const isBethCtx=formContext==='beth';
+  document.getElementById('formTitle').textContent=isEdit?(isBethCtx?"Edit Beth's Watch":'Edit Watch'):(isBethCtx?"Add to Beth's Collection":'Add Watch');
+  document.getElementById('formSub').textContent=isEdit?'Update timepiece details':(isBethCtx?"New timepiece for Beth's collection":'New timepiece to the collection');
+  document.getElementById('formTopBar').className='form-topbar'+(isEdit?' edit-bar':'');
+  document.getElementById('formSaveBtn').textContent=isEdit?'Save Changes':(isBethCtx?"Save to Beth's Collection":'Save to Collection');
+  document.getElementById('formSaveBtn').className='btn-save'+(isEdit?'':' green');
+  // fill fields
+  const v=watchToEdit||{};
+  document.getElementById('fBrand').value=v.brand||'';
+  document.getElementById('fSeries').value=v.series||'';
+  document.getElementById('fModel').value=v.model||'';
+  document.getElementById('fRef').value=v.ref||'';
+  document.getElementById('fSerial').value=v.serial||'';
+  document.getElementById('fOrigin').value=v.origin||'';
+  document.getElementById('fYear').value=v.year||'';
+  document.getElementById('fMovement').value=v.movement||'';
+  document.getElementById('fCasemat').value=v.casemat||'';
+  document.getElementById('fDial').value=v.dial||'';
+  document.getElementById('fStrap').value=v.strap||'';
+  document.getElementById('fSize').value=v.size||'';
+  document.getElementById('fThick').value=v.thick||'';
+  document.getElementById('fLug').value=v.lug||'';
+  document.getElementById('fLugToLug').value=v.lugToLug||'';
+  document.getElementById('fPr').value=v.pr||'';
+  document.getElementById('fWr').value=v.wr||'';
+  document.getElementById('fPrice').value=v.price||'';
+  document.getElementById('fPaid').value=v.paid||'';
+  document.getElementById('fFeb26').value=v.feb26||'';
+  document.getElementById('fSold').value=v.sold?'true':'false';
+  document.getElementById('fSoldAmt').value=v.soldAmt||'';
+  document.getElementById('fSoldAmtField').style.display=v.sold?'block':'none';
+  document.getElementById('fNotes').value=v.notes||'';
+  document.getElementById('fService').value=v.service||'';
+  document.getElementById('fServiceNext').value=v.serviceNext||'';
+  document.getElementById('fWarranty').value=v.warranty||'';
+  document.getElementById('fSource').value=v.source||'';
+  document.getElementById('fDealer').value=v.dealer||'';
+  document.getElementById('fLocation').value=v.location||'';
+  document.getElementById('fCurrency').value=v.currency||'';
+  document.getElementById('fGrade').value=v.grade||'';
+  document.getElementById('fFinish').value=v.finish||'';
+  document.getElementById('fOwners').value=v.owners||'';
+  document.getElementById('fBox').value=v.box||'';
+  document.getElementById('fPapers').value=v.papers||'';
+  document.getElementById('fExtras').value=v.extras||'';
+  // photo preview
+  const existPk=watchToEdit?photoKey(watchToEdit):null;
+  const existPhoto=existPk?photos[existPk]:null;
+  const prev=document.getElementById('formPhotoPreview');
+  const hint=document.getElementById('formPhotoHint');
+  if(existPhoto){prev.src=existPhoto;prev.style.display='block';hint.style.display='none';}
+  else{prev.src='';prev.style.display='none';hint.style.display='block';}
+  document.getElementById('formFileIn').value='';
+  document.getElementById('formOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeForm(){document.getElementById('formOverlay').classList.remove('open');document.body.style.overflow='';editingId=null;formPhotoData=null;}
+
+document.getElementById('fSold').addEventListener('change',e=>{
+  document.getElementById('fSoldAmtField').style.display=e.target.value==='true'?'block':'none';
+});
+
+// form photo
+document.getElementById('formPhotoArea').addEventListener('click',()=>document.getElementById('formFileIn').click());
+document.getElementById('formFileIn').addEventListener('change',e=>{
+  const file=e.target.files[0];if(!file)return;
+  compressImage(file, compressed=>{
+    formPhotoData=compressed;
+    document.getElementById('formPhotoPreview').src=compressed;
+    document.getElementById('formPhotoPreview').style.display='block';
+    document.getElementById('formPhotoHint').style.display='none';
+  });
+});
+
+// save
+document.getElementById('formSaveBtn').addEventListener('click',()=>{
+  const brand=document.getElementById('fBrand').value.trim();
+  if(!brand){alert('Brand is required.');return;}
+  const isSold=document.getElementById('fSold').value==='true';
+  const w={
+    id: editingId||genId(),
+    _custom:true,
+    brand,
+    series:document.getElementById('fSeries').value.trim(),
+    model:document.getElementById('fModel').value.trim(),
+    ref:document.getElementById('fRef').value.trim(),
+    serial:document.getElementById('fSerial').value.trim(),
+    origin:document.getElementById('fOrigin').value.trim(),
+    year:parseInt(document.getElementById('fYear').value)||null,
+    movement:document.getElementById('fMovement').value,
+    casemat:document.getElementById('fCasemat').value.trim(),
+    dial:document.getElementById('fDial').value.trim(),
+    strap:document.getElementById('fStrap').value.trim(),
+    size:document.getElementById('fSize').value.trim(),
+    thick:document.getElementById('fThick').value.trim(),
+    lug:document.getElementById('fLug').value.trim(),
+    lugToLug:document.getElementById('fLugToLug').value.trim(),
+    pr:parseFloat(document.getElementById('fPr').value)||null,
+    wr:parseFloat(document.getElementById('fWr').value)||null,
+    price:parseFloat(document.getElementById('fPrice').value)||null,
+    paid:parseFloat(document.getElementById('fPaid').value)||null,
+    feb26:parseFloat(document.getElementById('fFeb26').value)||null,
+    sold:isSold,
+    soldAmt:isSold?(parseFloat(document.getElementById('fSoldAmt').value)||null):null,
+    notes:document.getElementById('fNotes').value.trim(),
+    service:document.getElementById('fService').value.trim(),
+    serviceNext:document.getElementById('fServiceNext').value.trim(),
+    warranty:document.getElementById('fWarranty').value.trim(),
+    source:document.getElementById('fSource').value,
+    dealer:document.getElementById('fDealer').value.trim(),
+    location:document.getElementById('fLocation').value.trim(),
+    currency:document.getElementById('fCurrency').value,
+    grade:document.getElementById('fGrade').value,
+    finish:document.getElementById('fFinish').value,
+    owners:document.getElementById('fOwners').value,
+    box:document.getElementById('fBox').value,
+    papers:document.getElementById('fPapers').value,
+    extras:document.getElementById('fExtras').value.trim(),
+  };
+  // save photo
+  if(formPhotoData){photos[photoKey(w)]=formPhotoData;savePhotos(photos);}
+  // save watch to correct collection
+  if(formContext==='beth'){
+    if(editingId){const idx=bethWatches.findIndex(x=>x.id===editingId);if(idx>=0)bethWatches[idx]=w;else bethWatches.push(w);}
+    else{bethWatches.push(w);}
+    saveBeth(bethWatches);
+  } else {
+    if(editingId){const idx=customWatches.findIndex(x=>x.id===editingId);if(idx>=0)customWatches[idx]=w;else customWatches.push(w);}
+    else{customWatches.push(w);}
+    saveCustom(customWatches);
+  }
+  closeForm();
+  renderAll();
+});
+
+// ── CONFIRM DELETE ──
+let confirmTarget=null;
+let confirmContext='custom';
+function openConfirm(w, context){
+  confirmTarget=w;
+  confirmContext=context||'custom';
+  document.getElementById('confirmMsg').textContent=`This will remove "${[w.brand,w.series,w.model].filter(Boolean).join(' ')}" from ${confirmContext==='beth'?"Beth's collection":'your collection'}. This cannot be undone.`;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+document.getElementById('confirmNo').addEventListener('click',()=>{document.getElementById('confirmOverlay').classList.remove('open');confirmTarget=null;});
+document.getElementById('confirmYes').addEventListener('click',()=>{
+  if(!confirmTarget)return;
+  const pk=photoKey(confirmTarget);delete photos[pk];savePhotos(photos);
+  if(confirmContext==='beth'){
+    bethWatches=bethWatches.filter(w=>w.id!==confirmTarget.id);
+    saveBeth(bethWatches);
+  } else {
+    customWatches=customWatches.filter(w=>w.id!==confirmTarget.id);
+    saveCustom(customWatches);
+  }
+  document.getElementById('confirmOverlay').classList.remove('open');
+  confirmTarget=null;
+  renderAll();
+});
+
+// ── TABS ──
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    const t=tab.dataset.tab;
+    ['col','fmr','mom','beth','wl'].forEach(id=>{document.getElementById('tab-'+id).style.display=id===t?'block':'none';});
+  });
+});
+
+// ── CONTROLS ──
+document.getElementById('srchIn').addEventListener('input',applyFS);
+document.getElementById('pillG').addEventListener('click',e=>{const b=e.target.closest('.pill');if(!b)return;document.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));b.classList.add('active');curF=b.dataset.f;applyFS();});
+document.getElementById('sortS').addEventListener('change',e=>{curS=e.target.value;applyFS();});
+document.getElementById('addWatchBtn').addEventListener('click',()=>openForm(null,'custom'));
+document.getElementById('addBethBtn').addEventListener('click',()=>openForm(null,'beth'));
+document.getElementById('mClose').addEventListener('click',closeModal);
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay'))closeModal();});
+document.getElementById('formClose').addEventListener('click',closeForm);
+document.getElementById('formCancelBtn').addEventListener('click',closeForm);
+document.getElementById('formOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('formOverlay'))closeForm();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeForm();}});
+
+// ── BACKUP & RESTORE ──
+function showToast(msg){
+  const t=document.getElementById('backupToast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function doBackup(){
+  const backup={
+    version:3,
+    date:new Date().toISOString(),
+    customWatches,
+    bethWatches,
+    photos
+  };
+  const json=JSON.stringify(backup,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const dateStr=new Date().toISOString().slice(0,10);
+  a.href=url;a.download=`watch-collection-backup-${dateStr}.json`;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  showToast('Backup saved ✓');
+}
+
+function doRestore(file){
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!data.version||!data.customWatches){throw new Error('Invalid backup file');}
+      if(data.photos){Object.assign(photos,data.photos);savePhotos(photos);}
+      if(data.customWatches){
+        data.customWatches.forEach(w=>{
+          const idx=customWatches.findIndex(x=>x.id===w.id);
+          if(idx>=0)customWatches[idx]=w;else customWatches.push(w);
+        });
+        saveCustom(customWatches);
+      }
+      if(data.bethWatches){
+        data.bethWatches.forEach(w=>{
+          const idx=bethWatches.findIndex(x=>x.id===w.id);
+          if(idx>=0)bethWatches[idx]=w;else bethWatches.push(w);
+        });
+        saveBeth(bethWatches);
+      }
+      renderAll();
+      showToast('Backup restored ✓');
+    } catch(e){
+      alert('Could not restore — file may be corrupted or wrong format.');
+    }
+  };
+  r.readAsText(file);
+}
+
+document.getElementById('backupBtn').addEventListener('click',doBackup);
+document.getElementById('restoreBtn').addEventListener('click',()=>document.getElementById('restoreFileIn').click());
+document.getElementById('restoreFileIn').addEventListener('change',e=>{
+  const file=e.target.files[0];if(!file)return;
+  doRestore(file);e.target.value='';
+});
+
+// ── THEME TOGGLE ──
+(function(){
+  const THEME_KEY='wc_theme_v1';
+  if(localStorage.getItem(THEME_KEY)==='light') document.body.classList.add('light');
+  function updateIcon(){
+    const btn=document.getElementById('themeToggle');
+    if(btn) btn.textContent=document.body.classList.contains('light')?'☾':'☀';
+  }
+  updateIcon();
+  document.getElementById('themeToggle').addEventListener('click',()=>{
+    document.body.classList.toggle('light');
+    localStorage.setItem(THEME_KEY,document.body.classList.contains('light')?'light':'dark');
+    updateIcon();
+  });
+})();
+
+// ── PWA BANNER ──
+// Show install prompt if not already installed as PWA
+function isPWA(){
+  return window.navigator.standalone === true ||
+         window.matchMedia('(display-mode: standalone)').matches;
+}
+
+function showPWABanner(){
+  if(isPWA()) return; // already installed
+  const dismissed = localStorage.getItem('pwa_dismissed');
+  if(dismissed) return;
+  // Show after 2 seconds
+  setTimeout(()=>{
+    document.getElementById('pwaBanner').classList.add('show');
+  }, 2000);
+}
+
+document.getElementById('pwaBannerDismiss').addEventListener('click',()=>{
+  document.getElementById('pwaBanner').classList.remove('show');
+  localStorage.setItem('pwa_dismissed','1');
+});
+
+document.getElementById('pwaBannerHow').addEventListener('click',()=>{
+  document.getElementById('pwaBanner').classList.remove('show');
+  // Show install instructions modal
+  const overlay = document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:900;display:flex;align-items:center;justify-content:center;padding:24px';
+  overlay.innerHTML=`
+    <div style="background:var(--card);border:1px solid var(--border2);max-width:400px;width:100%;padding:32px;position:relative">
+      <div style="height:3px;background:linear-gradient(90deg,var(--gold),var(--gold2));margin:-32px -32px 24px"></div>
+      <button onclick="this.closest('[style]').remove()" style="position:absolute;top:18px;right:18px;background:none;border:1px solid var(--border2);color:var(--stone);width:28px;height:28px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center">✕</button>
+      <div style="font-size:.58rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Add to Home Screen</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--cream);margin-bottom:20px">Install The Collection</div>
+      <div style="font-size:.78rem;color:var(--stone);line-height:1.9">
+        <div style="margin-bottom:10px;color:var(--cream)">On iPhone / iPad (Safari):</div>
+        <div style="margin-bottom:6px">1. Tap the <strong style="color:var(--cream)">Share</strong> button <span style="font-size:1rem">⬆</span> at the bottom of Safari</div>
+        <div style="margin-bottom:6px">2. Scroll down and tap <strong style="color:var(--cream)">"Add to Home Screen"</strong></div>
+        <div style="margin-bottom:20px">3. Tap <strong style="color:var(--cream)">Add</strong> — done!</div>
+        <div style="margin-bottom:10px;color:var(--cream)">On Mac (Safari or Chrome):</div>
+        <div style="margin-bottom:6px">Safari: <strong style="color:var(--cream)">File → Add to Dock</strong></div>
+        <div>Chrome: Click the <strong style="color:var(--cream)">install icon</strong> in the address bar</div>
+      </div>
+      <div style="margin-top:20px;padding:12px 16px;background:rgba(184,145,58,.07);border:1px solid rgba(184,145,58,.2);font-size:.68rem;color:var(--stone);line-height:1.6">
+        Once installed, The Collection opens like a native app — full screen, no browser UI, and your data persists between sessions.
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+});
+
+// ── STATS TOGGLE ──
+let statsVisible = true;
+document.getElementById('statsToggleBtn').addEventListener('click', () => {
+  statsVisible = !statsVisible;
+  const bar = document.getElementById('statsBar');
+  const btn = document.getElementById('statsToggleBtn');
+  bar.style.display = statsVisible ? 'flex' : 'none';
+  btn.textContent = statsVisible ? 'Hide Stats ▲' : 'Show Stats ▼';
+});
+
+// ── WATCH SETTER ──
+let wsInterval = null;
+let wsChimeOn = localStorage.getItem('ws_chime') !== 'off';
+let wsLastChimeSec = -1;
+let wsAudioCtx = null;
+
+function getAudioCtx(){
+  if(!wsAudioCtx || wsAudioCtx.state === 'closed'){
+    wsAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if(wsAudioCtx.state === 'suspended') wsAudioCtx.resume();
+  return wsAudioCtx;
+}
+
+function playChime(type){
+  try{
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    if(type === 'tick'){
+      // Soft bell — single tone, descending
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(660, now + 0.35);
+      gain.gain.setValueAtTime(0.22, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      osc.start(now);
+      osc.stop(now + 0.5);
+    } else {
+      // Top of minute — two-note chime
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.connect(gain1); gain1.connect(ctx.destination);
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(1046, now);
+      osc1.frequency.exponentialRampToValueAtTime(784, now + 0.6);
+      gain1.gain.setValueAtTime(0.25, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+      osc1.start(now); osc1.stop(now + 0.8);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2); gain2.connect(ctx.destination);
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(1318, now + 0.2);
+      osc2.frequency.exponentialRampToValueAtTime(1046, now + 0.8);
+      gain2.gain.setValueAtTime(0, now);
+      gain2.gain.setValueAtTime(0.2, now + 0.2);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+      osc2.start(now + 0.2); osc2.stop(now + 0.9);
+    }
+  } catch(e){ console.warn('Chime error:', e); }
+}
+function openWatchSetter(){
+  const overlay = document.getElementById('wsOverlay');
+  if(!overlay) return;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  // Initialize audio context on user gesture
+  getAudioCtx();
+  // Build clock face once
+  const face = document.getElementById('wsFace');
+  if(face && !face.dataset.built){
+    face.dataset.built = '1';
+    // Tick marks
+    for(let i=0;i<60;i++){
+      const a=i*6, major=i%5===0, rad=(a-90)*Math.PI/180;
+      const outerR=47, len=major?10:4, w=major?2.5:1;
+      const x=50+outerR*Math.cos(rad), y=50+outerR*Math.sin(rad);
+      const t=document.createElement('div');
+      t.style.cssText=`position:absolute;width:${w}px;height:${len}px;background:${major?'rgba(184,145,58,1)':'rgba(184,145,58,.5)'};left:${x}%;top:${y}%;transform:translate(-50%,-50%) rotate(${a}deg);border-radius:1px`;
+      face.appendChild(t);
+    }
+    // Arabic numerals at all 12 hour positions
+    const labels=['12','1','2','3','4','5','6','7','8','9','10','11'];
+    labels.forEach((label,i)=>{
+      const a=(i*30-90)*Math.PI/180, nr=34;
+      const nx=50+nr*Math.cos(a), ny=50+nr*Math.sin(a);
+      const num=document.createElement('div');
+      num.style.cssText=`position:absolute;font-family:'Montserrat',sans-serif;font-size:10px;font-weight:500;color:rgba(242,237,228,.9);left:${nx}%;top:${ny}%;transform:translate(-50%,-50%);line-height:1;letter-spacing:0`;
+      num.textContent=label;
+      face.appendChild(num);
+    });
+  }
+  function tickWS(){
+    const n=new Date(), h=n.getHours()%12, m=n.getMinutes(), s=n.getSeconds(), ms=n.getMilliseconds();
+    const sd=(s+ms/1000)*6, md=(m+s/60)*6, hd=(h+m/60)*30;
+    const rh=document.getElementById('wsHour'), rm=document.getElementById('wsMin'), rs=document.getElementById('wsSec');
+    if(rh) rh.style.transform=`rotate(${hd}deg)`;
+    if(rm) rm.style.transform=`rotate(${md}deg)`;
+    if(rs) rs.style.transform=`rotate(${sd}deg)`;
+    // 12-hour digital with seconds
+    const dig=document.getElementById('wsDigital');
+    if(dig){
+      const hr12=n.getHours()%12||12;
+      const ampm=n.getHours()>=12?'PM':'AM';
+      const mm=m.toString().padStart(2,'0');
+      const ss=s.toString().padStart(2,'0');
+      dig.textContent=`${hr12}:${mm}:${ss} ${ampm}`;
+    }
+    // Chime logic
+    if(wsChimeOn && s !== wsLastChimeSec){
+      wsLastChimeSec = s;
+      if(s === 0) playChime('top');
+      else if(s >= 55) playChime('tick');
+    }
+  }
+  tickWS();
+  wsInterval = setInterval(tickWS, 100);
+
+  // Chime toggle
+  const chimeBtn = document.getElementById('wsChimeBtn');
+  if(chimeBtn){
+    chimeBtn.textContent = wsChimeOn ? '\u266C Chime On' : '\u266C Chime Off';
+    chimeBtn.className = 'ws-chime-btn' + (wsChimeOn ? ' on' : '');
+    chimeBtn.onclick = ()=>{
+      wsChimeOn = !wsChimeOn;
+      localStorage.setItem('ws_chime', wsChimeOn ? 'on' : 'off');
+      chimeBtn.textContent = wsChimeOn ? '\u266C Chime On' : '\u266C Chime Off';
+      chimeBtn.className = 'ws-chime-btn' + (wsChimeOn ? ' on' : '');
+    };
+  }
+}
+function closeWatchSetter(){
+  const overlay = document.getElementById('wsOverlay');
+  if(overlay) overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  if(wsInterval){ clearInterval(wsInterval); wsInterval=null; }
+}
+document.getElementById('watchBtn').addEventListener('click', openWatchSetter);
+document.getElementById('wsClose').addEventListener('click', closeWatchSetter);
+document.getElementById('wsOverlay').addEventListener('click', e=>{ if(e.target===document.getElementById('wsOverlay')) closeWatchSetter(); });
+
+// ── INIT ──
+renderAll();
+showPWABanner();
+// Load from cloud on startup
+cloudLoad().then(loaded => {
+  if(loaded) renderAll();
+});
+</script>
+</body>
+</html>
