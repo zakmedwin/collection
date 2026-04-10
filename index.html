@@ -319,6 +319,9 @@ input.file-in{display:none}
 .ws-center{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--gold);top:50%;left:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 2px #181614,0 0 8px rgba(184,145,58,.5);z-index:3}
 .ws-digital{font-family:'Courier New',Courier,monospace;font-size:2.4rem;font-weight:700;color:var(--cream);letter-spacing:.06em;margin-bottom:8px;font-variant-numeric:tabular-nums}
 .ws-hint{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)}
+.ws-chime-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);padding:6px 16px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0}
+.ws-chime-btn.on{border-color:var(--gold);color:var(--gold);background:rgba(184,145,58,.08)}
+.ws-chime-btn:hover{border-color:var(--gold);color:var(--gold)}
 
 /* CONFIRM DIALOG */
 .confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:700;align-items:center;justify-content:center;padding:20px}
@@ -458,6 +461,9 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <!-- Digital readout -->
     <div class="ws-digital" id="wsDigital">--:--:--</div>
     <div class="ws-hint">Set your watch to the time shown above</div>
+    <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:10px">
+      <button class="ws-chime-btn" id="wsChimeBtn" title="Toggle chime">&#9836; Chime On</button>
+    </div>
   </div>
 </div>
 <div class="backup-toast" id="backupToast"></div>
@@ -1604,6 +1610,51 @@ document.getElementById('statsToggleBtn').addEventListener('click', () => {
 
 // ── WATCH SETTER ──
 let wsInterval = null;
+let wsChimeOn = localStorage.getItem('ws_chime') !== 'off';
+let wsLastChimeSec = -1;
+
+// Web Audio API chime generator
+function playChime(type){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if(type === 'tick'){
+      // Soft bell tone for :55-:59
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.18, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.4);
+    } else {
+      // Fuller tone for :00 — two-note chime
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1046, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(784, ctx.currentTime + 0.5);
+      gain.gain.setValueAtTime(0.22, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.7);
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(1318, ctx.currentTime + 0.15);
+      osc2.frequency.exponentialRampToValueAtTime(1046, ctx.currentTime + 0.65);
+      gain2.gain.setValueAtTime(0, ctx.currentTime);
+      gain2.gain.setValueAtTime(0.18, ctx.currentTime + 0.15);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+      osc2.start(ctx.currentTime + 0.15);
+      osc2.stop(ctx.currentTime + 0.8);
+    }
+    setTimeout(()=>ctx.close(), 1000);
+  } catch(e){}
+}
 function openWatchSetter(){
   const overlay = document.getElementById('wsOverlay');
   if(!overlay) return;
@@ -1649,9 +1700,28 @@ function openWatchSetter(){
       const ss=s.toString().padStart(2,'0');
       dig.textContent=`${hr12}:${mm}:${ss} ${ampm}`;
     }
+    // Chime logic
+    if(wsChimeOn && s !== wsLastChimeSec){
+      wsLastChimeSec = s;
+      if(s === 0) playChime('top');
+      else if(s >= 55) playChime('tick');
+    }
   }
   tickWS();
   wsInterval = setInterval(tickWS, 100);
+
+  // Chime toggle
+  const chimeBtn = document.getElementById('wsChimeBtn');
+  if(chimeBtn){
+    chimeBtn.textContent = wsChimeOn ? '\u266C Chime On' : '\u266C Chime Off';
+    chimeBtn.className = 'ws-chime-btn' + (wsChimeOn ? ' on' : '');
+    chimeBtn.onclick = ()=>{
+      wsChimeOn = !wsChimeOn;
+      localStorage.setItem('ws_chime', wsChimeOn ? 'on' : 'off');
+      chimeBtn.textContent = wsChimeOn ? '\u266C Chime On' : '\u266C Chime Off';
+      chimeBtn.className = 'ws-chime-btn' + (wsChimeOn ? ' on' : '');
+    };
+  }
 }
 function closeWatchSetter(){
   const overlay = document.getElementById('wsOverlay');
