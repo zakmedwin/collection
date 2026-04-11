@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="The Collection">
 <meta name="theme-color" content="#0b0b09">
 <title>The Collection</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230b0b09'/><text y='.9em' font-size='80' x='10'>⌚</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYmciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMWUxYzE4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzBhMGEwOCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZ2xkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6I2Q0YTg1MyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNiODkxM2EiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiBmaWxsPSJ1cmwoI2JnKSIvPgogIDxyZWN0IHg9IjkiIHk9IjkiIHdpZHRoPSIxNjIiIGhlaWdodD0iMTYyIiByeD0iNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYjg5MTNhIiBzdHJva2Utd2lkdGg9IjAuOCIgb3BhY2l0eT0iMC4zNSIvPgogIDxyZWN0IHg9IjUyIiB5PSIxMTAiIHdpZHRoPSI3NiIgaGVpZ2h0PSIxMSIgcng9IjMiIGZpbGw9InVybCgjZ2xkKSIvPgogIDxyZWN0IHg9IjU2IiB5PSI3NCIgd2lkdGg9IjE3IiBoZWlnaHQ9IjQwIiByeD0iOC41IiBmaWxsPSJ1cmwoI2dsZCkiLz4KICA8cmVjdCB4PSI4MSIgeT0iNjMiIHdpZHRoPSIxOCIgaGVpZ2h0PSI1MSIgcng9IjkiIGZpbGw9InVybCgjZ2xkKSIvPgogIDxyZWN0IHg9IjEwNyIgeT0iNzQiIHdpZHRoPSIxNyIgaGVpZ2h0PSI0MCIgcng9IjguNSIgZmlsbD0idXJsKCNnbGQpIi8+CiAgPHRleHQgeD0iOTAiIHk9IjEwMyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtc3R5bGU9Iml0YWxpYyIgZmlsbD0iIzBkMGIwOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgbGV0dGVyLXNwYWNpbmc9IjIiIG9wYWNpdHk9IjAuOSI+VEM8L3RleHQ+Cjwvc3ZnPg==">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -92,7 +92,7 @@ h1 em{color:var(--gold);font-style:italic}
 .s-hour{width:3px;height:30px;margin-left:-1.5px;background:linear-gradient(to top,var(--gold2),var(--gold));box-shadow:0 0 5px rgba(184,145,58,.35)}
 .s-min{width:2px;height:42px;margin-left:-1px;background:linear-gradient(to top,var(--cream),rgba(242,237,228,.5))}
 .s-sec{width:1px;height:46px;margin-left:-.5px;background:#c0392b;bottom:calc(50% - 12px)}
-.s-center{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px rgba(184,145,58,.5)}
+.s-center{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px rgba(184,145,58,.5);top:50%;left:50%;transform:translate(-50%,-50%);z-index:2}
 .splash-txt{text-align:center;animation:sTxtRise 1s ease both;animation-delay:.2s}
 @keyframes sTxtRise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
 .s-eyebrow{font-size:.55rem;letter-spacing:.4em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:14px;opacity:.85}
@@ -830,7 +830,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 <script>
 // ── CLOUD SYNC CONFIG ──
 const WORKER_URL = 'https://watch-api.zakmedwin.workers.dev';
-const AUTH_TOKEN = 'WatchSync2026';
+const AUTH_TOKEN = 'YOUR_AUTH_TOKEN_HERE';
 
 // ── SYNC STATE ──
 let syncStatus = 'idle'; // idle, syncing, error
