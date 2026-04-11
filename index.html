@@ -231,7 +231,7 @@ input.file-in{display:none}
 .m-photo-actions{position:absolute;bottom:12px;right:12px;display:flex;gap:8px}
 .m-photo-btn{background:rgba(0,0,0,.65);border:1px solid var(--gold);color:var(--gold);padding:6px 12px;font-family:'Montserrat',sans-serif;font-size:.55rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;-webkit-appearance:none;border-radius:0}
 .m-photo-btn.del{border-color:var(--danger);color:var(--danger)}
-.m-close{position:absolute;top:14px;right:16px;background:rgba(0,0,0,.6);border:1px solid var(--border2);color:var(--stone);width:28px;height:28px;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;-webkit-appearance:none;border-radius:0}
+.m-close{position:absolute;top:14px;right:16px;background:rgba(0,0,0,.6);border:1px solid var(--border2);color:var(--stone);width:36px;height:36px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;-webkit-appearance:none;border-radius:0}
 .m-close:hover{border-color:var(--gold);color:var(--gold)}
 .m-head{padding:24px 32px 18px;border-bottom:1px solid var(--border)}
 .m-brand-lbl{font-size:.54rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
@@ -351,6 +351,12 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   .stat{padding:16px 18px;min-width:85px}
   .form-grid{grid-template-columns:1fr}
   .form-grid.cols3{grid-template-columns:1fr 1fr}
+  /* Larger close button on mobile */
+  .m-close{width:44px;height:44px;font-size:1.1rem;top:10px;right:10px}
+  /* Photo nav always visible on mobile — no hover needed */
+  .photo-nav{opacity:0.85 !important}
+  /* Modal photo nav always visible */
+  #mPhotoPrev, #mPhotoNext{opacity:0.85}
 }
 </style>
 </head>
@@ -830,7 +836,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 <script>
 // ── CLOUD SYNC CONFIG ──
 const WORKER_URL = 'https://watch-api.zakmedwin.workers.dev';
-const AUTH_TOKEN = 'WatchSync2026';
+const AUTH_TOKEN = 'YOUR_AUTH_TOKEN_HERE';
 
 // ── SYNC STATE ──
 let syncStatus = 'idle'; // idle, syncing, error
@@ -1309,6 +1315,8 @@ function refreshModalPhoto(){
     const multi = imgs.length > 1;
     prev.style.display = multi ? 'flex' : 'none';
     next.style.display = multi ? 'flex' : 'none';
+    prev.style.opacity = '0.85';
+    next.style.opacity = '0.85';
     count.style.display = multi ? 'block' : 'none';
     count.textContent = `${modalPhotoIdx+1}/${imgs.length}`;
   } else {
