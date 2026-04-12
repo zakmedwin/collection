@@ -8,7 +8,32 @@
 <meta name="apple-mobile-web-app-title" content="The Collection">
 <meta name="theme-color" content="#0b0b09">
 <title>The Collection</title>
-<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj4KICA8cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iIzE0MTIxMCIvPgogIDx0ZXh0IHg9IjkwIiB5PSIxNDMiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXNpemU9IjEzOCIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iI2M5YTA0YSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+VDwvdGV4dD4KICA8dGV4dCB4PSI5MCIgeT0iMTMwIiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC1zaXplPSI5NyIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iI2M5YTA0YSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QzwvdGV4dD4KPC9zdmc+">
+<link rel="apple-touch-icon" id="appIcon" href="">
+<script>
+// Generate TC monogram as PNG via canvas and set as apple-touch-icon
+(function(){
+  try {
+    var c = document.createElement('canvas');
+    c.width = 180; c.height = 180;
+    var ctx = c.getContext('2d');
+    // Dark background
+    ctx.fillStyle = '#141210';
+    ctx.fillRect(0, 0, 180, 180);
+    // T - large
+    ctx.fillStyle = '#c9a04a';
+    ctx.font = '500 138px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('T', 90, 143);
+    // C - slightly smaller, sitting in middle of T stem
+    ctx.font = '400 97px Georgia, serif';
+    ctx.fillText('C', 90, 130);
+    var dataUrl = c.toDataURL('image/png');
+    var link = document.getElementById('appIcon');
+    if(link) link.href = dataUrl;
+  } catch(e) {}
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
