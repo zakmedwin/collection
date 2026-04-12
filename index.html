@@ -490,7 +490,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   <button class="tab" data-tab="fmr">Former <span class="tbadge" id="bFmr">—</span></button>
   <button class="tab" data-tab="mom">Mom's Watches <span class="tbadge" id="bMom">—</span></button>
   <button class="tab" data-tab="beth">Beth's Collection <span class="tbadge" id="bBeth">—</span></button>
-  <button class="tab" data-tab="wl">Wish List <span class="tbadge">3</span></button>
+  <button class="tab" data-tab="wl">Wish List <span class="tbadge" id="bWl">—</span></button>
 </div>
 
 <!-- COLLECTION TAB -->
@@ -540,6 +540,9 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <div class="stat"><div class="sv" id="fRc">—</div><div class="sl">Recovered</div></div>
     <div class="stat"><div class="sv" id="fNt">—</div><div class="sl">Net</div></div>
   </div>
+  <div style="padding:14px 40px;border-bottom:1px solid var(--border);display:flex;justify-content:flex-end">
+    <button class="add-watch-btn" id="addFmrBtn" style="font-size:.58rem;padding:9px 18px">+ Add Former Watch</button>
+  </div>
   <div class="grid" id="fmrGrid" style="margin-top:2px"></div>
 </div>
 
@@ -568,13 +571,14 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 
 <!-- WISHLIST TAB -->
 <div id="tab-wl" style="display:none">
-  <div style="padding:28px 40px">
-    <div class="wl-grid">
-      <div class="wl-card"><div class="wl-brand">Rolex</div><div class="wl-model">Daytona</div><div class="wl-sub">White Dial</div><div class="wl-tag">On the list</div></div>
-      <div class="wl-card"><div class="wl-brand">Patek Philippe</div><div class="wl-model">Nautilus</div><div class="wl-sub">&nbsp;</div><div class="wl-tag">On the list</div></div>
-      <div class="wl-card"><div class="wl-brand">IWC</div><div class="wl-model">Ingenieur</div><div class="wl-sub">Blue Dial</div><div class="wl-tag">On the list</div></div>
-    </div>
+  <div class="stats">
+    <div class="stat"><div class="sv" id="wlTot">—</div><div class="sl">On List</div></div>
+    <div class="stat"><div class="sv" id="wlVal">—</div><div class="sl">Est. Value</div></div>
   </div>
+  <div style="padding:14px 40px;border-bottom:1px solid var(--border);display:flex;justify-content:flex-end">
+    <button class="add-watch-btn" id="addWishBtn" style="font-size:.58rem;padding:9px 18px">+ Add to Wish List</button>
+  </div>
+  <div class="grid" id="wlGrid" style="margin-top:2px"></div>
 </div>
 
 <footer>
@@ -864,6 +868,7 @@ async function cloudLoad(){
     // Populate app state from cloud
     if(data.customWatches) customWatches = data.customWatches;
     if(data.bethWatches) bethWatches = data.bethWatches;
+    if(data.wishWatches) { wishWatches = data.wishWatches; localStorage.setItem(WISH_KEY, JSON.stringify(wishWatches)); }
     if(data.momWatches) { localStorage.setItem('wc_mom_cloud', JSON.stringify(data.momWatches)); }
     if(data.photos) {
       photos = data.photos;
@@ -888,6 +893,7 @@ async function cloudSave(){
     const data = {
       customWatches,
       bethWatches,
+      wishWatches,
       momWatches: getMom(),
       photos,
       lastSaved: new Date().toISOString()
@@ -930,6 +936,11 @@ function loadCustom(){try{return JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[
 function saveCustom(c){ localStorage.setItem(CUSTOM_KEY,JSON.stringify(c)); scheduleSave(); }
 function loadBeth(){try{return JSON.parse(localStorage.getItem(BETH_KEY)||'[]')}catch{return[]}}
 function saveBeth(b){ localStorage.setItem(BETH_KEY,JSON.stringify(b)); scheduleSave(); }
+
+const WISH_KEY = 'wc_wish_v9';
+function loadWish(){try{return JSON.parse(localStorage.getItem(WISH_KEY)||'[]')}catch{return[]}}
+function saveWish(w){ localStorage.setItem(WISH_KEY,JSON.stringify(w)); scheduleSave(); }
+let wishWatches = loadWish();
 
 let photos = loadPhotos();
 let customWatches = loadCustom();
@@ -1198,7 +1209,7 @@ function renderGrid(data,elId,type){
     card.addEventListener('click',e=>{
       if(e.target.closest('.photo-area'))return;
       const id=card.dataset.id;
-      const w=allWatches().find(x=>x.id===id)||momW.find(x=>x.id===id)||bethWatches.find(x=>x.id===id);
+      const w=allWatches().find(x=>x.id===id)||getMom().find(x=>x.id===id)||bethWatches.find(x=>x.id===id)||wishWatches.find(x=>x.id===id);
       if(w) openModal(w);
     });
   });
@@ -1224,27 +1235,33 @@ function renderAll(){
   renderBreakdown();
   applyFS();
   renderGrid(soldW(),'fmrGrid','sold');
-  renderGrid(momW,'momGrid','mom');
+  renderGrid(getMom(),'momGrid','mom');
   renderGrid(bethWatches,'bethGrid','beth');
+  renderGrid(wishWatches,'wlGrid','wish');
+  document.getElementById('wlTot').textContent = wishWatches.length||'—';
+  document.getElementById('bWl').textContent = wishWatches.length||'—';
+  const wlVal = wishWatches.reduce((s,w)=>s+(w.price||0),0);
+  document.getElementById('wlVal').textContent = wlVal ? '$'+Math.round(wlVal/1000)+'K' : '—';
 }
 
 // ── MODAL ──
 function openModal(w){
   modalWatch=w;
   modalPhotoIdx=0;
-  const isMom=momW.some(m=>m.id===w.id);
+  const isMom=getMom().some(m=>m.id===w.id);
   const isBeth=bethWatches.some(b=>b.id===w.id);
+  const isWish=wishWatches.some(x=>x.id===w.id);
   // photo
   refreshModalPhoto();
   document.getElementById('mBrand').textContent=w.brand;
   document.getElementById('mModel').textContent=[w.series,w.model].filter(Boolean).join(' · ')||w.brand;
   document.getElementById('mRefLbl').textContent=w.ref||'';
   const actEl=document.getElementById('mActions');
-  // All watches are user-managed — show Edit and Delete on everything
   if(!isMom){
+    const ctx=isBeth?'beth':isWish?'wish':'custom';
     actEl.innerHTML=`<button class="m-edit-btn" id="mEditBtn">Edit</button><button class="m-del-btn" id="mDelBtn">Remove</button>`;
-    document.getElementById('mEditBtn').onclick=()=>{closeModal();openForm(w, isBeth?'beth':'custom');};
-    document.getElementById('mDelBtn').onclick=()=>{closeModal();openConfirm(w, isBeth?'beth':'custom');};
+    document.getElementById('mEditBtn').onclick=()=>{closeModal();openForm(w,ctx);};
+    document.getElementById('mDelBtn').onclick=()=>{closeModal();openConfirm(w,ctx);};
   } else {
     actEl.innerHTML=`<button class="m-edit-btn" id="mEditBtn">Edit</button>`;
     document.getElementById('mEditBtn').onclick=()=>{closeModal();openForm(w,'mom');};
@@ -1367,7 +1384,7 @@ document.getElementById('mFileIn').addEventListener('change',e=>{
 });
 
 // ── FORM ──
-let formContext='custom'; // 'custom' or 'beth'
+let formContext='custom';
 
 function openForm(watchToEdit, context){
   formContext = context || 'custom';
@@ -1375,10 +1392,14 @@ function openForm(watchToEdit, context){
   formPhotoData = null;
   const isEdit=!!watchToEdit;
   const isBethCtx=formContext==='beth';
-  document.getElementById('formTitle').textContent=isEdit?(isBethCtx?"Edit Beth's Watch":'Edit Watch'):(isBethCtx?"Add to Beth's Collection":'Add Watch');
-  document.getElementById('formSub').textContent=isEdit?'Update timepiece details':(isBethCtx?"New timepiece for Beth's collection":'New timepiece to the collection');
+  const isMomCtx=formContext==='mom';
+  const isWishCtx=formContext==='wish';
+  const titleMap={beth:"Beth's Watch",mom:"Mom's Watch",wish:'Wish List Watch'};
+  const collMap={beth:"Beth's Collection",mom:"Mom's Collection",wish:'Wish List'};
+  document.getElementById('formTitle').textContent=isEdit?('Edit '+(titleMap[formContext]||'Watch')):(isWishCtx?'Add to Wish List':isBethCtx?"Add to Beth's Collection":isMomCtx?"Add to Mom's Collection":'Add Watch');
+  document.getElementById('formSub').textContent=isEdit?'Update timepiece details':('New timepiece'+(collMap[formContext]?' for '+collMap[formContext]:' to the collection'));
   document.getElementById('formTopBar').className='form-topbar'+(isEdit?' edit-bar':'');
-  document.getElementById('formSaveBtn').textContent=isEdit?'Save Changes':(isBethCtx?"Save to Beth's Collection":'Save to Collection');
+  document.getElementById('formSaveBtn').textContent=isEdit?'Save Changes':('Save to '+(collMap[formContext]||'Collection'));
   document.getElementById('formSaveBtn').className='btn-save'+(isEdit?'':' green');
   // fill fields
   const v=watchToEdit||{};
@@ -1500,6 +1521,16 @@ document.getElementById('formSaveBtn').addEventListener('click',()=>{
     if(editingId){const idx=bethWatches.findIndex(x=>x.id===editingId);if(idx>=0)bethWatches[idx]=w;else bethWatches.push(w);}
     else{bethWatches.push(w);}
     saveBeth(bethWatches);
+  } else if(formContext==='wish'){
+    if(editingId){const idx=wishWatches.findIndex(x=>x.id===editingId);if(idx>=0)wishWatches[idx]=w;else wishWatches.push(w);}
+    else{wishWatches.push(w);}
+    saveWish(wishWatches);
+  } else if(formContext==='mom'){
+    const mom=getMom();
+    if(editingId){const idx=mom.findIndex(x=>x.id===editingId);if(idx>=0)mom[idx]=w;else mom.push(w);}
+    else{mom.push(w);}
+    localStorage.setItem('wc_mom_cloud',JSON.stringify(mom));
+    scheduleSave();
   } else {
     if(editingId){const idx=customWatches.findIndex(x=>x.id===editingId);if(idx>=0)customWatches[idx]=w;else customWatches.push(w);}
     else{customWatches.push(w);}
@@ -1515,7 +1546,8 @@ let confirmContext='custom';
 function openConfirm(w, context){
   confirmTarget=w;
   confirmContext=context||'custom';
-  document.getElementById('confirmMsg').textContent=`This will remove "${[w.brand,w.series,w.model].filter(Boolean).join(' ')}" from ${confirmContext==='beth'?"Beth's collection":'your collection'}. This cannot be undone.`;
+  const collName = confirmContext==='beth'?"Beth's collection":confirmContext==='wish'?'wish list':confirmContext==='mom'?"Mom's collection":'your collection';
+  document.getElementById('confirmMsg').textContent=`This will remove "${[w.brand,w.series,w.model].filter(Boolean).join(' ')}" from ${collName}. This cannot be undone.`;
   document.getElementById('confirmOverlay').classList.add('open');
 }
 document.getElementById('confirmNo').addEventListener('click',()=>{document.getElementById('confirmOverlay').classList.remove('open');confirmTarget=null;});
@@ -1525,6 +1557,9 @@ document.getElementById('confirmYes').addEventListener('click',()=>{
   if(confirmContext==='beth'){
     bethWatches=bethWatches.filter(w=>w.id!==confirmTarget.id);
     saveBeth(bethWatches);
+  } else if(confirmContext==='wish'){
+    wishWatches=wishWatches.filter(w=>w.id!==confirmTarget.id);
+    saveWish(wishWatches);
   } else {
     customWatches=customWatches.filter(w=>w.id!==confirmTarget.id);
     saveCustom(customWatches);
@@ -1550,6 +1585,13 @@ document.getElementById('pillG').addEventListener('click',e=>{const b=e.target.c
 document.getElementById('sortS').addEventListener('change',e=>{curS=e.target.value;applyFS();});
 document.getElementById('addWatchBtn').addEventListener('click',()=>openForm(null,'custom'));
 document.getElementById('addBethBtn').addEventListener('click',()=>openForm(null,'beth'));
+document.getElementById('addMomBtn').addEventListener('click',()=>openForm(null,'mom'));
+document.getElementById('addWishBtn').addEventListener('click',()=>openForm(null,'wish'));
+document.getElementById('addFmrBtn').addEventListener('click',()=>{
+  // Open form pre-set to sold
+  openForm(null,'custom');
+  setTimeout(()=>{ document.getElementById('fSold').value='true'; document.getElementById('fSoldAmtField').style.display='block'; }, 100);
+});
 document.getElementById('mClose').addEventListener('click',closeModal);
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay'))closeModal();});
 document.getElementById('formClose').addEventListener('click',closeForm);
