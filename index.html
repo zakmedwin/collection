@@ -1234,17 +1234,19 @@ function applyFS(){
 }
 
 function renderAll(){
-  renderStats();
-  renderBreakdown();
-  applyFS();
-  renderGrid(soldW(),'fmrGrid','sold');
-  renderGrid(getMom(),'momGrid','mom');
-  renderGrid(bethWatches,'bethGrid','beth');
-  renderGrid(wishWatches,'wlGrid','wish');
-  document.getElementById('wlTot').textContent = wishWatches.length||'—';
-  document.getElementById('bWl').textContent = wishWatches.length||'—';
-  const wlVal = wishWatches.reduce((s,w)=>s+(w.price||0),0);
-  document.getElementById('wlVal').textContent = wlVal ? '$'+Math.round(wlVal/1000)+'K' : '—';
+  try{renderStats();}catch(e){console.warn('renderStats error',e);}
+  try{renderBreakdown();}catch(e){console.warn('renderBreakdown error',e);}
+  try{applyFS();}catch(e){console.warn('applyFS error',e);}
+  try{renderGrid(soldW(),'fmrGrid','sold');}catch(e){}
+  try{renderGrid(getMom(),'momGrid','mom');}catch(e){}
+  try{renderGrid(bethWatches,'bethGrid','beth');}catch(e){}
+  try{
+    renderGrid(wishWatches,'wlGrid','wish');
+    const wlT=document.getElementById('wlTot');if(wlT)wlT.textContent=wishWatches.length||'—';
+    const bWl=document.getElementById('bWl');if(bWl)bWl.textContent=wishWatches.length||'—';
+    const wlVal=wishWatches.reduce((s,w)=>s+(w.price||0),0);
+    const wlV=document.getElementById('wlVal');if(wlV)wlV.textContent=wlVal?'$'+Math.round(wlVal/1000)+'K':'—';
+  }catch(e){console.warn('wishlist render error',e);}
 }
 
 // ── MODAL ──
