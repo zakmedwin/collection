@@ -192,7 +192,8 @@ h1 em{color:var(--gold);font-style:italic}
 .photo-placeholder span{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;opacity:.45}
 .photo-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px;pointer-events:none}
 .photo-overlay.visible{opacity:1;pointer-events:auto}
-.wcard:hover .photo-overlay{opacity:0}
+.photo-edit-btn{position:absolute;top:8px;right:8px;width:28px;height:28px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:3;-webkit-appearance:none;border-radius:0;transition:all .2s}
+.photo-edit-btn:hover{background:rgba(0,0,0,.8);border-color:var(--gold);color:var(--gold)}
 .photo-btn{background:rgba(184,145,58,.15);border:1px solid var(--gold);color:var(--gold);padding:7px 14px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0}
 .photo-btn:hover{background:rgba(184,145,58,.3)}
 .photo-btn.del-btn{border-color:var(--danger);color:var(--danger);background:rgba(158,90,90,.1)}
@@ -1158,6 +1159,7 @@ function photoHtml(pk){
   if(cur) return `<div class="photo-area" data-pk="${pk}">
     <img src="${cur}" alt="">
     ${multi ? `<button class="photo-nav photo-prev" data-pk="${pk}">&#8249;</button><button class="photo-nav photo-next" data-pk="${pk}">&#8250;</button><div class="photo-count">${idx+1}/${imgs.length}</div>` : ''}
+    <button class="photo-edit-btn photo-edit-toggle" data-pk="${pk}" title="Edit photo">✎</button>
     <div class="photo-overlay">
       <button class="photo-btn add-photo-btn" data-pk="${pk}">+ Add</button>
       <button class="photo-btn del-btn remove-photo-btn" data-pk="${pk}" data-idx="${idx}">Remove</button>
@@ -1167,6 +1169,7 @@ function photoHtml(pk){
   return `<div class="photo-area" data-pk="${pk}">
     <div class="photo-placeholder">${camIcon}<span>Tap to add photo</span><span style="font-size:.5rem;opacity:.5;margin-top:2px">On Mac: select Photos from sidebar</span></div>
     <div class="photo-overlay"><button class="photo-btn add-photo-btn" data-pk="${pk}">+ Add Photo</button></div>
+    <button class="photo-edit-btn photo-edit-toggle" data-pk="${pk}" title="Edit photo" style="opacity:0;pointer-events:none">✎</button>
     <input type="file" accept="image/*" class="file-in card-file-in" data-pk="${pk}">
   </div>`;
 }
@@ -1208,33 +1211,20 @@ function renderGrid(data,elId,type){
   if(!data.length){el.innerHTML='<div class="empty">No timepieces yet — tap <strong style="color:var(--gold)">+ Add Watch</strong> to begin your collection.</div>';return;}
   el.innerHTML=data.map((w,i)=>makeCard(w,i,type)).join('');
 
-  // Long press on photo area reveals overlay
-  el.querySelectorAll('.photo-area').forEach(area=>{
-    let pressTimer=null;
-    const showOverlay=()=>{
+  // Pencil icon toggles photo overlay
+  el.querySelectorAll('.photo-edit-toggle').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const area=btn.closest('.photo-area');
       const ov=area.querySelector('.photo-overlay');
-      if(ov){ov.classList.add('visible');}
-    };
-    const hideOverlay=(e)=>{
-      // Don't hide if clicking a button inside overlay
-      if(e&&e.target.closest('.photo-btn')) return;
-      const ov=area.querySelector('.photo-overlay');
-      if(ov){ov.classList.remove('visible');}
-    };
-    area.addEventListener('mousedown',()=>{ pressTimer=setTimeout(showOverlay,500); });
-    area.addEventListener('touchstart',()=>{ pressTimer=setTimeout(showOverlay,500); },{passive:true});
-    area.addEventListener('mouseup',()=>{ clearTimeout(pressTimer); });
-    area.addEventListener('touchend',()=>{ clearTimeout(pressTimer); });
-    area.addEventListener('mouseleave',e=>{ clearTimeout(pressTimer); hideOverlay(e); });
-    // Hide overlay when clicking outside buttons
-    area.addEventListener('click',e=>{ if(!e.target.closest('.photo-btn')&&!e.target.closest('.photo-nav')) hideOverlay(e); });
+      if(ov) ov.classList.toggle('visible');
+    });
   });
 
   // Add photo buttons
   el.querySelectorAll('.add-photo-btn').forEach(btn=>{
     btn.addEventListener('click',e=>{e.stopPropagation();btn.closest('.photo-area').querySelector('.card-file-in').click();});
   });
-  // Remove current photo
   el.querySelectorAll('.remove-photo-btn').forEach(btn=>{
     btn.addEventListener('click',e=>{
       e.stopPropagation();
