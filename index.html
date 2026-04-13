@@ -322,7 +322,14 @@ input.file-in{display:none}
 .btn-save.green{border-color:#4a9a6a;color:#4a9a6a;background:rgba(74,154,106,.1)}
 .btn-save.green:hover{background:rgba(74,154,106,.25)}
 
-/* WATCH SETTER BUTTON */
+/* AI BUTTONS */
+.ai-btn{background:rgba(184,145,58,.08);border:1px solid rgba(184,145,58,.4);color:var(--gold);padding:5px 12px;font-family:'Montserrat',sans-serif;font-size:.55rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0;white-space:nowrap}
+.ai-btn:hover{background:rgba(184,145,58,.18);border-color:var(--gold)}
+.ai-btn:disabled{opacity:.4;cursor:not-allowed}
+.ai-status{font-size:.6rem;color:var(--stone);letter-spacing:.1em;margin-top:6px;min-height:16px;transition:color .2s}
+.ai-status.loading{color:var(--gold)}
+.ai-status.success{color:var(--green)}
+.ai-status.error{color:var(--danger)}
 .watch-btn{background:transparent;border:1px solid var(--border2);color:var(--stone);width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0;-webkit-appearance:none;border-radius:0}
 .watch-btn:hover{border-color:var(--gold);color:var(--gold)}
 .theme-toggle{background:transparent;border:1px solid var(--border2);color:var(--stone);width:40px;height:40px;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;-webkit-appearance:none;border-radius:0}
@@ -687,7 +694,10 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 
       <!-- Photo -->
       <div class="form-section">
-        <div class="form-section-title">Photo</div>
+        <div class="form-section-title" style="display:flex;align-items:center;justify-content:space-between">
+          Photo
+          <button class="ai-btn" id="aiIdentifyBtn" title="Identify watch from photo">✦ Identify Watch</button>
+        </div>
         <div class="form-photo-area" id="formPhotoArea">
           <img id="formPhotoPreview" src="" alt="">
           <div class="ph-hint" id="formPhotoHint">
@@ -696,11 +706,15 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
           </div>
         </div>
         <input type="file" accept="image/*" id="formFileIn" style="display:none">
+        <div class="ai-status" id="aiIdentifyStatus"></div>
       </div>
 
       <!-- Identity -->
       <div class="form-section">
-        <div class="form-section-title">Identity</div>
+        <div class="form-section-title" style="display:flex;align-items:center;justify-content:space-between">
+          Identity
+          <button class="ai-btn" id="aiAutoFillBtn" title="Auto-fill specs from brand and reference">✦ Auto-fill Specs</button>
+        </div>
         <div class="form-grid">
           <div class="field"><label>Brand *</label><input type="text" id="fBrand" placeholder="e.g. Rolex"></div>
           <div class="field"><label>Series / Line</label><input type="text" id="fSeries" placeholder="e.g. Submariner"></div>
@@ -710,6 +724,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
           <div class="field"><label>Origin</label><input type="text" id="fOrigin" placeholder="e.g. Switzerland"></div>
           <div class="field"><label>Year Purchased</label><input type="number" id="fYear" placeholder="e.g. 2024" min="1900" max="2100"></div>
         </div>
+        <div class="ai-status" id="aiAutoFillStatus"></div>
       </div>
 
       <!-- Specs -->
@@ -1951,6 +1966,104 @@ document.getElementById('settingsOverlay').addEventListener('click',e=>{
 document.getElementById('watchBtn').addEventListener('click', openWatchSetter);
 document.getElementById('wsClose').addEventListener('click', closeWatchSetter);
 document.getElementById('wsOverlay').addEventListener('click', e=>{ if(e.target===document.getElementById('wsOverlay')) closeWatchSetter(); });
+
+// ── AI FEATURES ──
+function setAIStatus(elId, msg, type){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  el.textContent = msg;
+  el.className = 'ai-status' + (type ? ' '+type : '');
+}
+
+// Auto-fill specs from brand + reference
+document.getElementById('aiAutoFillBtn').addEventListener('click', async ()=>{
+  const brand = document.getElementById('fBrand').value.trim();
+  const ref = document.getElementById('fRef').value.trim();
+  if(!brand){ setAIStatus('aiAutoFillStatus','Enter a brand first','error'); return; }
+  if(!ref){ setAIStatus('aiAutoFillStatus','Enter a reference number first','error'); return; }
+
+  const btn = document.getElementById('aiAutoFillBtn');
+  btn.disabled = true;
+  setAIStatus('aiAutoFillStatus','✦ Looking up specs…','loading');
+
+  try {
+    const res = await fetch(WORKER_URL + '/ai/autofill', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Auth-Token': AUTH_TOKEN },
+      body: JSON.stringify({ brand, reference: ref })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error||'Failed');
+    const s = data.specs;
+    // Fill in fields — only overwrite if empty or AI found something
+    if(s.series && !document.getElementById('fSeries').value) document.getElementById('fSeries').value = s.series;
+    if(s.model && !document.getElementById('fModel').value) document.getElementById('fModel').value = s.model;
+    if(s.origin) document.getElementById('fOrigin').value = s.origin;
+    if(s.movement) document.getElementById('fMovement').value = s.movement;
+    if(s.casemat) document.getElementById('fCasemat').value = s.casemat;
+    if(s.dial) document.getElementById('fDial').value = s.dial;
+    if(s.strap) document.getElementById('fStrap').value = s.strap;
+    if(s.size) document.getElementById('fSize').value = s.size;
+    if(s.thick) document.getElementById('fThick').value = s.thick;
+    if(s.lug) document.getElementById('fLug').value = s.lug;
+    if(s.lugToLug) document.getElementById('fLugToLug').value = s.lugToLug;
+    if(s.pr) document.getElementById('fPr').value = s.pr;
+    if(s.wr) document.getElementById('fWr').value = s.wr;
+    setAIStatus('aiAutoFillStatus','✓ Specs filled — please verify','success');
+  } catch(e) {
+    setAIStatus('aiAutoFillStatus','Could not retrieve specs — fill manually','error');
+  }
+  btn.disabled = false;
+});
+
+// Identify watch from photo
+document.getElementById('aiIdentifyBtn').addEventListener('click', async ()=>{
+  const preview = document.getElementById('formPhotoPreview');
+  if(!preview.src || preview.style.display === 'none'){
+    setAIStatus('aiIdentifyStatus','Add a photo first','error');
+    return;
+  }
+
+  const btn = document.getElementById('aiIdentifyBtn');
+  btn.disabled = true;
+  setAIStatus('aiIdentifyStatus','✦ Identifying watch…','loading');
+
+  try {
+    // Extract base64 from data URL
+    const dataUrl = preview.src;
+    const parts = dataUrl.split(',');
+    const mediaType = parts[0].split(':')[1].split(';')[0];
+    const imageBase64 = parts[1];
+
+    const res = await fetch(WORKER_URL + '/ai/identify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Auth-Token': AUTH_TOKEN },
+      body: JSON.stringify({ imageBase64, mediaType })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error||'Failed');
+    const r = data.result;
+    const conf = r.confidence||'medium';
+
+    // Fill in fields — only if empty
+    if(r.brand && !document.getElementById('fBrand').value) document.getElementById('fBrand').value = r.brand;
+    if(r.series && !document.getElementById('fSeries').value) document.getElementById('fSeries').value = r.series;
+    if(r.model && !document.getElementById('fModel').value) document.getElementById('fModel').value = r.model;
+    if(r.reference && !document.getElementById('fRef').value) document.getElementById('fRef').value = r.reference;
+    if(r.origin) document.getElementById('fOrigin').value = r.origin;
+    if(r.movement) document.getElementById('fMovement').value = r.movement;
+    if(r.casemat) document.getElementById('fCasemat').value = r.casemat;
+    if(r.dial) document.getElementById('fDial').value = r.dial;
+    if(r.strap) document.getElementById('fStrap').value = r.strap;
+    if(r.size) document.getElementById('fSize').value = r.size;
+
+    const confMsg = conf==='high'?'high confidence':conf==='medium'?'medium confidence — verify':'low confidence — please verify carefully';
+    setAIStatus('aiIdentifyStatus',`✓ Watch identified (${confMsg})`, conf==='low'?'error':'success');
+  } catch(e) {
+    setAIStatus('aiIdentifyStatus','Could not identify — fill manually','error');
+  }
+  btn.disabled = false;
+});
 
 // ── INIT ──
 renderAll();
