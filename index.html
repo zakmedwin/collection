@@ -190,8 +190,9 @@ h1 em{color:var(--gold);font-style:italic}
 .photo-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--stone);border-bottom:1px solid var(--border)}
 .ph-icon{width:32px;height:32px;opacity:.3}
 .photo-placeholder span{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;opacity:.45}
-.photo-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px}
-.wcard:hover .photo-overlay{opacity:1}
+.photo-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px;pointer-events:none}
+.photo-overlay.visible{opacity:1;pointer-events:auto}
+.wcard:hover .photo-overlay{opacity:0}
 .photo-btn{background:rgba(184,145,58,.15);border:1px solid var(--gold);color:var(--gold);padding:7px 14px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0}
 .photo-btn:hover{background:rgba(184,145,58,.3)}
 .photo-btn.del-btn{border-color:var(--danger);color:var(--danger);background:rgba(158,90,90,.1)}
@@ -220,7 +221,7 @@ input.file-in{display:none}
 .mm{border-color:#4a3820;color:#c8905a}
 .mq{border-color:#2a3050;color:#6a7aae}
 .stag{display:inline-block;margin-top:8px;padding:2px 8px;border:1px solid #4a2020;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:var(--danger)}
-.custom-tag{display:inline-block;margin-top:8px;padding:2px 8px;border:1px solid #2a4a3a;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:#4a9a6a}
+.bp-badge{display:inline-block;padding:2px 8px;border:1px solid #2a4a2a;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:var(--green);white-space:nowrap}
 .gl-pos{color:var(--green);font-size:.68rem;font-weight:500}
 .gl-neg{color:var(--danger);font-size:.68rem;font-weight:500}
 .cnote{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:.66rem;color:var(--stone);line-height:1.55;font-style:italic;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -468,12 +469,33 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
         <circle cx="12" cy="12" r=".8" fill="currentColor"/>
       </svg>
     </button>
-    <button class="backup-btn" id="backupBtn">⬇ Backup</button>
-    <button class="restore-btn" id="restoreBtn">⬆ Restore</button>
+    <button class="watch-btn" id="settingsBtn" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" width="18" height="18">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
     <button class="add-watch-btn" id="addWatchBtn">+ Add Watch</button>
     <input type="file" accept=".json" id="restoreFileIn" style="display:none">
   </div>
 </header>
+
+<!-- SETTINGS OVERLAY -->
+<div class="ws-overlay" id="settingsOverlay">
+  <div class="ws-modal" style="max-width:340px">
+    <div class="ws-topbar"></div>
+    <button class="ws-close" id="settingsClose">&#10005;</button>
+    <div class="ws-eyebrow">Settings</div>
+    <div class="ws-title" style="margin-bottom:20px">Collection</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="backup-btn" id="backupBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬇ &nbsp;Backup Collection</button>
+      <button class="restore-btn" id="restoreBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬆ &nbsp;Restore from Backup</button>
+    </div>
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);font-size:.58rem;color:var(--stone);line-height:1.7;text-align:left">
+      Your data syncs automatically to the cloud. Backups are an optional safety net you can save locally.
+    </div>
+  </div>
+</div>
 
 <!-- WATCH SETTER OVERLAY -->
 <div class="ws-overlay" id="wsOverlay">
@@ -611,7 +633,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 
 <footer>
   <div class="fl">Private Archive · Not for Distribution</div>
-  <div class="fr">Time, collected.</div>
+  <div class="fr">Time, collected. &nbsp;·&nbsp; v10</div>
 </footer>
 
 <!-- DETAIL MODAL -->
@@ -1174,8 +1196,7 @@ function makeCard(w,i,type){
       <div class="cbot"><div class="cp">${dispP}</div>${w.movement?`<div class="mbadge ${mvC(w.movement)}">${w.movement}</div>`:''}</div>
       ${glH}
       ${isSold?`<div class="stag">Sold · ${fmtP(w.soldAmt)}</div>`:''}
-      ${isCustom&&!isSold?`<div class="custom-tag">Added by you</div>`:''}
-      ${w.box==='yes'?`<span style="display:inline-block;margin-top:6px;margin-right:4px;padding:1px 7px;border:1px solid #2a4a2a;font-size:.48rem;letter-spacing:.12em;text-transform:uppercase;color:var(--green)">Box</span>`:''}${w.papers==='yes'?`<span style="display:inline-block;margin-top:6px;padding:1px 7px;border:1px solid #2a4a2a;font-size:.48rem;letter-spacing:.12em;text-transform:uppercase;color:var(--green)">Papers</span>`:''}
+      ${(w.box==='yes'||w.papers==='yes')?`<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">${w.box==='yes'?`<span class="bp-badge">Box</span>`:''}${w.papers==='yes'?`<span class="bp-badge">Papers</span>`:''}</div>`:''}
       ${w.notes?`<div class="cnote">${w.notes}</div>`:''}
     </div>
   </div>`;
@@ -1186,6 +1207,29 @@ function renderGrid(data,elId,type){
   const el=document.getElementById(elId);
   if(!data.length){el.innerHTML='<div class="empty">No timepieces yet — tap <strong style="color:var(--gold)">+ Add Watch</strong> to begin your collection.</div>';return;}
   el.innerHTML=data.map((w,i)=>makeCard(w,i,type)).join('');
+
+  // Long press on photo area reveals overlay
+  el.querySelectorAll('.photo-area').forEach(area=>{
+    let pressTimer=null;
+    const showOverlay=()=>{
+      const ov=area.querySelector('.photo-overlay');
+      if(ov){ov.classList.add('visible');}
+    };
+    const hideOverlay=(e)=>{
+      // Don't hide if clicking a button inside overlay
+      if(e&&e.target.closest('.photo-btn')) return;
+      const ov=area.querySelector('.photo-overlay');
+      if(ov){ov.classList.remove('visible');}
+    };
+    area.addEventListener('mousedown',()=>{ pressTimer=setTimeout(showOverlay,500); });
+    area.addEventListener('touchstart',()=>{ pressTimer=setTimeout(showOverlay,500); },{passive:true});
+    area.addEventListener('mouseup',()=>{ clearTimeout(pressTimer); });
+    area.addEventListener('touchend',()=>{ clearTimeout(pressTimer); });
+    area.addEventListener('mouseleave',e=>{ clearTimeout(pressTimer); hideOverlay(e); });
+    // Hide overlay when clicking outside buttons
+    area.addEventListener('click',e=>{ if(!e.target.closest('.photo-btn')&&!e.target.closest('.photo-nav')) hideOverlay(e); });
+  });
+
   // Add photo buttons
   el.querySelectorAll('.add-photo-btn').forEach(btn=>{
     btn.addEventListener('click',e=>{e.stopPropagation();btn.closest('.photo-area').querySelector('.card-file-in').click();});
@@ -1250,7 +1294,7 @@ function applyFS(){
   filtered=act.filter(w=>{
     const ms=!q||[w.brand,w.series,w.model,w.ref,w.dial,w.strap,w.notes,w.casemat].join(' ').toLowerCase().includes(q);
     let mf=true;
-    if(curF!=='all'){if(curF==='Gift')mf=(w.condition||'').includes('Gift');else if(curF==='New')mf=w.condition==='New'||w.condition==='Gift/New';else mf=w.movement===curF;}
+    if(curF!=='all'){if(curF==='Gift')mf=(w.source||'').toLowerCase().includes('gift');else if(curF==='New')mf=(w.source||'').toLowerCase().includes('new');else mf=w.movement===curF;}
     return ms&&mf;
   });
   filtered.sort((a,b)=>{switch(curS){case'brand':return a.brand.localeCompare(b.brand);case'year-d':return(b.year||0)-(a.year||0);case'year-a':return(a.year||0)-(b.year||0);case'paid-d':return(b.paid||0)-(a.paid||0);case'paid-a':return(a.paid||0)-(b.paid||0);case'retail-d':return(b.price||0)-(a.price||0);case'gl-d':return((b.feb26||0)-(b.paid||0))-((a.feb26||0)-(a.paid||0));default:return 0;}});
@@ -1900,6 +1944,20 @@ function closeWatchSetter(){
   document.body.style.overflow = '';
   if(wsInterval){ clearInterval(wsInterval); wsInterval=null; }
 }
+document.getElementById('settingsBtn').addEventListener('click',()=>{
+  document.getElementById('settingsOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+});
+document.getElementById('settingsClose').addEventListener('click',()=>{
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.body.style.overflow='';
+});
+document.getElementById('settingsOverlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('settingsOverlay')){
+    document.getElementById('settingsOverlay').classList.remove('open');
+    document.body.style.overflow='';
+  }
+});
 document.getElementById('watchBtn').addEventListener('click', openWatchSetter);
 document.getElementById('wsClose').addEventListener('click', closeWatchSetter);
 document.getElementById('wsOverlay').addEventListener('click', e=>{ if(e.target===document.getElementById('wsOverlay')) closeWatchSetter(); });
