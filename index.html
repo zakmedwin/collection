@@ -322,7 +322,8 @@ input.file-in{display:none}
 .btn-save.green{border-color:#4a9a6a;color:#4a9a6a;background:rgba(74,154,106,.1)}
 .btn-save.green:hover{background:rgba(74,154,106,.25)}
 
-/* AI BUTTONS */
+.insights-chip{background:rgba(184,145,58,.06);border:1px solid rgba(184,145,58,.25);color:var(--stone);padding:4px 10px;font-family:'Montserrat',sans-serif;font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;-webkit-appearance:none;border-radius:0;transition:all .2s}
+.insights-chip:hover{border-color:var(--gold);color:var(--gold)}
 .ai-btn{background:rgba(184,145,58,.08);border:1px solid rgba(184,145,58,.4);color:var(--gold);padding:5px 12px;font-family:'Montserrat',sans-serif;font-size:.55rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0;white-space:nowrap}
 .ai-btn:hover{background:rgba(184,145,58,.18);border-color:var(--gold)}
 .ai-btn:disabled{opacity:.4;cursor:not-allowed}
@@ -498,7 +499,12 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <div style="display:flex;flex-direction:column;gap:10px">
       <button class="backup-btn" id="backupBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬇ &nbsp;Backup Collection</button>
       <button class="restore-btn" id="restoreBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬆ &nbsp;Restore from Backup</button>
+      <div style="border-top:1px solid var(--border);margin:4px 0"></div>
+      <button class="ai-btn" id="insightsOpenBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">✦ &nbsp;Ask About My Collection</button>
+      <button class="ai-btn" id="serviceAnalysisBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">✦ &nbsp;Service Analysis</button>
     </div>
+    <div id="serviceResults" style="margin-top:16px;display:none"></div>
+    <div class="ai-status" id="serviceStatus" style="margin-top:8px"></div>
     <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);font-size:.58rem;color:var(--stone);line-height:1.7;text-align:left">
       Your data syncs automatically to the cloud. Backups are an optional safety net you can save locally.
     </div>
@@ -674,10 +680,42 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     </div>
     <div class="m-body">
       <div class="m-fin" id="mFin"></div>
+      <!-- AI Value Estimator -->
+      <div id="mValueSection" style="margin-bottom:16px;display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone)">Market Value Estimate</div>
+          <button class="ai-btn" id="mValueBtn">✦ Estimate Value</button>
+        </div>
+        <div id="mValueResult" style="font-size:.75rem;color:var(--stone);min-height:20px"></div>
+        <div class="ai-status" id="mValueStatus"></div>
+      </div>
       <div class="m-spec" id="mSpec"></div>
       <div id="mRef2"></div>
       <div id="mNotes"></div>
     </div>
+  </div>
+</div>
+
+<!-- AI INSIGHTS OVERLAY -->
+<div class="ws-overlay" id="insightsOverlay">
+  <div class="ws-modal" style="max-width:480px">
+    <div class="ws-topbar"></div>
+    <button class="ws-close" id="insightsClose">&#10005;</button>
+    <div class="ws-eyebrow">AI Assistant</div>
+    <div class="ws-title" style="margin-bottom:16px">Ask About Your Collection</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <input type="text" id="insightsInput" placeholder="e.g. What's my most valuable brand?" style="flex:1;background:transparent;border:1px solid var(--border2);color:var(--cream);padding:10px 12px;font-family:'Montserrat',sans-serif;font-size:.75rem;outline:none;border-radius:0;-webkit-appearance:none">
+      <button class="ai-btn" id="insightsAskBtn" style="white-space:nowrap">✦ Ask</button>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="insights-chip" data-q="What is the total value of my collection?">Total value</button>
+      <button class="insights-chip" data-q="Which brand dominates my collection?">Top brand</button>
+      <button class="insights-chip" data-q="What watch has the best gain in value?">Best gain</button>
+      <button class="insights-chip" data-q="What gaps exist in my collection?">Collection gaps</button>
+      <button class="insights-chip" data-q="Which watches are most likely to appreciate?">Best investments</button>
+    </div>
+    <div class="ai-status" id="insightsStatus"></div>
+    <div id="insightsAnswer" style="font-size:.82rem;color:var(--cream);line-height:1.7;margin-top:8px;min-height:60px"></div>
   </div>
 </div>
 
@@ -1345,7 +1383,14 @@ function openModal(w){
     actEl.innerHTML=`<button class="m-edit-btn" id="mEditBtn">Edit</button>`;
     document.getElementById('mEditBtn').onclick=()=>{closeModal();openForm(w,'mom');};
   }
-  // financials
+  // Show value estimator for non-wish watches
+  const valueSection = document.getElementById('mValueSection');
+  if(valueSection) {
+    valueSection.style.display = isWish ? 'none' : 'block';
+    document.getElementById('mValueResult').innerHTML = '';
+    setAIStatus('mValueStatus', '', '');
+    document.getElementById('mValueBtn').disabled = false;
+  }
   const pV=w.paid||0,rV=w.price||0,f26V=w.feb26||0;
   const glV=f26V&&pV?f26V-pV:null;
   const glC=glV==null?'':(glV>0?'gain':'loss');
@@ -1967,7 +2012,130 @@ document.getElementById('watchBtn').addEventListener('click', openWatchSetter);
 document.getElementById('wsClose').addEventListener('click', closeWatchSetter);
 document.getElementById('wsOverlay').addEventListener('click', e=>{ if(e.target===document.getElementById('wsOverlay')) closeWatchSetter(); });
 
-// ── AI FEATURES ──
+// ── VALUE ESTIMATOR ──
+document.getElementById('mValueBtn').addEventListener('click', async ()=>{
+  const w = modalWatch;
+  if(!w) return;
+  const btn = document.getElementById('mValueBtn');
+  btn.disabled = true;
+  setAIStatus('mValueStatus', '✦ Estimating market value…', 'loading');
+  document.getElementById('mValueResult').textContent = '';
+  try {
+    const res = await fetch(WORKER_URL + '/ai/value', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Auth-Token': AUTH_TOKEN },
+      body: JSON.stringify({
+        brand: w.brand, series: w.series, model: w.model,
+        reference: w.ref, year: w.year, condition: w.source
+      })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error('Failed');
+    const r = data.result;
+    const lo = r.low ? '$'+r.low.toLocaleString() : '—';
+    const hi = r.high ? '$'+r.high.toLocaleString() : '—';
+    const mid = r.mid ? '$'+r.mid.toLocaleString() : '—';
+    document.getElementById('mValueResult').innerHTML =
+      `<span style="color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:1.3rem">${lo} — ${hi}</span>` +
+      `<span style="color:var(--stone);font-size:.65rem;margin-left:8px">(mid: ${mid})</span>` +
+      (r.notes ? `<div style="color:var(--stone);font-size:.65rem;margin-top:4px;font-style:italic">${r.notes}</div>` : '');
+    setAIStatus('mValueStatus', `Confidence: ${r.confidence||'medium'} — verify with current market listings`, 'success');
+  } catch(e) {
+    setAIStatus('mValueStatus', 'Could not estimate value', 'error');
+  }
+  btn.disabled = false;
+});
+
+// ── COLLECTION INSIGHTS ──
+document.getElementById('insightsOpenBtn').addEventListener('click', ()=>{
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('insightsOverlay').classList.add('open');
+});
+document.getElementById('insightsClose').addEventListener('click', ()=>{
+  document.getElementById('insightsOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+});
+document.getElementById('insightsOverlay').addEventListener('click', e=>{
+  if(e.target === document.getElementById('insightsOverlay')){
+    document.getElementById('insightsOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+});
+
+async function askInsights(question){
+  if(!question.trim()) return;
+  const btn = document.getElementById('insightsAskBtn');
+  btn.disabled = true;
+  setAIStatus('insightsStatus', '✦ Thinking…', 'loading');
+  document.getElementById('insightsAnswer').textContent = '';
+  try {
+    const collection = [...customWatches, ...bethWatches, ...wishWatches, ...getMom()];
+    const res = await fetch(WORKER_URL + '/ai/insights', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Auth-Token': AUTH_TOKEN },
+      body: JSON.stringify({ question, collection })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error('Failed');
+    document.getElementById('insightsAnswer').textContent = data.answer;
+    setAIStatus('insightsStatus', '', '');
+  } catch(e) {
+    setAIStatus('insightsStatus', 'Could not get answer — try again', 'error');
+  }
+  btn.disabled = false;
+}
+
+document.getElementById('insightsAskBtn').addEventListener('click', ()=>{
+  askInsights(document.getElementById('insightsInput').value);
+});
+document.getElementById('insightsInput').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') askInsights(e.target.value);
+});
+document.querySelectorAll('.insights-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.getElementById('insightsInput').value = chip.dataset.q;
+    askInsights(chip.dataset.q);
+  });
+});
+
+// ── SERVICE ANALYSIS ──
+document.getElementById('serviceAnalysisBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('serviceAnalysisBtn');
+  btn.disabled = true;
+  setAIStatus('serviceStatus', '✦ Analyzing service history…', 'loading');
+  document.getElementById('serviceResults').style.display = 'none';
+  try {
+    const collection = [...customWatches, ...bethWatches, ...getMom()];
+    const res = await fetch(WORKER_URL + '/ai/service', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Auth-Token': AUTH_TOKEN },
+      body: JSON.stringify({ collection })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error('Failed');
+    const results = data.results;
+    const el = document.getElementById('serviceResults');
+    if(!results.length){
+      el.innerHTML = '<div style="color:var(--green);font-size:.7rem;padding:12px 0">✓ All watches are up to date on service</div>';
+    } else {
+      const urgencyColor = u => u==='high'?'var(--danger)':u==='medium'?'var(--gold)':'var(--stone)';
+      el.innerHTML = results.map(r=>`
+        <div style="border-left:2px solid ${urgencyColor(r.urgency)};padding:8px 12px;margin-bottom:8px;background:rgba(0,0,0,.2)">
+          <div style="font-size:.62rem;color:var(--cream);font-weight:500">${r.name}</div>
+          <div style="font-size:.6rem;color:${urgencyColor(r.urgency)};text-transform:uppercase;letter-spacing:.1em;margin:2px 0">${r.status.replace('_',' ')}</div>
+          <div style="font-size:.65rem;color:var(--stone);font-style:italic">${r.recommendation}</div>
+        </div>`).join('');
+    }
+    el.style.display = 'block';
+    setAIStatus('serviceStatus', `${results.length} watch${results.length===1?'':'es'} need attention`, results.length?'error':'success');
+  } catch(e) {
+    setAIStatus('serviceStatus', 'Could not analyze service history', 'error');
+  }
+  btn.disabled = false;
+});
+
+// ── INIT ──
 function setAIStatus(elId, msg, type){
   const el = document.getElementById(elId);
   if(!el) return;
