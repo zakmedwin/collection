@@ -539,13 +539,51 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
       <div style="border-top:1px solid var(--border);margin:4px 0"></div>
       <button class="ai-btn" id="insightsOpenBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">✦ &nbsp;Ask About My Collection</button>
       <button class="ai-btn" id="serviceAnalysisBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">✦ &nbsp;Service Analysis</button>
+      <button class="ai-btn" id="collectionSummaryBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">✦ &nbsp;Collection Summary</button>
       <div style="border-top:1px solid var(--border);margin:4px 0"></div>
       <button class="m-edit-btn" id="changePinBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem;border-color:var(--border2)">🔒 &nbsp;Change PIN</button>
+      <button class="m-edit-btn" id="importOpenBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem;border-color:var(--border2)">📥 &nbsp;Import Collection</button>
     </div>
     <div id="serviceResults" style="margin-top:16px;display:none"></div>
     <div class="ai-status" id="serviceStatus" style="margin-top:8px"></div>
+    <div id="summaryResult" style="margin-top:12px;display:none;font-size:.78rem;color:var(--stone);line-height:1.8;font-style:italic"></div>
+    <div class="ai-status" id="summaryStatus" style="margin-top:8px"></div>
     <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);font-size:.58rem;color:var(--stone);line-height:1.7;text-align:left">
       Your data syncs automatically to the cloud. Backups are an optional safety net you can save locally.
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT OVERLAY -->
+<div class="ws-overlay" id="importOverlay">
+  <div class="ws-modal" style="max-width:480px">
+    <div class="ws-topbar"></div>
+    <button class="ws-close" id="importClose">&#10005;</button>
+    <div class="ws-eyebrow">Data Import</div>
+    <div class="ws-title" style="margin-bottom:8px">Import Collection</div>
+    <div style="font-size:.65rem;color:var(--stone);margin-bottom:20px;line-height:1.6">Accepts CSV, Excel (.xlsx), or Numbers files exported as CSV. Your existing watches will not be affected — imported watches are added alongside them.</div>
+    
+    <div id="importStep1">
+      <div style="border:1px dashed var(--border2);padding:24px;text-align:center;cursor:pointer;transition:border-color .2s" id="importDropZone">
+        <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);margin-bottom:8px">Drop file here or tap to browse</div>
+        <div style="font-size:.52rem;color:var(--stone);opacity:.6">CSV · Excel · Numbers (export as CSV)</div>
+      </div>
+      <input type="file" id="importFileIn" accept=".csv,.xlsx,.xls" style="display:none">
+    </div>
+
+    <div id="importStep2" style="display:none">
+      <div style="font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:12px" id="importFileLabel"></div>
+      <div id="importMappingArea" style="max-height:280px;overflow-y:auto;margin-bottom:14px"></div>
+      <div class="ai-status" id="importStatus"></div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn-cancel" id="importBack" style="flex:1">← Back</button>
+        <button class="btn-save green" id="importDoBtn" style="flex:2">Import Watches</button>
+      </div>
+    </div>
+
+    <div id="importStep3" style="display:none;text-align:center;padding:20px 0">
+      <div style="font-size:2rem;margin-bottom:12px">✓</div>
+      <div style="font-size:.72rem;color:var(--green);letter-spacing:.15em;text-transform:uppercase" id="importDoneMsg"></div>
     </div>
   </div>
 </div>
@@ -761,6 +799,15 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
       <div class="m-spec" id="mSpec"></div>
       <div id="mRef2"></div>
       <div id="mNotes"></div>
+      <!-- Story Generator -->
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone)">The Story</div>
+          <button class="ai-btn" id="mStoryBtn">✦ Generate Story</button>
+        </div>
+        <div class="ai-status" id="mStoryStatus"></div>
+        <div id="mStoryText" style="font-size:.82rem;color:var(--stone);line-height:1.8;font-style:italic;margin-top:8px;min-height:0"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1589,6 +1636,9 @@ function openModal(w){
     document.getElementById('mValueResult').innerHTML = '';
     setAIStatus('mValueStatus', '', '');
     document.getElementById('mValueBtn').disabled = false;
+    document.getElementById('mStoryText').textContent = '';
+    setAIStatus('mStoryStatus', '', '');
+    document.getElementById('mStoryBtn').disabled = false;
   }
   const pV=w.paid||0,rV=w.price||0,f26V=w.feb26||0;
   const glV=f26V&&pV?f26V-pV:null;
@@ -2321,6 +2371,208 @@ document.querySelectorAll('.insights-chip').forEach(chip=>{
     document.getElementById('insightsInput').value = chip.dataset.q;
     askInsights(chip.dataset.q);
   });
+});
+
+// ── IMPORT TOOL ──
+// Column mapping: source heading → app field key
+const IMPORT_FIELD_MAP = {
+  'brand': 'brand',
+  'series': 'series',
+  'model': 'model',
+  'reference no': 'ref', 'reference': 'ref', 'ref': 'ref', 'reference no.': 'ref',
+  'serial #': 'serial', 'serial': 'serial', 'serial no': 'serial', 'serial no.': 'serial',
+  'origin': 'origin',
+  'case material': 'casemat', 'casematerial': 'casemat',
+  'dial color': 'dial', 'dial': 'dial',
+  'bracelet/strap': 'strap', 'strap': 'strap', 'bracelet': 'strap',
+  'size (mm)': 'size', 'size': 'size', 'case size': 'size',
+  'thickness': 'thick', 'thickness (mm)': 'thick',
+  'lug width': 'lug', 'lug width (mm)': 'lug',
+  'lug to lug (mm)': 'lugToLug', 'lug to lug': 'lugToLug',
+  'movement': 'movement',
+  'power reserve': 'pr', 'power reserve (h)': 'pr',
+  'water resist. (m)': 'wr', 'water resistance': 'wr', 'water resist': 'wr',
+  'purchase year': 'year', 'year': 'year', 'year purchased': 'year',
+  'new/used': 'source', 'purchase source': 'source', 'source': 'source',
+  'price': 'price', 'retail': 'price', 'price / retail': 'price',
+  'paid': 'paid', 'amount paid': 'paid',
+  'service date': 'service', 'service': 'service',
+  'sold': 'sold',
+  'sold amount': 'soldAmt', 'sold price': 'soldAmt',
+  'notes': 'notes',
+  'price feb. 2026': 'feb26', 'price feb 2026': 'feb26', 'current value': 'feb26',
+};
+
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if(lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim());
+  return lines.slice(1).map(line => {
+    const vals = [];
+    let cur = '', inQ = false;
+    for(let i=0; i<line.length; i++){
+      const c = line[i];
+      if(c==='"'){ inQ=!inQ; }
+      else if(c===','&&!inQ){ vals.push(cur.trim()); cur=''; }
+      else cur+=c;
+    }
+    vals.push(cur.trim());
+    const row = {};
+    headers.forEach((h,i) => row[h] = vals[i]||'');
+    return row;
+  }).filter(r => Object.values(r).some(v=>v));
+}
+
+function mapRow(row) {
+  const w = { id: 'imp_'+Math.random().toString(36).substr(2,9), _custom: true };
+  for(const [srcKey, val] of Object.entries(row)){
+    const appKey = IMPORT_FIELD_MAP[srcKey.toLowerCase().trim()];
+    if(appKey && val){
+      if(appKey==='year'||appKey==='pr'||appKey==='wr'||appKey==='price'||appKey==='paid'||appKey==='feb26'||appKey==='soldAmt'){
+        w[appKey] = parseFloat(val)||null;
+      } else if(appKey==='sold'){
+        w[appKey] = val.toLowerCase()==='yes'||val.toLowerCase()==='true';
+      } else {
+        w[appKey] = val;
+      }
+    }
+  }
+  return w;
+}
+
+let importRows = [];
+let importHeaders = [];
+
+document.getElementById('importOpenBtn').addEventListener('click',()=>{
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.getElementById('importOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  document.getElementById('importStep1').style.display='block';
+  document.getElementById('importStep2').style.display='none';
+  document.getElementById('importStep3').style.display='none';
+});
+document.getElementById('importClose').addEventListener('click',()=>{
+  document.getElementById('importOverlay').classList.remove('open');
+  document.body.style.overflow='';
+});
+document.getElementById('importOverlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('importOverlay')){
+    document.getElementById('importOverlay').classList.remove('open');
+    document.body.style.overflow='';
+  }
+});
+document.getElementById('importDropZone').addEventListener('click',()=>document.getElementById('importFileIn').click());
+document.getElementById('importFileIn').addEventListener('change',e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  document.getElementById('importFileLabel').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const text = ev.target.result;
+    importRows = parseCSV(text);
+    importHeaders = importRows.length ? Object.keys(importRows[0]) : [];
+    // Show mapping preview
+    const mapArea = document.getElementById('importMappingArea');
+    mapArea.innerHTML = `
+      <div style="font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone);margin-bottom:10px">${importRows.length} watches detected — column mapping:</div>
+      <table style="width:100%;border-collapse:collapse;font-size:.65rem">
+        <tr style="border-bottom:1px solid var(--border)">
+          <th style="text-align:left;padding:4px 8px;color:var(--stone);font-weight:400">Your Column</th>
+          <th style="text-align:left;padding:4px 8px;color:var(--stone);font-weight:400">Maps To</th>
+        </tr>
+        ${importHeaders.map(h=>{
+          const appKey = IMPORT_FIELD_MAP[h.toLowerCase().trim()];
+          return `<tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:5px 8px;color:var(--cream)">${h}</td>
+            <td style="padding:5px 8px;color:${appKey?'var(--gold)':'var(--stone)'}">${appKey||'— not mapped'}</td>
+          </tr>`;
+        }).join('')}
+      </table>`;
+    document.getElementById('importStep1').style.display='none';
+    document.getElementById('importStep2').style.display='block';
+    setAIStatus('importStatus','','');
+  };
+  reader.readAsText(file);
+  e.target.value='';
+});
+
+document.getElementById('importBack').addEventListener('click',()=>{
+  document.getElementById('importStep1').style.display='block';
+  document.getElementById('importStep2').style.display='none';
+});
+
+document.getElementById('importDoBtn').addEventListener('click',()=>{
+  if(!importRows.length){ setAIStatus('importStatus','No data to import','error'); return; }
+  const btn = document.getElementById('importDoBtn');
+  btn.disabled=true;
+  setAIStatus('importStatus','Importing…','loading');
+  try {
+    const mapped = importRows.map(mapRow).filter(w=>w.brand);
+    const sold = mapped.filter(w=>w.sold);
+    const active = mapped.filter(w=>!w.sold);
+    customWatches.push(...active, ...sold);
+    saveCustom(customWatches);
+    document.getElementById('importStep2').style.display='none';
+    document.getElementById('importStep3').style.display='block';
+    document.getElementById('importDoneMsg').textContent=`${mapped.length} watch${mapped.length===1?'':'es'} imported successfully`;
+    renderAll();
+    setTimeout(()=>{
+      document.getElementById('importOverlay').classList.remove('open');
+      document.body.style.overflow='';
+    }, 2500);
+  } catch(e) {
+    setAIStatus('importStatus','Import failed — check file format','error');
+    btn.disabled=false;
+  }
+});
+
+// ── STORY GENERATOR ──
+document.getElementById('mStoryBtn').addEventListener('click', async ()=>{
+  const w = modalWatch;
+  if(!w) return;
+  const btn = document.getElementById('mStoryBtn');
+  btn.disabled = true;
+  setAIStatus('mStoryStatus', '✦ Writing the story…', 'loading');
+  document.getElementById('mStoryText').textContent = '';
+  try {
+    const res = await fetch(WORKER_URL + '/ai/story', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Auth-Token': AUTH_TOKEN },
+      body: JSON.stringify({ watch: w })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error('Failed');
+    document.getElementById('mStoryText').textContent = data.story;
+    setAIStatus('mStoryStatus', '', '');
+  } catch(e) {
+    setAIStatus('mStoryStatus', 'Could not generate story — try again', 'error');
+    btn.disabled = false;
+  }
+});
+
+// ── COLLECTION SUMMARY ──
+document.getElementById('collectionSummaryBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('collectionSummaryBtn');
+  btn.disabled = true;
+  setAIStatus('summaryStatus', '✦ Writing your collection profile…', 'loading');
+  document.getElementById('summaryResult').style.display = 'none';
+  try {
+    const collection = [...customWatches.filter(w=>!w.sold)];
+    const res = await fetch(WORKER_URL + '/ai/summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Auth-Token': AUTH_TOKEN },
+      body: JSON.stringify({ collection })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error('Failed');
+    const el = document.getElementById('summaryResult');
+    el.textContent = data.summary;
+    el.style.display = 'block';
+    setAIStatus('summaryStatus', '', '');
+  } catch(e) {
+    setAIStatus('summaryStatus', 'Could not generate summary — try again', 'error');
+  }
+  btn.disabled = false;
 });
 
 // ── CHANGE PIN ──
