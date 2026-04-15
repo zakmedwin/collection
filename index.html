@@ -190,13 +190,14 @@ h1 em{color:var(--gold);font-style:italic}
 .photo-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--stone);border-bottom:1px solid var(--border)}
 .ph-icon{width:32px;height:32px;opacity:.3}
 .photo-placeholder span{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;opacity:.45}
-.photo-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px;pointer-events:none}
+.photo-overlay{position:absolute;inset:0;background:rgba(0,0,0,.72);opacity:0;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:8px;pointer-events:none}
 .photo-overlay.visible{opacity:1;pointer-events:auto}
-.photo-edit-btn{position:absolute;top:8px;right:8px;width:28px;height:28px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:3;-webkit-appearance:none;border-radius:0;transition:all .2s}
-.photo-edit-btn:hover{background:rgba(0,0,0,.8);border-color:var(--gold);color:var(--gold)}
-.photo-btn{background:rgba(184,145,58,.15);border:1px solid var(--gold);color:var(--gold);padding:7px 14px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0}
-.photo-btn:hover{background:rgba(184,145,58,.3)}
-.photo-btn.del-btn{border-color:var(--danger);color:var(--danger);background:rgba(158,90,90,.1)}
+.photo-edit-btn{position:absolute;top:8px;right:8px;width:30px;height:30px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.4);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:3;-webkit-appearance:none;border-radius:0;transition:all .2s;font-size:1rem}
+.photo-edit-btn:hover{background:rgba(0,0,0,.9);border-color:var(--gold);color:var(--gold)}
+.photo-btn{background:rgba(20,18,16,.85);border:1px solid var(--gold);color:var(--gold);padding:9px 16px;font-family:'Montserrat',sans-serif;font-size:.62rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0;white-space:nowrap}
+.photo-btn:hover{background:rgba(184,145,58,.25)}
+.photo-btn.del-btn{border-color:#e05555;color:#e05555;background:rgba(20,18,16,.85)}
+.photo-btn.del-btn:hover{background:rgba(224,85,85,.2)}
 .photo-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;color:#fff;font-size:1.8rem;width:36px;height:52px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;opacity:0.75;transition:opacity .2s;-webkit-appearance:none;border-radius:0;line-height:1;touch-action:manipulation;-webkit-touch-callout:none}
 .photo-prev{left:0}.photo-next{right:0}
 .wcard:hover .photo-nav{opacity:0.95}
@@ -322,6 +323,14 @@ input.file-in{display:none}
 .btn-save.green{border-color:#4a9a6a;color:#4a9a6a;background:rgba(74,154,106,.1)}
 .btn-save.green:hover{background:rgba(74,154,106,.25)}
 
+/* PIN LOCK */
+.pin-dot{width:12px;height:12px;border-radius:50%;border:1px solid var(--gold);background:transparent;transition:background .15s}
+.pin-dot.filled{background:var(--gold)}
+.pin-key{width:72px;height:72px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:var(--cream);font-family:'Montserrat',sans-serif;font-size:1.2rem;font-weight:300;cursor:pointer;-webkit-appearance:none;border-radius:50%;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.pin-key:hover,.pin-key:active{background:rgba(184,145,58,.2);border-color:var(--gold);color:var(--gold)}
+.pin-clear{font-size:.9rem;color:var(--stone)}
+.pin-ok{background:rgba(184,145,58,.1);border-color:var(--gold);color:var(--gold)}
+
 .insights-chip{background:rgba(184,145,58,.06);border:1px solid rgba(184,145,58,.25);color:var(--stone);padding:4px 10px;font-family:'Montserrat',sans-serif;font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;-webkit-appearance:none;border-radius:0;transition:all .2s}
 .insights-chip:hover{border-color:var(--gold);color:var(--gold)}
 .ai-btn{background:rgba(184,145,58,.08);border:1px solid rgba(184,145,58,.4);color:var(--gold);padding:5px 12px;font-family:'Montserrat',sans-serif;font-size:.55rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;-webkit-appearance:none;border-radius:0;white-space:nowrap}
@@ -396,6 +405,34 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 </style>
 </head>
 <body>
+
+<!-- ── PIN LOCK SCREEN ── -->
+<div id="pinLock" style="display:none;position:fixed;inset:0;background:#0b0b09;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
+  <div style="font-size:.55rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Personal Horology Archive</div>
+  <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;color:var(--cream);margin-bottom:32px;letter-spacing:.1em">The <em>Collection</em></div>
+  <div id="pinDots" style="display:flex;gap:12px;margin-bottom:28px">
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+  </div>
+  <div id="pinError" style="font-size:.6rem;letter-spacing:.15em;color:var(--danger);height:16px;margin-bottom:12px;text-transform:uppercase"></div>
+  <div style="display:grid;grid-template-columns:repeat(3,72px);gap:10px">
+    <button class="pin-key" data-v="1">1</button>
+    <button class="pin-key" data-v="2">2</button>
+    <button class="pin-key" data-v="3">3</button>
+    <button class="pin-key" data-v="4">4</button>
+    <button class="pin-key" data-v="5">5</button>
+    <button class="pin-key" data-v="6">6</button>
+    <button class="pin-key" data-v="7">7</button>
+    <button class="pin-key" data-v="8">8</button>
+    <button class="pin-key" data-v="9">9</button>
+    <button class="pin-key pin-clear" data-v="clear">⌫</button>
+    <button class="pin-key" data-v="0">0</button>
+    <button class="pin-key pin-ok" data-v="ok">✓</button>
+  </div>
+  <div style="margin-top:28px;font-size:.52rem;letter-spacing:.14em;color:var(--stone);text-transform:uppercase">Enter PIN to access</div>
+</div>
 
 <!-- ── SPLASH SCREEN ── -->
 <div id="splash">
@@ -568,7 +605,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <div class="stat"><div class="sv" id="sBr">—</div><div class="sl">Brands</div></div>
     <div class="stat"><div class="sv" id="sPd">—</div><div class="sl">Total Paid</div></div>
     <div class="stat"><div class="sv" id="sRt">—</div><div class="sl">Retail</div></div>
-    <div class="stat"><div class="sv" id="sF26">—</div><div class="sl">Feb '26</div></div>
+    <div class="stat"><div class="sv" id="sF26">—</div><div class="sl">Current Value</div></div>
     <div class="stat"><div class="sv" id="sGL">—</div><div class="sl">Gain</div></div>
     <div class="stat"><div class="sv" id="sMc">—</div><div class="sl">Mechanical</div></div>
   </div>
@@ -949,7 +986,61 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 </div>
 
 <script>
-// ── CLOUD SYNC CONFIG ──
+// ── PIN LOCK ──
+(function(){
+  const CORRECT_PIN = '1973'; // Change this to your preferred PIN
+  const SESSION_KEY = 'wc_unlocked';
+  const pinLock = document.getElementById('pinLock');
+  const pinDots = document.querySelectorAll('.pin-dot');
+  const pinError = document.getElementById('pinError');
+  let entered = '';
+
+  // Check if already unlocked this session
+  if(sessionStorage.getItem(SESSION_KEY) === 'yes'){
+    pinLock.style.display = 'none';
+    return;
+  }
+
+  pinLock.style.display = 'flex';
+
+  function updateDots(){
+    pinDots.forEach((d,i) => d.classList.toggle('filled', i < entered.length));
+  }
+
+  function shake(){
+    pinLock.style.animation = 'none';
+    pinError.textContent = 'Incorrect PIN';
+    setTimeout(()=>{ entered=''; updateDots(); pinError.textContent=''; }, 1200);
+  }
+
+  function tryUnlock(){
+    if(entered === CORRECT_PIN){
+      sessionStorage.setItem(SESSION_KEY, 'yes');
+      pinLock.style.opacity = '0';
+      pinLock.style.transition = 'opacity .4s';
+      setTimeout(()=>{ pinLock.style.display = 'none'; }, 400);
+    } else {
+      shake();
+    }
+  }
+
+  document.querySelectorAll('.pin-key').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const v = btn.dataset.v;
+      if(v === 'clear'){ entered = entered.slice(0,-1); updateDots(); }
+      else if(v === 'ok'){ tryUnlock(); }
+      else if(entered.length < 4){ entered += v; updateDots(); if(entered.length === 4) setTimeout(tryUnlock, 120); }
+    });
+  });
+
+  // Keyboard support
+  document.addEventListener('keydown', e=>{
+    if(pinLock.style.display === 'none') return;
+    if(e.key >= '0' && e.key <= '9' && entered.length < 4){ entered += e.key; updateDots(); if(entered.length === 4) setTimeout(tryUnlock, 120); }
+    else if(e.key === 'Backspace'){ entered = entered.slice(0,-1); updateDots(); }
+    else if(e.key === 'Enter'){ tryUnlock(); }
+  });
+})();
 const WORKER_URL = 'https://watch-api.zakmedwin.workers.dev';
 const AUTH_TOKEN = 'WatchSync2026';
 
@@ -1448,7 +1539,7 @@ function openModal(w){
   const glV=f26V&&pV?f26V-pV:null;
   const glC=glV==null?'':(glV>0?'gain':'loss');
   const glT=glV!=null?((glV>=0?'+':'−')+fmtP(Math.abs(glV))):'—';
-  document.getElementById('mFin').innerHTML=`<div><div class="mfl">Paid</div><div class="mfv">${pV?fmtP(pV):'—'}</div></div><div><div class="mfl">Retail</div><div class="mfv">${rV?fmtP(rV):'—'}</div></div><div><div class="mfl">Feb '26</div><div class="mfv">${f26V?fmtP(f26V):'—'}</div></div><div><div class="mfl">Gain/Loss</div><div class="mfv ${glC}">${glT}</div></div>`;
+  document.getElementById('mFin').innerHTML=`<div><div class="mfl">Paid</div><div class="mfv">${pV?fmtP(pV):'—'}</div></div><div><div class="mfl">Retail</div><div class="mfv">${rV?fmtP(rV):'—'}</div></div><div><div class="mfl">Current Value</div><div class="mfv">${f26V?fmtP(f26V):'—'}</div></div><div><div class="mfl">Gain/Loss</div><div class="mfv ${glC}">${glT}</div></div>`;
   document.getElementById('mSpec').innerHTML=`<div><div class="msk">Year</div><div class="msv">${dsh(w.year)}</div></div><div><div class="msk">Movement</div><div class="msv">${dsh(w.movement)}</div></div><div><div class="msk">Power reserve</div><div class="msv">${w.pr?w.pr+'h':'—'}</div></div><div><div class="msk">Water resist.</div><div class="msv">${w.wr?w.wr+'M':'—'}</div></div><div><div class="msk">Case material</div><div class="msv">${dsh(w.casemat)}</div></div><div><div class="msk">Dial</div><div class="msv">${dsh(w.dial)}</div></div><div><div class="msk">Bracelet/strap</div><div class="msv">${dsh(w.strap)}</div></div><div><div class="msk">Case size</div><div class="msv">${w.size?w.size+'mm':'—'}</div></div><div><div class="msk">Thickness</div><div class="msv">${w.thick?w.thick+'mm':'—'}</div></div><div><div class="msk">Lug width</div><div class="msv">${w.lug?w.lug+'mm':'—'}</div></div><div><div class="msk">Lug to lug</div><div class="msv">${w.lugToLug?w.lugToLug+'mm':'—'}</div></div><div><div class="msk">Origin</div><div class="msv">${dsh(w.origin)}</div></div>`;
   document.getElementById('mRef2').innerHTML=(w.ref||w.serial)?`<div class="m-rref"><strong>Ref:</strong> ${w.ref||'—'} &nbsp;|&nbsp; <strong>Serial:</strong> ${w.serial||'—'}</div>`:'';
 
