@@ -546,11 +546,21 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     </div>
     <div id="serviceResults" style="margin-top:16px;display:none"></div>
     <div class="ai-status" id="serviceStatus" style="margin-top:8px"></div>
-    <div id="summaryResult" style="margin-top:12px;display:none;font-size:.78rem;color:var(--stone);line-height:1.8;font-style:italic"></div>
-    <div class="ai-status" id="summaryStatus" style="margin-top:8px"></div>
     <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);font-size:.58rem;color:var(--stone);line-height:1.7;text-align:left">
       Your data syncs automatically to the cloud. Backups are an optional safety net you can save locally.
     </div>
+  </div>
+</div>
+
+<!-- COLLECTION SUMMARY OVERLAY -->
+<div class="ws-overlay" id="summaryOverlay">
+  <div class="ws-modal" style="max-width:520px">
+    <div class="ws-topbar"></div>
+    <button class="ws-close" id="summaryClose">&#10005;</button>
+    <div class="ws-eyebrow">AI Curator</div>
+    <div class="ws-title" style="margin-bottom:16px">Collection Profile</div>
+    <div class="ai-status" id="summaryStatus"></div>
+    <div id="summaryResult" style="font-size:.82rem;color:var(--stone);line-height:1.8;font-style:italic;margin-top:8px"></div>
   </div>
 </div>
 
@@ -803,7 +813,10 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
       <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div style="font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone)">The Story</div>
-          <button class="ai-btn" id="mStoryBtn">✦ Generate Story</button>
+          <div style="display:flex;gap:8px">
+            <button class="ai-btn" id="mStorySaveBtn" style="display:none">Save to Watch</button>
+            <button class="ai-btn" id="mStoryBtn">✦ Generate Story</button>
+          </div>
         </div>
         <div class="ai-status" id="mStoryStatus"></div>
         <div id="mStoryText" style="font-size:.82rem;color:var(--stone);line-height:1.8;font-style:italic;margin-top:8px;min-height:0"></div>
@@ -1636,7 +1649,11 @@ function openModal(w){
     document.getElementById('mValueResult').innerHTML = '';
     setAIStatus('mValueStatus', '', '');
     document.getElementById('mValueBtn').disabled = false;
-    document.getElementById('mStoryText').textContent = '';
+    // Load existing story if saved
+    const storyEl = document.getElementById('mStoryText');
+    const storySaveBtn = document.getElementById('mStorySaveBtn');
+    if(w.story){ storyEl.textContent = w.story; storySaveBtn.style.display='none'; }
+    else { storyEl.textContent = ''; storySaveBtn.style.display='none'; }
     setAIStatus('mStoryStatus', '', '');
     document.getElementById('mStoryBtn').disabled = false;
   }
@@ -2534,6 +2551,7 @@ document.getElementById('mStoryBtn').addEventListener('click', async ()=>{
   btn.disabled = true;
   setAIStatus('mStoryStatus', '✦ Writing the story…', 'loading');
   document.getElementById('mStoryText').textContent = '';
+  document.getElementById('mStorySaveBtn').style.display = 'none';
   try {
     const res = await fetch(WORKER_URL + '/ai/story', {
       method: 'POST',
@@ -2543,19 +2561,42 @@ document.getElementById('mStoryBtn').addEventListener('click', async ()=>{
     const data = await res.json();
     if(!data.ok) throw new Error('Failed');
     document.getElementById('mStoryText').textContent = data.story;
-    setAIStatus('mStoryStatus', '', '');
+    document.getElementById('mStorySaveBtn').style.display = 'inline-block';
+    setAIStatus('mStoryStatus', 'Story generated — tap Save to keep it', 'success');
   } catch(e) {
     setAIStatus('mStoryStatus', 'Could not generate story — try again', 'error');
     btn.disabled = false;
   }
 });
 
+document.getElementById('mStorySaveBtn').addEventListener('click', ()=>{
+  const w = modalWatch;
+  if(!w) return;
+  const story = document.getElementById('mStoryText').textContent;
+  if(!story) return;
+  w.story = story;
+  // Save to the correct collection
+  const isBeth = bethWatches.some(b=>b.id===w.id);
+  const isWish = wishWatches.some(x=>x.id===w.id);
+  const isMom = getMom().some(m=>m.id===w.id);
+  if(isBeth){ const idx=bethWatches.findIndex(x=>x.id===w.id); if(idx>=0) bethWatches[idx]=w; saveBeth(bethWatches); }
+  else if(isWish){ const idx=wishWatches.findIndex(x=>x.id===w.id); if(idx>=0) wishWatches[idx]=w; saveWish(wishWatches); }
+  else if(isMom){ const mom=getMom(); const idx=mom.findIndex(x=>x.id===w.id); if(idx>=0){ mom[idx]=w; localStorage.setItem('wc_mom_cloud',JSON.stringify(mom)); scheduleSave(); }}
+  else { const idx=customWatches.findIndex(x=>x.id===w.id); if(idx>=0) customWatches[idx]=w; saveCustom(customWatches); }
+  document.getElementById('mStorySaveBtn').style.display = 'none';
+  setAIStatus('mStoryStatus', '✓ Story saved to this watch', 'success');
+  setTimeout(()=>setAIStatus('mStoryStatus','',''), 2000);
+});
+
 // ── COLLECTION SUMMARY ──
 document.getElementById('collectionSummaryBtn').addEventListener('click', async ()=>{
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.getElementById('summaryOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
   const btn = document.getElementById('collectionSummaryBtn');
   btn.disabled = true;
   setAIStatus('summaryStatus', '✦ Writing your collection profile…', 'loading');
-  document.getElementById('summaryResult').style.display = 'none';
+  document.getElementById('summaryResult').textContent = '';
   try {
     const collection = [...customWatches.filter(w=>!w.sold)];
     const res = await fetch(WORKER_URL + '/ai/summary', {
@@ -2565,14 +2606,22 @@ document.getElementById('collectionSummaryBtn').addEventListener('click', async 
     });
     const data = await res.json();
     if(!data.ok) throw new Error('Failed');
-    const el = document.getElementById('summaryResult');
-    el.textContent = data.summary;
-    el.style.display = 'block';
+    document.getElementById('summaryResult').textContent = data.summary;
     setAIStatus('summaryStatus', '', '');
   } catch(e) {
     setAIStatus('summaryStatus', 'Could not generate summary — try again', 'error');
   }
   btn.disabled = false;
+});
+document.getElementById('summaryClose').addEventListener('click',()=>{
+  document.getElementById('summaryOverlay').classList.remove('open');
+  document.body.style.overflow='';
+});
+document.getElementById('summaryOverlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('summaryOverlay')){
+    document.getElementById('summaryOverlay').classList.remove('open');
+    document.body.style.overflow='';
+  }
 });
 
 // ── CHANGE PIN ──
