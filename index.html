@@ -528,6 +528,10 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     </div>
     <!-- Digital readout -->
     <div class="ws-digital" id="wsDigital">--:--:--</div>
+    <!-- Date display -->
+    <div id="wsDate" style="font-family:'Montserrat',sans-serif;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone);margin-bottom:4px">—</div>
+    <!-- Leap year indicator -->
+    <div id="wsLeap" style="font-family:'Montserrat',sans-serif;font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--stone);margin-bottom:12px;min-height:16px"></div>
     <div class="ws-hint">Set your watch to the time shown above</div>
     <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:10px">
       <button class="ws-chime-btn" id="wsChimeBtn" title="Toggle chime">&#9836; Chime On</button>
@@ -724,9 +728,12 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   <div class="form-modal" id="formModal">
     <div class="form-topbar" id="formTopBar"></div>
     <button class="form-close" id="formClose">✕</button>
-    <div class="form-head">
-      <div class="form-title" id="formTitle">Add Watch</div>
-      <div class="form-sub" id="formSub">New timepiece to the collection</div>
+    <div class="form-head" style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div class="form-title" id="formTitle">Add Watch</div>
+        <div class="form-sub" id="formSub">New timepiece to the collection</div>
+      </div>
+      <button class="btn-save" id="formSaveBtnTop" style="font-size:.58rem;padding:8px 16px">Save</button>
     </div>
     <div class="form-body">
 
@@ -1202,6 +1209,20 @@ function addPhoto(pk, dataUrl){ const arr=getPhotos(pk); arr.push(dataUrl); setP
 function removePhoto(pk, idx){ const arr=getPhotos(pk); arr.splice(idx,1); setPhotos(pk, arr); }
 
 // Per-card photo index state
+// Update only the photo in a card without full re-render
+function updateCardPhoto(area, pk){
+  if(!area) return;
+  const imgs = getPhotos(pk);
+  const idx = cardPhotoIndex[pk] || 0;
+  const img = area.querySelector('img');
+  if(img) img.src = imgs[idx] || '';
+  const counter = area.querySelector('.photo-count');
+  if(counter) counter.textContent = `${idx+1}/${imgs.length}`;
+  // Update remove button idx
+  const removeBtn = area.querySelector('.remove-photo-btn');
+  if(removeBtn) removeBtn.dataset.idx = idx;
+}
+
 const cardPhotoIndex = {};
 
 function photoHtml(pk){
@@ -1291,17 +1312,19 @@ function renderGrid(data,elId,type){
   el.querySelectorAll('.photo-prev').forEach(btn=>{
     btn.addEventListener('click',e=>{
       e.stopPropagation();
-      const pk=btn.dataset.pk, len=getPhotos(pk).length;
+      const pk=btn.dataset.pk, imgs=getPhotos(pk), len=imgs.length;
+      if(len<2) return;
       cardPhotoIndex[pk]=((cardPhotoIndex[pk]||0)-1+len)%len;
-      renderAll();
+      updateCardPhoto(btn.closest('.photo-area'), pk);
     });
   });
   el.querySelectorAll('.photo-next').forEach(btn=>{
     btn.addEventListener('click',e=>{
       e.stopPropagation();
-      const pk=btn.dataset.pk, len=getPhotos(pk).length;
+      const pk=btn.dataset.pk, imgs=getPhotos(pk), len=imgs.length;
+      if(len<2) return;
       cardPhotoIndex[pk]=((cardPhotoIndex[pk]||0)+1)%len;
-      renderAll();
+      updateCardPhoto(btn.closest('.photo-area'), pk);
     });
   });
   // File input — add new photo to array
@@ -1594,6 +1617,9 @@ document.getElementById('formFileIn').addEventListener('change',e=>{
 });
 
 // save
+document.getElementById('formSaveBtnTop').addEventListener('click', ()=>{
+  document.getElementById('formSaveBtn').click();
+});
 document.getElementById('formSaveBtn').addEventListener('click',()=>{
   const brand=document.getElementById('fBrand').value.trim();
   if(!brand){alert('Brand is required.');return;}
@@ -1964,6 +1990,27 @@ function openWatchSetter(){
       const mm=m.toString().padStart(2,'0');
       const ss=s.toString().padStart(2,'0');
       dig.textContent=`${hr12}:${mm}:${ss} ${ampm}`;
+    }
+    // Date display
+    const dateEl=document.getElementById('wsDate');
+    if(dateEl){
+      const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+      dateEl.textContent=`${days[n.getDay()]}, ${months[n.getMonth()]} ${n.getDate()}, ${n.getFullYear()}`;
+    }
+    // Leap year tracker
+    const leapEl=document.getElementById('wsLeap');
+    if(leapEl){
+      const yr=n.getFullYear();
+      const isLeap=(yr%4===0&&yr%100!==0)||(yr%400===0);
+      if(isLeap){
+        leapEl.textContent=`${yr} is a leap year`;
+        leapEl.style.color='var(--gold)';
+      } else {
+        const next=[yr+1,yr+2,yr+3,yr+4].find(y=>(y%4===0&&y%100!==0)||(y%400===0));
+        leapEl.textContent=`Next leap year: ${next}`;
+        leapEl.style.color='var(--stone)';
+      }
     }
     // Chime logic
     if(wsChimeOn && s !== wsLastChimeSec){
