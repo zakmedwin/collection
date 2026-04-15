@@ -727,13 +727,13 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 <div class="form-overlay" id="formOverlay">
   <div class="form-modal" id="formModal">
     <div class="form-topbar" id="formTopBar"></div>
-    <button class="form-close" id="formClose">✕</button>
-    <div class="form-head" style="display:flex;align-items:center;justify-content:space-between">
-      <div>
+    <div class="form-head" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-right:16px">
+      <div style="flex:1;min-width:0">
         <div class="form-title" id="formTitle">Add Watch</div>
         <div class="form-sub" id="formSub">New timepiece to the collection</div>
       </div>
-      <button class="btn-save" id="formSaveBtnTop" style="font-size:.58rem;padding:8px 16px">Save</button>
+      <button class="btn-save" id="formSaveBtnTop" style="font-size:.58rem;padding:8px 16px;flex-shrink:0">Save</button>
+      <button class="form-close" id="formClose" style="position:relative;top:auto;right:auto;flex-shrink:0">✕</button>
     </div>
     <div class="form-body">
 
@@ -1207,6 +1207,14 @@ function getPhotos(pk){ const p=photos[pk]; if(!p) return []; if(Array.isArray(p
 function setPhotos(pk, arr){ photos[pk]=arr.length===0?undefined:arr; if(photos[pk]===undefined) delete photos[pk]; savePhotos(photos); }
 function addPhoto(pk, dataUrl){ const arr=getPhotos(pk); arr.push(dataUrl); setPhotos(pk, arr); }
 function removePhoto(pk, idx){ const arr=getPhotos(pk); arr.splice(idx,1); setPhotos(pk, arr); }
+function setPrimaryPhoto(pk, idx){
+  const arr=getPhotos(pk);
+  if(idx===0||arr.length<2) return;
+  const primary=arr.splice(idx,1)[0];
+  arr.unshift(primary);
+  setPhotos(pk, arr);
+  cardPhotoIndex[pk]=0;
+}
 
 // Per-card photo index state
 // Update only the photo in a card without full re-render
@@ -1221,6 +1229,9 @@ function updateCardPhoto(area, pk){
   // Update remove button idx
   const removeBtn = area.querySelector('.remove-photo-btn');
   if(removeBtn) removeBtn.dataset.idx = idx;
+  // Update primary button visibility
+  const primaryBtn = area.querySelector('.set-primary-btn');
+  if(primaryBtn) primaryBtn.style.opacity = idx===0 ? '0.3' : '1';
 }
 
 const cardPhotoIndex = {};
@@ -1236,6 +1247,7 @@ function photoHtml(pk){
     <button class="photo-edit-btn photo-edit-toggle" data-pk="${pk}" title="Edit photo">✎</button>
     <div class="photo-overlay">
       <button class="photo-btn add-photo-btn" data-pk="${pk}">+ Add</button>
+      <button class="photo-btn set-primary-btn" data-pk="${pk}" data-idx="${idx}" title="Set as cover" style="${idx===0?'opacity:0.3':''}" >★ Cover</button>
       <button class="photo-btn del-btn remove-photo-btn" data-pk="${pk}" data-idx="${idx}">Remove</button>
     </div>
     <input type="file" accept="image/*" class="file-in card-file-in" data-pk="${pk}">
@@ -1306,6 +1318,18 @@ function renderGrid(data,elId,type){
       removePhoto(pk, idx);
       if(cardPhotoIndex[pk]>=getPhotos(pk).length) cardPhotoIndex[pk]=Math.max(0,getPhotos(pk).length-1);
       renderAll();
+    });
+  });
+  el.querySelectorAll('.set-primary-btn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const pk=btn.dataset.pk, idx=parseInt(btn.dataset.idx||0);
+      if(idx===0) return;
+      setPrimaryPhoto(pk, idx);
+      updateCardPhoto(btn.closest('.photo-area'), pk);
+      // Hide overlay after setting primary
+      const ov=btn.closest('.photo-overlay');
+      if(ov) ov.classList.remove('visible');
     });
   });
   // Photo nav prev/next
@@ -1554,6 +1578,7 @@ function openForm(watchToEdit, context){
   document.getElementById('formTopBar').className='form-topbar'+(isEdit?' edit-bar':'');
   document.getElementById('formSaveBtn').textContent=isEdit?'Save Changes':('Save to '+(collMap[formContext]||'Collection'));
   document.getElementById('formSaveBtn').className='btn-save'+(isEdit?'':' green');
+  document.getElementById('formSaveBtnTop').textContent=isEdit?'Save Changes':'Save';
   // fill fields
   const v=watchToEdit||{};
   document.getElementById('fBrand').value=v.brand||'';
