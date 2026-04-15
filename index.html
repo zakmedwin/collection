@@ -814,14 +814,20 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div style="font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone)">The Story</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-            <button class="ai-btn" id="mStoryEditBtn" style="display:none">✎ Edit</button>
             <button class="ai-btn" id="mStorySaveBtn" style="display:none">Save</button>
             <button class="ai-btn" id="mStoryBtn">✦ Generate</button>
           </div>
         </div>
         <div class="ai-status" id="mStoryStatus"></div>
         <div id="mStoryText" style="font-size:.82rem;color:var(--stone);line-height:1.8;font-style:italic;margin-top:8px;min-height:0"></div>
-        <textarea id="mStoryEdit" style="display:none;width:100%;background:transparent;border:1px solid var(--border2);color:var(--cream);padding:10px 12px;font-family:'Montserrat',sans-serif;font-size:.78rem;line-height:1.8;resize:vertical;min-height:160px;outline:none;border-radius:0;-webkit-appearance:none;font-style:italic" placeholder="Edit the story here…"></textarea>
+        <!-- Correction input — shown after story exists -->
+        <div id="mStoryCorrectArea" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+          <div style="font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone);margin-bottom:6px">Correct the story</div>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="mStoryCorrectInput" placeholder="e.g. I bought this in Geneva, not Naples" style="flex:1;background:transparent;border:1px solid var(--border2);color:var(--cream);padding:8px 10px;font-family:'Montserrat',sans-serif;font-size:.72rem;outline:none;border-radius:0;-webkit-appearance:none">
+            <button class="ai-btn" id="mStoryCorrectBtn">✦ Rewrite</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1652,21 +1658,11 @@ function openModal(w){
     setAIStatus('mValueStatus', '', '');
     document.getElementById('mValueBtn').disabled = false;
     // Load existing story if saved
-    const storyEl = document.getElementById('mStoryText');
-    const storyEdit = document.getElementById('mStoryEdit');
-    const storySaveBtn = document.getElementById('mStorySaveBtn');
-    const storyEditBtn = document.getElementById('mStoryEditBtn');
-    storyEdit.style.display = 'none';
-    if(w.story){
-      storyEl.textContent = w.story;
-      storyEl.style.display = 'block';
-      storyEditBtn.style.display = 'inline-block';
-      storySaveBtn.style.display = 'none';
-    } else {
-      storyEl.textContent = '';
-      storyEditBtn.style.display = 'none';
-      storySaveBtn.style.display = 'none';
-    }
+    const existingStory = w.story || '';
+    document.getElementById('mStoryText').textContent = existingStory;
+    document.getElementById('mStorySaveBtn').style.display = 'none';
+    document.getElementById('mStoryCorrectArea').style.display = existingStory ? 'block' : 'none';
+    document.getElementById('mStoryCorrectInput').value = '';
     setAIStatus('mStoryStatus', '', '');
     document.getElementById('mStoryBtn').disabled = false;
   }
@@ -2571,6 +2567,13 @@ function saveStoryToWatch(story){
   else { const idx=customWatches.findIndex(x=>x.id===w.id); if(idx>=0) customWatches[idx]=w; saveCustom(customWatches); }
 }
 
+function showStory(text, isSaved){
+  document.getElementById('mStoryText').textContent = text;
+  document.getElementById('mStorySaveBtn').style.display = isSaved ? 'none' : 'inline-block';
+  document.getElementById('mStoryCorrectArea').style.display = text ? 'block' : 'none';
+  document.getElementById('mStoryCorrectInput').value = '';
+}
+
 document.getElementById('mStoryBtn').addEventListener('click', async ()=>{
   const w = modalWatch;
   if(!w) return;
@@ -2578,10 +2581,8 @@ document.getElementById('mStoryBtn').addEventListener('click', async ()=>{
   btn.disabled = true;
   setAIStatus('mStoryStatus', '✦ Writing the story…', 'loading');
   document.getElementById('mStoryText').textContent = '';
-  document.getElementById('mStoryText').style.display = 'block';
-  document.getElementById('mStoryEdit').style.display = 'none';
+  document.getElementById('mStoryCorrectArea').style.display = 'none';
   document.getElementById('mStorySaveBtn').style.display = 'none';
-  document.getElementById('mStoryEditBtn').style.display = 'none';
   try {
     const res = await fetch(WORKER_URL + '/ai/story', {
       method: 'POST',
@@ -2590,53 +2591,49 @@ document.getElementById('mStoryBtn').addEventListener('click', async ()=>{
     });
     const data = await res.json();
     if(!data.ok) throw new Error('Failed');
-    document.getElementById('mStoryText').textContent = data.story;
-    document.getElementById('mStorySaveBtn').style.display = 'inline-block';
-    document.getElementById('mStoryEditBtn').style.display = 'inline-block';
-    setAIStatus('mStoryStatus', 'Story ready — save it or edit before saving', 'success');
+    showStory(data.story, false);
+    setAIStatus('mStoryStatus', 'Story ready — save it or correct it below', 'success');
   } catch(e) {
     setAIStatus('mStoryStatus', 'Could not generate story — try again', 'error');
-    btn.disabled = false;
   }
-});
-
-document.getElementById('mStoryEditBtn').addEventListener('click', ()=>{
-  const storyText = document.getElementById('mStoryText');
-  const storyEdit = document.getElementById('mStoryEdit');
-  const isEditing = storyEdit.style.display !== 'none';
-  if(isEditing){
-    // Switch back to read mode
-    storyText.textContent = storyEdit.value;
-    storyText.style.display = 'block';
-    storyEdit.style.display = 'none';
-    document.getElementById('mStoryEditBtn').textContent = '✎ Edit';
-    document.getElementById('mStorySaveBtn').style.display = 'inline-block';
-  } else {
-    // Switch to edit mode
-    storyEdit.value = storyText.textContent;
-    storyText.style.display = 'none';
-    storyEdit.style.display = 'block';
-    document.getElementById('mStoryEditBtn').textContent = '✓ Done';
-    document.getElementById('mStorySaveBtn').style.display = 'inline-block';
-    storyEdit.focus();
-  }
+  btn.disabled = false;
 });
 
 document.getElementById('mStorySaveBtn').addEventListener('click', ()=>{
-  const storyEdit = document.getElementById('mStoryEdit');
-  const storyText = document.getElementById('mStoryText');
-  const isEditing = storyEdit.style.display !== 'none';
-  const story = isEditing ? storyEdit.value : storyText.textContent;
+  const story = document.getElementById('mStoryText').textContent;
   if(!story.trim()) return;
-  // Sync edit back to display
-  storyText.textContent = story;
-  storyText.style.display = 'block';
-  storyEdit.style.display = 'none';
-  document.getElementById('mStoryEditBtn').textContent = '✎ Edit';
   saveStoryToWatch(story);
   document.getElementById('mStorySaveBtn').style.display = 'none';
   setAIStatus('mStoryStatus', '✓ Story saved', 'success');
   setTimeout(()=>setAIStatus('mStoryStatus','',''), 2000);
+});
+
+document.getElementById('mStoryCorrectBtn').addEventListener('click', async ()=>{
+  const correction = document.getElementById('mStoryCorrectInput').value.trim();
+  if(!correction){ setAIStatus('mStoryStatus', 'Describe what needs correcting', 'error'); return; }
+  const currentStory = document.getElementById('mStoryText').textContent;
+  if(!currentStory) return;
+  const btn = document.getElementById('mStoryCorrectBtn');
+  btn.disabled = true;
+  setAIStatus('mStoryStatus', '✦ Rewriting…', 'loading');
+  try {
+    const res = await fetch(WORKER_URL + '/ai/story/correct', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Auth-Token': AUTH_TOKEN },
+      body: JSON.stringify({ watch: modalWatch, currentStory, correction })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error('Failed');
+    showStory(data.story, false);
+    setAIStatus('mStoryStatus', 'Story updated — save when ready', 'success');
+  } catch(e) {
+    setAIStatus('mStoryStatus', 'Could not rewrite — try again', 'error');
+  }
+  btn.disabled = false;
+});
+
+document.getElementById('mStoryCorrectInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') document.getElementById('mStoryCorrectBtn').click();
 });
 
 // ── COLLECTION SUMMARY ──
