@@ -539,11 +539,39 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
       <div style="border-top:1px solid var(--border);margin:4px 0"></div>
       <button class="ai-btn" id="insightsOpenBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">✦ &nbsp;Ask About My Collection</button>
       <button class="ai-btn" id="serviceAnalysisBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">✦ &nbsp;Service Analysis</button>
+      <div style="border-top:1px solid var(--border);margin:4px 0"></div>
+      <button class="m-edit-btn" id="changePinBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem;border-color:var(--border2)">🔒 &nbsp;Change PIN</button>
     </div>
     <div id="serviceResults" style="margin-top:16px;display:none"></div>
     <div class="ai-status" id="serviceStatus" style="margin-top:8px"></div>
     <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);font-size:.58rem;color:var(--stone);line-height:1.7;text-align:left">
       Your data syncs automatically to the cloud. Backups are an optional safety net you can save locally.
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PIN OVERLAY -->
+<div class="ws-overlay" id="changePinOverlay">
+  <div class="ws-modal" style="max-width:320px">
+    <div class="ws-topbar"></div>
+    <button class="ws-close" id="changePinClose">&#10005;</button>
+    <div class="ws-eyebrow">Security</div>
+    <div class="ws-title" style="margin-bottom:20px">Change PIN</div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="field">
+        <label>Current PIN</label>
+        <input type="password" id="cpCurrent" maxlength="4" inputmode="numeric" placeholder="••••" style="letter-spacing:.3em;font-size:1.2rem;text-align:center">
+      </div>
+      <div class="field">
+        <label>New PIN (4 digits)</label>
+        <input type="password" id="cpNew" maxlength="4" inputmode="numeric" placeholder="••••" style="letter-spacing:.3em;font-size:1.2rem;text-align:center">
+      </div>
+      <div class="field">
+        <label>Confirm New PIN</label>
+        <input type="password" id="cpConfirm" maxlength="4" inputmode="numeric" placeholder="••••" style="letter-spacing:.3em;font-size:1.2rem;text-align:center">
+      </div>
+      <div class="ai-status" id="cpStatus"></div>
+      <button class="btn-save" id="cpSaveBtn" style="width:100%">Update PIN</button>
     </div>
   </div>
 </div>
@@ -988,12 +1016,15 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 <script>
 // ── PIN LOCK ──
 (function(){
-  const CORRECT_PIN = '1973'; // Change this to your preferred PIN
+  const DEFAULT_PIN = '1973';
+  const PIN_KEY = 'wc_pin';
   const SESSION_KEY = 'wc_unlocked';
   const pinLock = document.getElementById('pinLock');
   const pinDots = document.querySelectorAll('.pin-dot');
   const pinError = document.getElementById('pinError');
   let entered = '';
+
+  function getPin(){ return localStorage.getItem(PIN_KEY) || DEFAULT_PIN; }
 
   // Check if already unlocked this session
   if(sessionStorage.getItem(SESSION_KEY) === 'yes'){
@@ -1008,13 +1039,12 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   }
 
   function shake(){
-    pinLock.style.animation = 'none';
     pinError.textContent = 'Incorrect PIN';
     setTimeout(()=>{ entered=''; updateDots(); pinError.textContent=''; }, 1200);
   }
 
   function tryUnlock(){
-    if(entered === CORRECT_PIN){
+    if(entered === getPin()){
       sessionStorage.setItem(SESSION_KEY, 'yes');
       pinLock.style.opacity = '0';
       pinLock.style.transition = 'opacity .4s';
@@ -1033,10 +1063,9 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     });
   });
 
-  // Keyboard support
   document.addEventListener('keydown', e=>{
     if(pinLock.style.display === 'none') return;
-    if(e.key >= '0' && e.key <= '9' && entered.length < 4){ entered += e.key; updateDots(); if(entered.length === 4) setTimeout(tryUnlock, 120); }
+    if(e.key >= '0' && e.key <= '9' && entered.length < 4){ entered += v; updateDots(); if(entered.length === 4) setTimeout(tryUnlock, 120); }
     else if(e.key === 'Backspace'){ entered = entered.slice(0,-1); updateDots(); }
     else if(e.key === 'Enter'){ tryUnlock(); }
   });
@@ -2268,7 +2297,42 @@ document.querySelectorAll('.insights-chip').forEach(chip=>{
   });
 });
 
-// ── SERVICE ANALYSIS ──
+// ── CHANGE PIN ──
+document.getElementById('changePinBtn').addEventListener('click',()=>{
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.getElementById('changePinOverlay').classList.add('open');
+  document.getElementById('cpCurrent').value='';
+  document.getElementById('cpNew').value='';
+  document.getElementById('cpConfirm').value='';
+  setAIStatus('cpStatus','','');
+  setTimeout(()=>document.getElementById('cpCurrent').focus(),300);
+});
+document.getElementById('changePinClose').addEventListener('click',()=>{
+  document.getElementById('changePinOverlay').classList.remove('open');
+  document.body.style.overflow='';
+});
+document.getElementById('changePinOverlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('changePinOverlay')){
+    document.getElementById('changePinOverlay').classList.remove('open');
+    document.body.style.overflow='';
+  }
+});
+document.getElementById('cpSaveBtn').addEventListener('click',()=>{
+  const PIN_KEY='wc_pin', DEFAULT_PIN='1973';
+  const current=document.getElementById('cpCurrent').value.trim();
+  const newPin=document.getElementById('cpNew').value.trim();
+  const confirm=document.getElementById('cpConfirm').value.trim();
+  const storedPin=localStorage.getItem(PIN_KEY)||DEFAULT_PIN;
+  if(current!==storedPin){setAIStatus('cpStatus','Current PIN is incorrect','error');return;}
+  if(!/^\d{4}$/.test(newPin)){setAIStatus('cpStatus','New PIN must be exactly 4 digits','error');return;}
+  if(newPin!==confirm){setAIStatus('cpStatus','PINs do not match','error');return;}
+  localStorage.setItem(PIN_KEY,newPin);
+  setAIStatus('cpStatus','✓ PIN updated successfully','success');
+  setTimeout(()=>{
+    document.getElementById('changePinOverlay').classList.remove('open');
+    document.body.style.overflow='';
+  },1200);
+});
 document.getElementById('serviceAnalysisBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('serviceAnalysisBtn');
   btn.disabled = true;
