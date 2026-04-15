@@ -1349,9 +1349,13 @@ function updateCardPhoto(area, pk){
   // Update remove button idx
   const removeBtn = area.querySelector('.remove-photo-btn');
   if(removeBtn) removeBtn.dataset.idx = idx;
-  // Update primary button visibility
+  // Update primary button — keep in sync with current photo index
   const primaryBtn = area.querySelector('.set-primary-btn');
-  if(primaryBtn) primaryBtn.style.opacity = idx===0 ? '0.3' : '1';
+  if(primaryBtn){
+    primaryBtn.dataset.idx = idx;
+    primaryBtn.style.opacity = idx===0 ? '0.3' : '1';
+    primaryBtn.title = idx===0 ? 'Already cover photo' : 'Set as cover photo';
+  }
 }
 
 const cardPhotoIndex = {};
