@@ -1133,7 +1133,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 
   document.addEventListener('keydown', e=>{
     if(pinLock.style.display === 'none') return;
-    if(e.key >= '0' && e.key <= '9' && entered.length < 4){ entered += v; updateDots(); if(entered.length === 4) setTimeout(tryUnlock, 120); }
+    if(e.key >= '0' && e.key <= '9' && entered.length < 4){ entered += e.key; updateDots(); if(entered.length === 4) setTimeout(tryUnlock, 120); }
     else if(e.key === 'Backspace'){ entered = entered.slice(0,-1); updateDots(); }
     else if(e.key === 'Enter'){ tryUnlock(); }
   });
