@@ -1605,6 +1605,25 @@ function renderGrid(data,elId,type){
       if(w) openModal(w);
     });
   });
+
+  // photo tap on card → full screen lightbox
+  el.querySelectorAll('.photo-area img').forEach(img=>{
+    img.style.cursor='zoom-in';
+    img.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(!img.src) return;
+      document.getElementById('photoLightboxImg').src=img.src;
+      document.getElementById('photoLightbox').classList.add('open');
+      document.body.style.overflow='hidden';
+    });
+    img.addEventListener('touchend',e=>{
+      e.stopPropagation();
+      if(!img.src) return;
+      document.getElementById('photoLightboxImg').src=img.src;
+      document.getElementById('photoLightbox').classList.add('open');
+      document.body.style.overflow='hidden';
+    },{passive:true});
+  });
 }
 
 // ── FILTER + SORT ──
