@@ -251,8 +251,12 @@ input.file-in{display:none}
 .modal{background:var(--card);border:1px solid var(--border2);max-width:640px;margin:0 auto;position:relative;animation:mIn .22s ease}
 @keyframes mIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .m-topbar{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold))}
-.m-photo{width:100%;aspect-ratio:16/9;background:var(--ink);position:relative;overflow:hidden}
+.m-photo{width:100%;aspect-ratio:16/9;background:var(--ink);position:relative;overflow:hidden;cursor:zoom-in}
 .m-photo img{width:100%;height:100%;object-fit:contain;background:#0a0a08}
+/* Fullscreen photo lightbox */
+#photoLightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9000;align-items:center;justify-content:center;cursor:zoom-out}
+#photoLightbox.open{display:flex}
+#photoLightbox img{max-width:100%;max-height:100%;object-fit:contain;user-select:none}
 .m-photo-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--stone)}
 .m-photo-ph svg{width:40px;height:40px;opacity:.22}
 .m-photo-ph span{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;opacity:.38}
@@ -652,6 +656,11 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   </div>
 </div>
 <div class="backup-toast" id="backupToast"></div>
+
+<!-- PHOTO LIGHTBOX -->
+<div id="photoLightbox">
+  <img id="photoLightboxImg" src="" alt="">
+</div>
 
 <!-- PWA INSTALL BANNER -->
 <div class="pwa-banner" id="pwaBanner">
@@ -2399,7 +2408,29 @@ document.querySelectorAll('.insights-chip').forEach(chip=>{
   });
 });
 
-// ── IMPORT TOOL ──
+// ── PHOTO LIGHTBOX ──
+document.getElementById('mPhotoWrap').addEventListener('click', e=>{
+  if(e.target.closest('.m-photo-actions')) return;
+  if(e.target.closest('#mPhotoPrev')||e.target.closest('#mPhotoNext')) return;
+  const img = document.getElementById('mPhotoWrap').querySelector('img');
+  if(!img||!img.src||img.src===window.location.href) return;
+  document.getElementById('photoLightboxImg').src = img.src;
+  document.getElementById('photoLightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+});
+document.getElementById('photoLightbox').addEventListener('click', ()=>{
+  document.getElementById('photoLightbox').classList.remove('open');
+  document.getElementById('photoLightboxImg').src = '';
+  document.body.style.overflow = '';
+});
+// Close on Escape
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && document.getElementById('photoLightbox').classList.contains('open')){
+    document.getElementById('photoLightbox').classList.remove('open');
+    document.getElementById('photoLightboxImg').src = '';
+    document.body.style.overflow = '';
+  }
+});
 // Column mapping: source heading → app field key
 const IMPORT_FIELD_MAP = {
   'brand': 'brand',
