@@ -792,6 +792,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
       <button class="photo-nav photo-prev" id="mPhotoPrev" style="display:none">&#8249;</button>
       <button class="photo-nav photo-next" id="mPhotoNext" style="display:none">&#8250;</button>
       <div class="photo-count" id="mPhotoCount" style="display:none"></div>
+      <button id="mPhotoExpandBtn" style="display:none;position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.3);color:#fff;width:32px;height:32px;cursor:pointer;z-index:3;-webkit-appearance:none;border-radius:0;font-size:.9rem;display:none;align-items:center;justify-content:center" title="Full screen">⤢</button>
       <div class="m-photo-actions">
         <button class="m-photo-btn" id="mPhotoAddBtn">+ Photo</button>
         <button class="m-photo-btn del" id="mPhotoDelBtn" style="display:none">Remove</button>
@@ -1731,12 +1732,14 @@ function refreshModalPhoto(){
   const prev = document.getElementById('mPhotoPrev');
   const next = document.getElementById('mPhotoNext');
   const count = document.getElementById('mPhotoCount');
+  const expand = document.getElementById('mPhotoExpandBtn');
   if(imgs.length > 0){
     if(modalPhotoIdx >= imgs.length) modalPhotoIdx = imgs.length - 1;
     img.src = imgs[modalPhotoIdx];
     img.style.display = 'block';
     ph.style.display = 'none';
     del.style.display = 'inline-block';
+    if(expand) expand.style.display = 'flex';
     const multi = imgs.length > 1;
     prev.style.display = multi ? 'flex' : 'none';
     next.style.display = multi ? 'flex' : 'none';
@@ -1748,6 +1751,7 @@ function refreshModalPhoto(){
     img.src=''; img.style.display='none';
     ph.style.display='flex';
     del.style.display='none';
+    if(expand) expand.style.display = 'none';
     prev.style.display='none';
     next.style.display='none';
     count.style.display='none';
@@ -2416,14 +2420,12 @@ function openLightbox(){
   document.getElementById('photoLightbox').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-document.getElementById('mPhotoImg').addEventListener('click', e=>{
+document.getElementById('mPhotoExpandBtn').addEventListener('click', e=>{
   e.stopPropagation();
   openLightbox();
 });
-document.getElementById('mPhotoWrap').addEventListener('click', e=>{
-  if(e.target.closest('.m-photo-actions')) return;
-  if(e.target.closest('#mPhotoPrev')||e.target.closest('#mPhotoNext')) return;
-  if(e.target === document.getElementById('mPhotoImg')) return;
+document.getElementById('mPhotoImg').addEventListener('click', e=>{
+  e.stopPropagation();
   openLightbox();
 });
 document.getElementById('photoLightbox').addEventListener('click', ()=>{
