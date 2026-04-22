@@ -1124,9 +1124,15 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   function tryUnlock(){
     if(entered === getPin()){
       sessionStorage.setItem(SESSION_KEY, 'yes');
+      pinLock.style.pointerEvents = 'none';
       pinLock.style.opacity = '0';
       pinLock.style.transition = 'opacity .4s';
-      setTimeout(()=>{ pinLock.style.display = 'none'; }, 400);
+      setTimeout(()=>{
+        pinLock.style.display = 'none';
+        pinLock.style.opacity = '1';
+        pinLock.style.transition = '';
+        pinLock.style.pointerEvents = '';
+      }, 420);
     } else {
       shake();
     }
@@ -1609,20 +1615,15 @@ function renderGrid(data,elId,type){
   // photo tap on card → full screen lightbox
   el.querySelectorAll('.photo-area img').forEach(img=>{
     img.style.cursor='zoom-in';
-    img.addEventListener('click',e=>{
+    const openFromCard = e=>{
+      if(sessionStorage.getItem('wc_unlocked')!=='yes') return;
       e.stopPropagation();
       if(!img.src) return;
       document.getElementById('photoLightboxImg').src=img.src;
       document.getElementById('photoLightbox').classList.add('open');
       document.body.style.overflow='hidden';
-    });
-    img.addEventListener('touchend',e=>{
-      e.stopPropagation();
-      if(!img.src) return;
-      document.getElementById('photoLightboxImg').src=img.src;
-      document.getElementById('photoLightbox').classList.add('open');
-      document.body.style.overflow='hidden';
-    },{passive:true});
+    };
+    img.addEventListener('click', openFromCard);
   });
 }
 
