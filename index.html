@@ -99,7 +99,7 @@ h1 em{color:var(--gold);font-style:italic}
 .backup-toast.show{opacity:1}
 
 /* ── SPLASH SCREEN ── */
-#splash{position:fixed;inset:0;z-index:10000;background:#0b0b09;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#splash{position:fixed;inset:0;z-index:1000;background:#0b0b09;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent}
 #splash.fade-out{animation:splashFade .9s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none}
 @keyframes splashFade{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05)}}
 .splash-watch{position:relative;width:200px;height:200px;margin-bottom:44px;flex-shrink:0}
@@ -330,10 +330,10 @@ input.file-in{display:none}
 /* PIN LOCK */
 .pin-dot{width:12px;height:12px;border-radius:50%;border:1px solid var(--gold);background:transparent;transition:background .15s}
 .pin-dot.filled{background:var(--gold)}
-.pin-key{width:72px;height:72px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:var(--cream);font-family:'Montserrat',sans-serif;font-size:1.2rem;font-weight:300;cursor:pointer;-webkit-appearance:none;border-radius:50%;transition:all .15s;display:flex;align-items:center;justify-content:center}
-.pin-key:hover,.pin-key:active{background:rgba(184,145,58,.2);border-color:var(--gold);color:var(--gold)}
-.pin-clear{font-size:.9rem;color:var(--stone)}
-.pin-ok{background:rgba(184,145,58,.1);border-color:var(--gold);color:var(--gold)}
+.pin-key{width:72px;height:72px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;font-family:'Montserrat',sans-serif;font-size:1.4rem;font-weight:300;cursor:pointer;-webkit-appearance:none;border-radius:50%;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.pin-key:hover,.pin-key:active{background:rgba(184,145,58,.3);border-color:var(--gold);color:var(--gold)}
+.pin-clear{font-size:.9rem;color:rgba(255,255,255,.6)}
+.pin-ok{background:rgba(184,145,58,.2);border-color:var(--gold);color:var(--gold)}
 
 .insights-chip{background:rgba(184,145,58,.06);border:1px solid rgba(184,145,58,.25);color:var(--stone);padding:4px 10px;font-family:'Montserrat',sans-serif;font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;-webkit-appearance:none;border-radius:0;transition:all .2s}
 .insights-chip:hover{border-color:var(--gold);color:var(--gold)}
@@ -411,7 +411,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 <body>
 
 <!-- ── PIN LOCK SCREEN ── -->
-<div id="pinLock" style="position:fixed;inset:0;background:#0b0b09;z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:0;display:none">
+<div id="pinLock" style="position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:#0b0b09;z-index:99999;flex-direction:column;align-items:center;justify-content:center;gap:0;display:none">
   <div style="font-size:.55rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Personal Horology Archive</div>
   <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;color:var(--cream);margin-bottom:32px;letter-spacing:.1em">The <em>Collection</em></div>
   <div id="pinDots" style="display:flex;gap:12px;margin-bottom:28px">
