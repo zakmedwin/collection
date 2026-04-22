@@ -2412,8 +2412,8 @@ document.querySelectorAll('.insights-chip').forEach(chip=>{
 document.getElementById('mPhotoWrap').addEventListener('click', e=>{
   if(e.target.closest('.m-photo-actions')) return;
   if(e.target.closest('#mPhotoPrev')||e.target.closest('#mPhotoNext')) return;
-  const img = document.getElementById('mPhotoWrap').querySelector('img');
-  if(!img||!img.src||img.src===window.location.href) return;
+  const img = document.getElementById('mPhotoImg');
+  if(!img || img.style.display === 'none' || !img.src) return;
   document.getElementById('photoLightboxImg').src = img.src;
   document.getElementById('photoLightbox').classList.add('open');
   document.body.style.overflow = 'hidden';
