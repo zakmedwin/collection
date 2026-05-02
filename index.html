@@ -595,6 +595,21 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   </div>
 </div>
 
+<!-- SUB-COLLECTION NAME DIALOG -->
+<div class="ws-overlay" id="subColDialog">
+  <div class="ws-modal" style="max-width:400px">
+    <div class="ws-topbar"></div>
+    <button class="ws-close" id="subColDialogClose">&#10005;</button>
+    <div class="ws-eyebrow" id="subColDialogEyebrow">New Collection</div>
+    <div class="ws-title" style="margin-bottom:16px" id="subColDialogTitle">Name this collection</div>
+    <input type="text" id="subColNameInput" placeholder="e.g. Mom's Watches, Jordan's Collection…" style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--cream);padding:10px 12px;font-family:'Montserrat',sans-serif;font-size:.8rem;outline:none;border-radius:0;-webkit-appearance:none;box-sizing:border-box;margin-bottom:16px">
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="m-edit-btn" id="subColDeleteBtn" style="display:none;color:var(--danger);border-color:var(--danger)">Delete Collection</button>
+      <button class="btn-save" id="subColSaveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- COLLECTION SUMMARY OVERLAY -->
 <div class="ws-overlay" id="summaryOverlay">
   <div class="ws-modal" style="max-width:520px">
@@ -712,12 +727,12 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   <button class="pwa-banner-dismiss" id="pwaBannerDismiss">✕</button>
 </div>
 
-<div class="tabs">
+<div class="tabs" id="tabsBar">
   <button class="tab active" data-tab="col">Collection <span class="tbadge" id="bCol">—</span></button>
   <button class="tab" data-tab="fmr">Former <span class="tbadge" id="bFmr">—</span></button>
-  <button class="tab" data-tab="mom">Mom's Watches <span class="tbadge" id="bMom">—</span></button>
-  <button class="tab" data-tab="beth">Beth's Collection <span class="tbadge" id="bBeth">—</span></button>
+  <span id="subTabButtons"></span>
   <button class="tab" data-tab="wl">Wish List <span class="tbadge" id="bWl">—</span></button>
+  <button id="addSubColBtn" style="background:transparent;border:1px solid var(--border2);color:var(--stone);padding:6px 14px;font-family:'Montserrat',sans-serif;font-size:.6rem;font-weight:500;letter-spacing:.15em;cursor:pointer;-webkit-appearance:none;border-radius:0;margin:auto 8px;white-space:nowrap;transition:all .2s" title="Add sub-collection">+ Collection</button>
 </div>
 
 <!-- COLLECTION TAB -->
@@ -776,37 +791,8 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   <div class="grid" id="fmrGrid" style="margin-top:2px"></div>
 </div>
 
-<!-- MOM TAB -->
-<div id="tab-mom" style="display:none">
-  <div class="stats">
-    <div class="stat"><div class="sv" id="mTot">—</div><div class="sl">Pieces</div></div>
-    <div class="stat"><div class="sv" id="mBrands">—</div><div class="sl">Brands</div></div>
-    <div class="stat"><div class="sv" id="mPd">—</div><div class="sl">Total Paid</div></div>
-    <div class="stat"><div class="sv" id="mVal">—</div><div class="sl">Retail</div></div>
-    <div class="stat"><div class="sv" id="mCv">—</div><div class="sl">Current Value</div></div>
-    <div class="stat"><div class="sv" id="mGain">—</div><div class="sl">Gain</div></div>
-  </div>
-  <div style="padding:14px 40px;border-bottom:1px solid var(--border);display:flex;justify-content:flex-end">
-    <button class="add-watch-btn" id="addMomBtn" style="font-size:.58rem;padding:9px 18px">+ Add to Mom's Collection</button>
-  </div>
-  <div class="grid" id="momGrid" style="margin-top:2px"></div>
-</div>
-
-<!-- BETH TAB -->
-<div id="tab-beth" style="display:none">
-  <div class="stats">
-    <div class="stat"><div class="sv" id="btTot">—</div><div class="sl">Pieces</div></div>
-    <div class="stat"><div class="sv" id="btBrands">—</div><div class="sl">Brands</div></div>
-    <div class="stat"><div class="sv" id="btPd">—</div><div class="sl">Total Paid</div></div>
-    <div class="stat"><div class="sv" id="btVal">—</div><div class="sl">Retail</div></div>
-    <div class="stat"><div class="sv" id="btCv">—</div><div class="sl">Current Value</div></div>
-    <div class="stat"><div class="sv" id="btGain">—</div><div class="sl">Gain</div></div>
-  </div>
-  <div style="padding:14px 40px;border-bottom:1px solid var(--border);display:flex;justify-content:flex-end">
-    <button class="add-watch-btn" id="addBethBtn" style="font-size:.58rem;padding:9px 18px">+ Add to Beth's Collection</button>
-  </div>
-  <div class="grid" id="bethGrid" style="margin-top:2px"></div>
-</div>
+<!-- DYNAMIC SUB-COLLECTIONS -->
+<div id="subColTabs"></div>
 
 <!-- WISHLIST TAB -->
 <div id="tab-wl" style="display:none">
@@ -1231,9 +1217,24 @@ async function cloudLoad(){
     const data = await res.json();
     // Populate app state from cloud
     if(data.customWatches) customWatches = data.customWatches;
-    if(data.bethWatches) bethWatches = data.bethWatches;
+    if(data.subCols) { subCols = data.subCols; saveSubCols(); }
+    else {
+      // Legacy migration from old bethWatches/momWatches
+      if(data.bethWatches && data.bethWatches.length){
+        const existing = subCols.find(s=>s.id==='beth');
+        if(existing) existing.watches = data.bethWatches;
+        else subCols.push({id:'beth',name:"Beth's Collection",watches:data.bethWatches});
+        saveSubCols();
+      }
+      if(data.momWatches && data.momWatches.length){
+        const existing = subCols.find(s=>s.id==='mom');
+        if(existing) existing.watches = data.momWatches;
+        else subCols.push({id:'mom',name:"Mom's Watches",watches:data.momWatches});
+        saveSubCols();
+      }
+    }
     if(data.wishWatches) { wishWatches = data.wishWatches; localStorage.setItem(WISH_KEY, JSON.stringify(wishWatches)); }
-    if(data.momWatches) { localStorage.setItem('wc_mom_cloud', JSON.stringify(data.momWatches)); }
+    // momWatches now handled via subCols migration above
     if(data.photos) {
       photos = data.photos;
       // Also cache photos locally for faster loads
@@ -1256,9 +1257,8 @@ async function cloudSave(){
     showSyncStatus('syncing');
     const data = {
       customWatches,
-      bethWatches,
+      subCols,
       wishWatches,
-      momWatches: getMom(),
       photos,
       lastSaved: new Date().toISOString()
     };
@@ -1289,7 +1289,7 @@ function scheduleSave(){
 // ── LOCAL STORAGE (fallback + photos cache) ──
 const PHOTO_KEY  = 'wc_photos_v9';
 const CUSTOM_KEY = 'wc_custom_v9';
-const BETH_KEY   = 'wc_beth_v9';
+const SUBCOL_KEY = 'wc_subcols_v10';
 
 function loadPhotos(){try{return JSON.parse(localStorage.getItem(PHOTO_KEY)||'{}')}catch{return{}}}
 function savePhotos(p){
@@ -1298,8 +1298,29 @@ function savePhotos(p){
 }
 function loadCustom(){try{return JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]')}catch{return[]}}
 function saveCustom(c){ localStorage.setItem(CUSTOM_KEY,JSON.stringify(c)); scheduleSave(); }
-function loadBeth(){try{return JSON.parse(localStorage.getItem(BETH_KEY)||'[]')}catch{return[]}}
-function saveBeth(b){ localStorage.setItem(BETH_KEY,JSON.stringify(b)); scheduleSave(); }
+
+// ── SUB-COLLECTIONS ──
+// Each sub-collection: { id, name, watches: [] }
+function loadSubCols(){
+  try{
+    const stored = JSON.parse(localStorage.getItem(SUBCOL_KEY)||'null');
+    if(stored) return stored;
+    // Migrate existing Mom/Beth data on first load
+    const migrated = [];
+    try{
+      const bethData = JSON.parse(localStorage.getItem('wc_beth_v9')||'[]');
+      if(bethData.length) migrated.push({ id:'beth', name:"Beth's Collection", watches: bethData });
+    }catch(e){}
+    try{
+      const momCloud = localStorage.getItem('wc_mom_cloud');
+      const momData = momCloud ? JSON.parse(momCloud) : [];
+      if(momData.length) migrated.push({ id:'mom', name:"Mom's Watches", watches: momData });
+    }catch(e){}
+    return migrated;
+  }catch(e){ return []; }
+}
+function saveSubCols(){ localStorage.setItem(SUBCOL_KEY, JSON.stringify(subCols)); scheduleSave(); }
+function getSubColById(id){ return subCols.find(s=>s.id===id); }
 
 const WISH_KEY = 'wc_wish_v9';
 function loadWish(){try{return JSON.parse(localStorage.getItem(WISH_KEY)||'[]')}catch{return[]}}
@@ -1308,7 +1329,7 @@ let wishWatches = loadWish();
 
 let photos = loadPhotos();
 let customWatches = loadCustom();
-let bethWatches = loadBeth();
+let subCols = loadSubCols();
 
 // ── IMAGE COMPRESSION ──
 // Compresses an image file to a base64 JPEG at reduced size/quality
@@ -1369,27 +1390,90 @@ const dsh = v => v||'—';
 function photoKey(w){return('w_'+(w.id||w.brand+w.series+w.model+w.ref)).replace(/[\s\/\.]/g,'_').toLowerCase().substring(0,60)}
 function genId(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
 
-// Collection data is user-managed via localStorage
-
-const momW=[
-  {id:'m0',brand:"Cartier",series:"Ballon Bleu 36",model:"",ref:"W4BB0036",serial:"4372183694EY",origin:"Switzerland",casemat:"Stainless Steel",dial:"Silver/Diamonds",strap:"SS Bracelet",size:"36",thick:"",lug:"",movement:"Automatic",pr:null,wr:30,year:2025,condition:"New",price:14800,paid:14800,service:""},
-  {id:'m1',brand:"Omega",series:"Constellation",model:"",ref:"13115292052001",serial:"89321255",origin:"Switzerland",casemat:"Stainless Steel",dial:"Silver",strap:"SS Bracelet",size:"29",thick:"",lug:"",movement:"Automatic",pr:50,wr:50,year:2021,condition:"New",price:9750,paid:null,service:"2/12/2025"},
-  {id:'m2',brand:"Omega",series:"Constellation",model:"Meteorite Dial",ref:"13125292099001",serial:"83448080",origin:"Switzerland",casemat:"Stainless/Gold",dial:"Meteorite (Silver)",strap:"Stainless/Gold",size:"29",thick:"12",lug:"",movement:"Automatic",pr:50,wr:50,year:2024,condition:"New",price:16100,paid:16100,service:"Next: 2029"},
-  {id:'m3',brand:"Omega",series:"DeVille",model:"Tressot",ref:"42818366004002",serial:"93244543",origin:"Switzerland",casemat:"Stainless Steel",dial:"White",strap:"Leather/Red",size:"36",thick:"8.85",lug:"",movement:"Quartz",pr:null,wr:30,year:2025,condition:"New",price:5500,paid:5500,service:"Next: 2030"},
-];
-
-function getMom(){
-  try{
-    const cloud = localStorage.getItem('wc_mom_cloud');
-    if(cloud) return JSON.parse(cloud);
-  }catch(e){}
-  return momW;
-}
-
 // ── COMBINE ALL ──
 function allWatches(){return customWatches;}
 function active(){return customWatches.filter(w=>!w.sold);}
 function soldW(){return customWatches.filter(w=>w.sold);}
+
+// ── SUB-COLLECTION TAB RENDERING ──
+function renderSubColTabs(){
+  // Render tab buttons
+  const span = document.getElementById('subTabButtons');
+  span.innerHTML = subCols.map(s=>
+    `<button class="tab" data-tab="sub-${s.id}">${s.name} <span class="tbadge">${s.watches.length||'—'}</span></button>`
+  ).join('');
+
+  // Render tab content panels
+  const container = document.getElementById('subColTabs');
+  container.innerHTML = subCols.map(s=>`
+    <div id="tab-sub-${s.id}" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 40px 0">
+        <button class="sub-stats-toggle" data-subid="${s.id}" style="background:transparent;border:none;color:var(--stone);font-family:'Montserrat',sans-serif;font-size:.55rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:6px 0;transition:color .2s">Show Stats ▼</button>
+        <button class="sub-rename-btn" data-subid="${s.id}" style="background:transparent;border:none;color:var(--stone);font-family:'Montserrat',sans-serif;font-size:.52rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;padding:6px 0">✎ Rename / Delete</button>
+      </div>
+      <div class="stats sub-stats-bar" id="subStats-${s.id}" style="display:none">
+        <div class="stat"><div class="sv" id="ss-tot-${s.id}">—</div><div class="sl">Pieces</div></div>
+        <div class="stat"><div class="sv" id="ss-br-${s.id}">—</div><div class="sl">Brands</div></div>
+        <div class="stat"><div class="sv" id="ss-pd-${s.id}">—</div><div class="sl">Total Paid</div></div>
+        <div class="stat"><div class="sv" id="ss-rt-${s.id}">—</div><div class="sl">Retail</div></div>
+        <div class="stat"><div class="sv" id="ss-cv-${s.id}">—</div><div class="sl">Current Value</div></div>
+        <div class="stat"><div class="sv" id="ss-gn-${s.id}">—</div><div class="sl">Gain</div></div>
+      </div>
+      <div style="padding:14px 40px;border-bottom:1px solid var(--border);display:flex;justify-content:flex-end">
+        <button class="add-watch-btn sub-add-btn" data-subid="${s.id}" style="font-size:.58rem;padding:9px 18px">+ Add to ${s.name}</button>
+      </div>
+      <div class="grid" id="subGrid-${s.id}" style="margin-top:2px"></div>
+    </div>`
+  ).join('');
+
+  // Wire up stats toggles
+  document.querySelectorAll('.sub-stats-toggle').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const id = btn.dataset.subid;
+      const bar = document.getElementById(`subStats-${id}`);
+      const visible = bar.style.display !== 'none';
+      bar.style.display = visible ? 'none' : 'flex';
+      btn.textContent = visible ? 'Show Stats ▼' : 'Hide Stats ▲';
+    });
+  });
+
+  // Wire up rename/delete buttons
+  document.querySelectorAll('.sub-rename-btn').forEach(btn=>{
+    btn.addEventListener('click',()=> openSubColDialog(btn.dataset.subid));
+  });
+
+  // Wire up add watch buttons
+  document.querySelectorAll('.sub-add-btn').forEach(btn=>{
+    btn.addEventListener('click',()=> openForm(null, 'sub-'+btn.dataset.subid));
+  });
+
+  // Wire up tab clicks for sub-collection tabs
+  document.querySelectorAll('#subTabButtons .tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      curTab = tab.dataset.tab;
+      showTab(curTab);
+    });
+  });
+}
+
+function renderSubColStats(s){
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+  const setC=(id,val,cls)=>{const el=document.getElementById(id);if(el){el.textContent=val;el.className='sv'+(cls?' '+cls:'');}};
+  const w=s.watches;
+  const brands=new Set(w.map(x=>x.brand).filter(Boolean)).size;
+  const paid=w.reduce((a,x)=>a+(x.paid||0),0);
+  const retail=w.reduce((a,x)=>a+(x.price||0),0);
+  const cv=w.reduce((a,x)=>a+(x.feb26||0),0);
+  const gain=cv&&paid?cv-paid:null;
+  set(`ss-tot-${s.id}`, w.length||'—');
+  set(`ss-br-${s.id}`, brands||'—');
+  set(`ss-pd-${s.id}`, paid?fmtP(paid):'—');
+  set(`ss-rt-${s.id}`, retail?fmtP(retail):'—');
+  set(`ss-cv-${s.id}`, cv?fmtP(cv):'—');
+  setC(`ss-gn-${s.id}`, gain===null?'—':(gain>=0?'+':'')+fmtP(gain), gain===null?'':gain>=0?'pos':'neg');
+}
 
 // ── STATE ──
 let filtered=[], curF='all', curS='brand';
@@ -1407,8 +1491,6 @@ function renderStats(){
   const act=active(), sld=soldW();
   document.getElementById('bCol').textContent=act.length;
   document.getElementById('bFmr').textContent=sld.length;
-  document.getElementById('bMom').textContent=momW.length;
-  document.getElementById('bBeth').textContent=bethWatches.length;
   const tPd=act.reduce((s,w)=>s+(w.paid||0),0);
   const tRt=act.reduce((s,w)=>s+(w.price||0),0);
   const tF26=act.reduce((s,w)=>s+(w.feb26||0),0);
@@ -1432,15 +1514,6 @@ function renderStats(){
   const fEl=document.getElementById('fNt');
   fEl.textContent=(fNt>=0?'+':'−')+fmtP(Math.abs(fNt));
   fEl.style.color=fNt>=0?'var(--green)':'var(--danger)';
-  const mVal=momW.reduce((s,w)=>s+(w.price||0),0);
-  document.getElementById('mTot').textContent=momW.length;
-  document.getElementById('mVal').textContent=fmtP(mVal);
-  document.getElementById('mPd').textContent=fmtP(momW.reduce((s,w)=>s+(w.paid||0),0));
-  // beth
-  const btVal=bethWatches.reduce((s,w)=>s+(w.price||0),0);
-  document.getElementById('btTot').textContent=bethWatches.length;
-  document.getElementById('btVal').textContent=fmtP(btVal);
-  document.getElementById('btPd').textContent=fmtP(bethWatches.reduce((s,w)=>s+(w.paid||0),0));
 }
 
 // ── BREAKDOWN ──
@@ -1519,11 +1592,12 @@ function photoHtml(pk){
 
 // ── CARD ──
 function makeCard(w,i,type){
-  const isSold=type==='sold',isMom=type==='mom',isBeth=type==='beth',isWish=type==='wish',isCustom=!!w._custom;
+  const isSold=type==='sold',isWish=type==='wish',isCustom=!!w._custom;
+  const isSub=type.startsWith('sub-');
   const pk=photoKey(w);
-  const bCls='c-brand'+(isSold?' sb':isMom?' mb':isBeth?' bb':isCustom?' cb2':'');
-  const cCls='wcard'+(isSold?' sold-c':isMom?' mom-c':isBeth?' beth-c':isCustom?' custom-c':'');
-  const gl=(!isSold&&!isMom&&w.feb26&&w.paid)?w.feb26-w.paid:null;
+  const bCls='c-brand'+(isSold?' sb':isSub?' mb':isCustom?' cb2':'');
+  const cCls='wcard'+(isSold?' sold-c':isSub?' mom-c':isCustom?' custom-c':'');
+  const gl=(!isSold&&!isSub&&w.feb26&&w.paid)?w.feb26-w.paid:null;
   const glH=gl!=null?(gl>=0?`<div class="gl-pos">▲ ${fmtP(gl)}</div>`:`<div class="gl-neg">▼ ${fmtP(Math.abs(gl))}</div>`):'';
   const dispP=isSold?fmtP(w.soldAmt):(w.price?fmtP(w.price):(w.paid?fmtP(w.paid):'—'));
   const wishRank = isWish ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
@@ -1692,7 +1766,7 @@ function renderGrid(data,elId,type){
     card.addEventListener('click',e=>{
       if(e.target.closest('.photo-area'))return;
       const id=card.dataset.id;
-      const w=allWatches().find(x=>x.id===id)||getMom().find(x=>x.id===id)||bethWatches.find(x=>x.id===id)||wishWatches.find(x=>x.id===id);
+      const w=allWatches().find(x=>x.id===id)||wishWatches.find(x=>x.id===id)||subCols.flatMap(s=>s.watches).find(x=>x.id===id);
       if(w) openModal(w);
     });
   });
@@ -1752,15 +1826,13 @@ function renderAll(){
   try{renderBreakdown();}catch(e){console.warn('renderBreakdown error',e);}
   try{applyFS();}catch(e){console.warn('applyFS error',e);}
   try{renderGrid(soldW(),'fmrGrid','sold');}catch(e){}
+  // Render sub-collections
   try{
-    const mom = getMom();
-    renderGrid(mom,'momGrid','mom');
-    renderCollectionStats(mom,'m');
-  }catch(e){}
-  try{
-    renderGrid(bethWatches,'bethGrid','beth');
-    renderCollectionStats(bethWatches,'bt');
-  }catch(e){}
+    renderSubColTabs();
+    subCols.forEach(s=>{
+      try{ renderGrid(s.watches, `subGrid-${s.id}`, `sub-${s.id}`); renderSubColStats(s); }catch(e){}
+    });
+  }catch(e){ console.warn('subCols render error',e); }
   try{
     renderGrid(wishWatches,'wlGrid','wish');
     const wlT=document.getElementById('wlTot');if(wlT)wlT.textContent=wishWatches.length||'—';
@@ -1774,8 +1846,6 @@ function renderAll(){
 function openModal(w){
   modalWatch=w;
   modalPhotoIdx=0;
-  const isMom=getMom().some(m=>m.id===w.id);
-  const isBeth=bethWatches.some(b=>b.id===w.id);
   const isWish=wishWatches.some(x=>x.id===w.id);
   // photo
   refreshModalPhoto();
@@ -1783,15 +1853,11 @@ function openModal(w){
   document.getElementById('mModel').textContent=[w.series,w.model].filter(Boolean).join(' · ')||w.brand;
   document.getElementById('mRefLbl').textContent=w.ref||'';
   const actEl=document.getElementById('mActions');
-  if(!isMom){
-    const ctx=isBeth?'beth':isWish?'wish':'custom';
-    actEl.innerHTML=`<button class="m-edit-btn" id="mEditBtn">Edit</button><button class="m-del-btn" id="mDelBtn">Remove</button>`;
-    document.getElementById('mEditBtn').onclick=()=>{closeModal();openForm(w,ctx);};
-    document.getElementById('mDelBtn').onclick=()=>{closeModal();openConfirm(w,ctx);};
-  } else {
-    actEl.innerHTML=`<button class="m-edit-btn" id="mEditBtn">Edit</button>`;
-    document.getElementById('mEditBtn').onclick=()=>{closeModal();openForm(w,'mom');};
-  }
+  const subCol = subCols.find(s=>s.watches.some(x=>x.id===w.id));
+  const ctx = subCol ? `sub-${subCol.id}` : isWish ? 'wish' : 'custom';
+  actEl.innerHTML=`<button class="m-edit-btn" id="mEditBtn">Edit</button><button class="m-del-btn" id="mDelBtn">Remove</button>`;
+  document.getElementById('mEditBtn').onclick=()=>{closeModal();openForm(w,ctx);};
+  document.getElementById('mDelBtn').onclick=()=>{closeModal();openConfirm(w,ctx);};
   // Show value estimator for non-wish watches
   const valueSection = document.getElementById('mValueSection');
   if(valueSection) {
@@ -1994,15 +2060,20 @@ function openForm(watchToEdit, context){
   editingId = watchToEdit ? watchToEdit.id : null;
   formPhotoData = null;
   const isEdit=!!watchToEdit;
-  const isBethCtx=formContext==='beth';
-  const isMomCtx=formContext==='mom';
+  const isSubCtx = formContext.startsWith('sub-');
   const isWishCtx=formContext==='wish';
-  const titleMap={beth:"Beth's Watch",mom:"Mom's Watch",wish:'Wish List Watch'};
-  const collMap={beth:"Beth's Collection",mom:"Mom's Collection",wish:'Wish List'};
-  document.getElementById('formTitle').textContent=isEdit?('Edit '+(titleMap[formContext]||'Watch')):(isWishCtx?'Add to Wish List':isBethCtx?"Add to Beth's Collection":isMomCtx?"Add to Mom's Collection":'Add Watch');
-  document.getElementById('formSub').textContent=isEdit?'Update timepiece details':('New timepiece'+(collMap[formContext]?' for '+collMap[formContext]:' to the collection'));
+  const subColName = isSubCtx ? (getSubColById(formContext.replace('sub-',''))||{name:'Collection'}).name : '';
+  const titleMap={'wish':'Wish List Watch'};
+  const collMap={'wish':'Wish List'};
+  const displayTitle = isEdit ? ('Edit '+(titleMap[formContext]||'Watch')) :
+    isWishCtx ? 'Add to Wish List' :
+    isSubCtx ? `Add to ${subColName}` : 'Add Watch';
+  const displaySub = isEdit ? 'Update timepiece details' :
+    `New timepiece${isSubCtx?' for '+subColName:isWishCtx?' for Wish List':' to the collection'}`;
+  document.getElementById('formTitle').textContent=displayTitle;
+  document.getElementById('formSub').textContent=displaySub;
   document.getElementById('formTopBar').className='form-topbar'+(isEdit?' edit-bar':'');
-  document.getElementById('formSaveBtn').textContent=isEdit?'Save Changes':('Save to '+(collMap[formContext]||'Collection'));
+  document.getElementById('formSaveBtn').textContent=isEdit?'Save Changes':('Save to '+(subColName||collMap[formContext]||'Collection'));
   document.getElementById('formSaveBtn').className='btn-save'+(isEdit?'':' green');
   document.getElementById('formSaveBtnTop').textContent=isEdit?'Save Changes':'Save';
   // fill fields
@@ -2124,20 +2195,18 @@ document.getElementById('formSaveBtn').addEventListener('click',()=>{
   // save photo
   if(formPhotoData){photos[photoKey(w)]=formPhotoData;savePhotos(photos);}
   // save watch to correct collection
-  if(formContext==='beth'){
-    if(editingId){const idx=bethWatches.findIndex(x=>x.id===editingId);if(idx>=0)bethWatches[idx]=w;else bethWatches.push(w);}
-    else{bethWatches.push(w);}
-    saveBeth(bethWatches);
+  if(formContext.startsWith('sub-')){
+    const subId = formContext.replace('sub-','');
+    const s = getSubColById(subId);
+    if(s){
+      if(editingId){const idx=s.watches.findIndex(x=>x.id===editingId);if(idx>=0)s.watches[idx]=w;else s.watches.push(w);}
+      else{ s.watches.push(w); }
+      saveSubCols();
+    }
   } else if(formContext==='wish'){
     if(editingId){const idx=wishWatches.findIndex(x=>x.id===editingId);if(idx>=0)wishWatches[idx]=w;else wishWatches.push(w);}
     else{wishWatches.push(w);}
     saveWish(wishWatches);
-  } else if(formContext==='mom'){
-    const mom=getMom();
-    if(editingId){const idx=mom.findIndex(x=>x.id===editingId);if(idx>=0)mom[idx]=w;else mom.push(w);}
-    else{mom.push(w);}
-    localStorage.setItem('wc_mom_cloud',JSON.stringify(mom));
-    scheduleSave();
   } else {
     if(editingId){const idx=customWatches.findIndex(x=>x.id===editingId);if(idx>=0)customWatches[idx]=w;else customWatches.push(w);}
     else{customWatches.push(w);}
@@ -2161,9 +2230,10 @@ document.getElementById('confirmNo').addEventListener('click',()=>{document.getE
 document.getElementById('confirmYes').addEventListener('click',()=>{
   if(!confirmTarget)return;
   const pk=photoKey(confirmTarget);delete photos[pk];savePhotos(photos);
-  if(confirmContext==='beth'){
-    bethWatches=bethWatches.filter(w=>w.id!==confirmTarget.id);
-    saveBeth(bethWatches);
+  if(confirmContext && confirmContext.startsWith('sub-')){
+    const subId = confirmContext.replace('sub-','');
+    const s = getSubColById(subId);
+    if(s){ s.watches=s.watches.filter(w=>w.id!==confirmTarget.id); saveSubCols(); }
   } else if(confirmContext==='wish'){
     wishWatches=wishWatches.filter(w=>w.id!==confirmTarget.id);
     saveWish(wishWatches);
@@ -2178,27 +2248,111 @@ document.getElementById('confirmYes').addEventListener('click',()=>{
 
 // ── TABS ──
 let curTab = 'col';
+
+function showTab(t){
+  // Hide all static tabs
+  ['col','fmr','wl'].forEach(id=>{
+    const el=document.getElementById('tab-'+id);
+    if(el) el.style.display=id===t?'block':'none';
+  });
+  // Hide all sub-collection tabs
+  subCols.forEach(s=>{
+    const el=document.getElementById(`tab-sub-${s.id}`);
+    if(el) el.style.display=t===`sub-${s.id}`?'block':'none';
+  });
+}
+
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click',()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     tab.classList.add('active');
     curTab = tab.dataset.tab;
-    ['col','fmr','mom','beth','wl'].forEach(id=>{document.getElementById('tab-'+id).style.display=id===curTab?'block':'none';});
-    // Update search placeholder
-    const placeholders = {col:'Search collection…',fmr:'Search former collection…',mom:"Search Mom's watches…",beth:"Search Beth's collection…",wl:'Search wish list…'};
+    showTab(curTab);
     const srch = document.getElementById('srchIn');
-    if(srch) srch.placeholder = placeholders[curTab] || 'Search…';
-    srch.value = '';
+    const subName = curTab.startsWith('sub-') ? (getSubColById(curTab.replace('sub-',''))||{name:'collection'}).name : '';
+    const placeholders = {col:'Search collection…',fmr:'Search former collection…',wl:'Search wish list…'};
+    if(srch){ srch.placeholder = curTab.startsWith('sub-') ? `Search ${subName}…` : (placeholders[curTab]||'Search…'); srch.value=''; }
     applyFS();
   });
 });
+
+// ── ADD SUB-COLLECTION DIALOG ──
+let editingSubId = null;
+
+function openSubColDialog(subId){
+  editingSubId = subId || null;
+  const s = subId ? getSubColById(subId) : null;
+  document.getElementById('subColDialogEyebrow').textContent = s ? 'Edit Collection' : 'New Collection';
+  document.getElementById('subColDialogTitle').textContent = s ? `Rename "${s.name}"` : 'Name this collection';
+  document.getElementById('subColNameInput').value = s ? s.name : '';
+  document.getElementById('subColDeleteBtn').style.display = s ? 'inline-block' : 'none';
+  document.getElementById('subColDialog').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(()=>document.getElementById('subColNameInput').focus(), 100);
+}
+
+document.getElementById('addSubColBtn').addEventListener('click',()=>openSubColDialog(null));
+document.getElementById('subColDialogClose').addEventListener('click',()=>{
+  document.getElementById('subColDialog').classList.remove('open');
+  document.body.style.overflow='';
+});
+document.getElementById('subColDialog').addEventListener('click',e=>{
+  if(e.target===document.getElementById('subColDialog')){ document.getElementById('subColDialog').classList.remove('open'); document.body.style.overflow=''; }
+});
+document.getElementById('subColSaveBtn').addEventListener('click',()=>{
+  const name = document.getElementById('subColNameInput').value.trim();
+  if(!name){ document.getElementById('subColNameInput').style.borderColor='var(--danger)'; return; }
+  document.getElementById('subColNameInput').style.borderColor='';
+  if(editingSubId){
+    const s = getSubColById(editingSubId);
+    if(s) s.name = name;
+  } else {
+    subCols.push({ id: genId(), name, watches: [] });
+  }
+  saveSubCols();
+  document.getElementById('subColDialog').classList.remove('open');
+  document.body.style.overflow='';
+  renderAll();
+  // Switch to new sub-collection tab if just created
+  if(!editingSubId){
+    const newTab = `sub-${subCols[subCols.length-1].id}`;
+    setTimeout(()=>{
+      const btn = document.querySelector(`[data-tab="${newTab}"]`);
+      if(btn) btn.click();
+    }, 100);
+  }
+});
+document.getElementById('subColDeleteBtn').addEventListener('click',()=>{
+  const s = getSubColById(editingSubId);
+  if(!s) return;
+  if(!confirm(`Delete "${s.name}" and all its watches? This cannot be undone.`)) return;
+  subCols = subCols.filter(x=>x.id!==editingSubId);
+  saveSubCols();
+  document.getElementById('subColDialog').classList.remove('open');
+  document.body.style.overflow='';
+  curTab='col';
+  renderAll();
+  showTab('col');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  const colTab=document.querySelector('[data-tab="col"]');
+  if(colTab) colTab.classList.add('active');
+});
+document.getElementById('subColNameInput').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('subColSaveBtn').click(); });
 
 // ── CONTROLS ──
 document.getElementById('srchIn').addEventListener('input', ()=>{
   if(curTab === 'col'){ applyFS(); return; }
   // Search within other tabs
   const q = document.getElementById('srchIn').value.toLowerCase();
-  const gridMap = {fmr:[soldW(),'fmrGrid','sold'], mom:[getMom(),'momGrid','mom'], beth:[bethWatches,'bethGrid','beth'], wl:[wishWatches,'wlGrid','wish']};
+  if(curTab.startsWith('sub-')){
+    const subId = curTab.replace('sub-','');
+    const s = getSubColById(subId);
+    if(!s) return;
+    const filtered = q ? s.watches.filter(w=>[w.brand,w.series,w.model,w.ref,w.dial,w.notes].join(' ').toLowerCase().includes(q)) : s.watches;
+    try{ renderGrid(filtered, `subGrid-${subId}`, curTab); } catch(e){}
+    return;
+  }
+  const gridMap = {fmr:[soldW(),'fmrGrid','sold'], wl:[wishWatches,'wlGrid','wish']};
   const entry = gridMap[curTab];
   if(!entry) return;
   const [data, gridId, type] = entry;
@@ -2208,11 +2362,8 @@ document.getElementById('srchIn').addEventListener('input', ()=>{
 document.getElementById('pillG').addEventListener('click',e=>{const b=e.target.closest('.pill');if(!b)return;document.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));b.classList.add('active');curF=b.dataset.f;applyFS();});
 document.getElementById('sortS').addEventListener('change',e=>{curS=e.target.value;applyFS();});
 document.getElementById('addWatchBtn').addEventListener('click',()=>openForm(null,'custom'));
-document.getElementById('addBethBtn').addEventListener('click',()=>openForm(null,'beth'));
-document.getElementById('addMomBtn').addEventListener('click',()=>openForm(null,'mom'));
 document.getElementById('addWishBtn').addEventListener('click',()=>openForm(null,'wish'));
 document.getElementById('addFmrBtn').addEventListener('click',()=>{
-  // Open form pre-set to sold
   openForm(null,'custom');
   setTimeout(()=>{ document.getElementById('fSold').value='true'; document.getElementById('fSoldAmtField').style.display='block'; }, 100);
 });
@@ -2235,9 +2386,8 @@ function doBackup(){
     version:3,
     date:new Date().toISOString(),
     customWatches,
-    bethWatches,
+    subCols,
     wishWatches,
-    momWatches:getMom(),
     photos
   };
   const json=JSON.stringify(backup,null,2);
@@ -2336,8 +2486,7 @@ function doPDFExport(){
   html += `<div style="font-size:8pt;color:#666;margin-bottom:16px">${total} timepieces &nbsp;·&nbsp; Total paid: $${totalPaid.toLocaleString()}</div>`;
   html += tableHTML(customWatches.filter(w=>!w.sold), 'Collection');
   html += tableHTML(soldW(), 'Former Collection');
-  if(bethWatches.length) html += tableHTML(bethWatches, "Beth's Collection");
-  if(getMom().length) html += tableHTML(getMom(), "Mom's Collection");
+  subCols.forEach(s=>{ if(s.watches.length) html += tableHTML(s.watches, s.name); });
   if(wishWatches.length) html += tableHTML(wishWatches, 'Wish List');
   html += `<div class="pv-footer">Private Archive · Not for Distribution · The Collection</div>`;
 
@@ -2364,8 +2513,7 @@ function autoBackup(){
   try{
     const backup=JSON.stringify({
       version:3, date:new Date().toISOString(),
-      customWatches, bethWatches, wishWatches,
-      momWatches:getMom(), photos
+      customWatches, subCols, wishWatches, photos
     });
     localStorage.setItem(AUTO_KEY, backup);
     localStorage.setItem(LAST_KEY, today);
@@ -2386,7 +2534,7 @@ function doCSVExport(){
   }
 
   const rows=[headers.join(',')];
-  const allW=[...customWatches,...bethWatches,...wishWatches,...getMom()];
+  const allW=[...customWatches,...subCols.flatMap(s=>s.watches),...wishWatches];
   allW.forEach(w=>{
     rows.push(fields.map(f=>escCSV(w[f])).join(','));
   });
@@ -2414,12 +2562,12 @@ function doRestore(file, preloadedData){
         });
         saveCustom(customWatches);
       }
-      if(data.bethWatches){
-        data.bethWatches.forEach(w=>{
-          const idx=bethWatches.findIndex(x=>x.id===w.id);
-          if(idx>=0)bethWatches[idx]=w;else bethWatches.push(w);
-        });
-        saveBeth(bethWatches);
+      if(data.subCols){ subCols=data.subCols; saveSubCols(); }
+      else if(data.bethWatches && data.bethWatches.length){
+        const s=subCols.find(x=>x.id==="beth")||{id:"beth",name:"Beth's Collection",watches:[]};
+        data.bethWatches.forEach(w=>{ if(!s.watches.find(x=>x.id===w.id)) s.watches.push(w); });
+        if(!subCols.find(x=>x.id==="beth")) subCols.push(s);
+        saveSubCols();
       }
       if(data.wishWatches){
         data.wishWatches.forEach(w=>{
@@ -2549,6 +2697,24 @@ document.getElementById('statsToggleBtn').addEventListener('click', () => {
   bar.style.display = statsVisible ? 'flex' : 'none';
   btn.textContent = statsVisible ? 'Hide Stats ▲' : 'Show Stats ▼';
 });
+
+// ── HEADER ICON ──
+(function(){
+  try{
+    const c = document.getElementById('headerIcon');
+    if(!c) return;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#141210';
+    ctx.fillRect(0, 0, 48, 48);
+    ctx.fillStyle = '#c9a04a';
+    ctx.font = '500 38px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('T', 24, 38);
+    ctx.font = '400 27px Georgia, serif';
+    ctx.fillText('C', 24, 34);
+  }catch(e){}
+})();
 
 // ── STATS DEFAULT HIDDEN ──
 // ── WATCH SETTER ──
@@ -2780,7 +2946,7 @@ async function askInsights(question){
   setAIStatus('insightsStatus', '✦ Thinking…', 'loading');
   document.getElementById('insightsAnswer').textContent = '';
   try {
-    const collection = [...customWatches, ...bethWatches, ...wishWatches, ...getMom()];
+    const collection = [...customWatches, ...subCols.flatMap(s=>s.watches), ...wishWatches];
     const res = await fetch(WORKER_URL + '/ai/insights', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Auth-Token': AUTH_TOKEN },
@@ -3021,7 +3187,7 @@ document.getElementById('importDoBtn').addEventListener('click',()=>{
     const mapped = importRows.map(mapRow).filter(w=>w.brand);
     
     // Duplicate check — Brand + Reference
-    const existing = [...customWatches, ...bethWatches, ...wishWatches, ...getMom()];
+    const existing = [...customWatches, ...subCols.flatMap(s=>s.watches), ...wishWatches];
     const duplicates = [];
     const toImport = [];
     
@@ -3071,12 +3237,10 @@ function saveStoryToWatch(story){
   const w = modalWatch;
   if(!w) return;
   w.story = story;
-  const isBeth = bethWatches.some(b=>b.id===w.id);
+  const inSub = subCols.find(s=>s.watches.some(x=>x.id===w.id));
   const isWish = wishWatches.some(x=>x.id===w.id);
-  const isMom = getMom().some(m=>m.id===w.id);
-  if(isBeth){ const idx=bethWatches.findIndex(x=>x.id===w.id); if(idx>=0) bethWatches[idx]=w; saveBeth(bethWatches); }
+  if(inSub){ const idx=inSub.watches.findIndex(x=>x.id===w.id); if(idx>=0) inSub.watches[idx]=w; saveSubCols(); }
   else if(isWish){ const idx=wishWatches.findIndex(x=>x.id===w.id); if(idx>=0) wishWatches[idx]=w; saveWish(wishWatches); }
-  else if(isMom){ const mom=getMom(); const idx=mom.findIndex(x=>x.id===w.id); if(idx>=0){ mom[idx]=w; localStorage.setItem('wc_mom_cloud',JSON.stringify(mom)); scheduleSave(); }}
   else { const idx=customWatches.findIndex(x=>x.id===w.id); if(idx>=0) customWatches[idx]=w; saveCustom(customWatches); }
 }
 
@@ -3227,7 +3391,7 @@ document.getElementById('serviceAnalysisBtn').addEventListener('click', async ()
   setAIStatus('serviceStatus', '✦ Analyzing service history…', 'loading');
   document.getElementById('serviceResults').style.display = 'none';
   try {
-    const collection = [...customWatches, ...bethWatches, ...getMom()];
+    const collection = [...customWatches, ...subCols.flatMap(s=>s.watches)];
     const res = await fetch(WORKER_URL + '/ai/service', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Auth-Token': AUTH_TOKEN },
