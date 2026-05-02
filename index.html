@@ -540,8 +540,10 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <div class="ws-eyebrow">Settings</div>
     <div class="ws-title" style="margin-bottom:20px">Collection</div>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <button class="backup-btn" id="backupBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬇ &nbsp;Backup Collection</button>
+      <button class="backup-btn" id="backupBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬇ &nbsp;Backup Collection (JSON)</button>
+      <button class="backup-btn" id="csvExportBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬇ &nbsp;Export as CSV</button>
       <button class="restore-btn" id="restoreBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬆ &nbsp;Restore from Backup</button>
+      <button class="restore-btn" id="restoreAutoBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬆ &nbsp;Restore Today's Auto-Backup</button>
       <div style="border-top:1px solid var(--border);margin:4px 0"></div>
       <button class="ai-btn" id="insightsOpenBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">✦ &nbsp;Ask About My Collection</button>
       <button class="ai-btn" id="serviceAnalysisBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">✦ &nbsp;Service Analysis</button>
@@ -2050,6 +2052,8 @@ function doBackup(){
     date:new Date().toISOString(),
     customWatches,
     bethWatches,
+    wishWatches,
+    momWatches:getMom(),
     photos
   };
   const json=JSON.stringify(backup,null,2);
@@ -2063,11 +2067,58 @@ function doBackup(){
   showToast('Backup saved ✓');
 }
 
-function doRestore(file){
-  const r=new FileReader();
-  r.onload=ev=>{
+// ── AUTO BACKUP ──
+// Auto-backup to localStorage once per day
+function autoBackup(){
+  const AUTO_KEY='wc_auto_backup';
+  const LAST_KEY='wc_auto_backup_date';
+  const today=new Date().toISOString().slice(0,10);
+  const lastDate=localStorage.getItem(LAST_KEY);
+  if(lastDate===today) return; // already backed up today
+  try{
+    const backup=JSON.stringify({
+      version:3, date:new Date().toISOString(),
+      customWatches, bethWatches, wishWatches,
+      momWatches:getMom(), photos
+    });
+    localStorage.setItem(AUTO_KEY, backup);
+    localStorage.setItem(LAST_KEY, today);
+    console.log('Auto-backup completed:', today);
+  } catch(e){ console.warn('Auto-backup failed:', e); }
+}
+
+// ── CSV EXPORT ──
+function doCSVExport(){
+  const headers = ['Brand','Series','Model','Reference No','Serial #','Origin','Case Material','Dial Color','Bracelet/Strap','Size (mm)','Thickness','Lug Width','Lug to Lug (mm)','Movement','Power Reserve','Water Resist. (M)','Purchase Year','Purchase Source','Price','Paid','Current Value','Service Date','Next Service','Sold','Sold Amount','Box','Papers','Notes'];
+  const fields = ['brand','series','model','ref','serial','origin','casemat','dial','strap','size','thick','lug','lugToLug','movement','pr','wr','year','source','price','paid','feb26','service','serviceNext','sold','soldAmt','box','papers','notes'];
+
+  function escCSV(v){
+    if(v===null||v===undefined) return '';
+    const s=String(v);
+    if(s.includes(',')||s.includes('"')||s.includes('\n')) return '"'+s.replace(/"/g,'""')+'"';
+    return s;
+  }
+
+  const rows=[headers.join(',')];
+  const allW=[...customWatches,...bethWatches,...wishWatches,...getMom()];
+  allW.forEach(w=>{
+    rows.push(fields.map(f=>escCSV(w[f])).join(','));
+  });
+
+  const csv=rows.join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const dateStr=new Date().toISOString().slice(0,10);
+  a.href=url;a.download=`watch-collection-${dateStr}.csv`;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  showToast('CSV exported ✓');
+}
+
+function doRestore(file, preloadedData){
+  function applyRestore(data){
     try{
-      const data=JSON.parse(ev.target.result);
       if(!data.version||!data.customWatches){throw new Error('Invalid backup file');}
       if(data.photos){Object.assign(photos,data.photos);savePhotos(photos);}
       if(data.customWatches){
@@ -2084,17 +2135,48 @@ function doRestore(file){
         });
         saveBeth(bethWatches);
       }
+      if(data.wishWatches){
+        data.wishWatches.forEach(w=>{
+          const idx=wishWatches.findIndex(x=>x.id===w.id);
+          if(idx>=0)wishWatches[idx]=w;else wishWatches.push(w);
+        });
+        saveWish(wishWatches);
+      }
       renderAll();
       showToast('Backup restored ✓');
     } catch(e){
       alert('Could not restore — file may be corrupted or wrong format.');
     }
+  }
+
+  if(preloadedData){ applyRestore(preloadedData); return; }
+
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{ applyRestore(JSON.parse(ev.target.result)); }
+    catch(e){ alert('Could not restore — file may be corrupted or wrong format.'); }
   };
   r.readAsText(file);
 }
 
 document.getElementById('backupBtn').addEventListener('click',doBackup);
+document.getElementById('csvExportBtn').addEventListener('click',()=>{ doCSVExport(); document.getElementById('settingsOverlay').classList.remove('open'); document.body.style.overflow=''; });
 document.getElementById('restoreBtn').addEventListener('click',()=>document.getElementById('restoreFileIn').click());
+document.getElementById('restoreAutoBtn').addEventListener('click',()=>{
+  const AUTO_KEY='wc_auto_backup';
+  const LAST_KEY='wc_auto_backup_date';
+  const data=localStorage.getItem(AUTO_KEY);
+  const date=localStorage.getItem(LAST_KEY);
+  if(!data){ showToast('No auto-backup found'); return; }
+  if(!confirm(`Restore auto-backup from ${date}? This will overwrite your current collection.`)) return;
+  try{
+    const backup=JSON.parse(data);
+    doRestore({name:'auto-backup'}, backup);
+    showToast('Auto-backup restored ✓');
+    document.getElementById('settingsOverlay').classList.remove('open');
+    document.body.style.overflow='';
+  }catch(e){ showToast('Auto-backup restore failed'); }
+});
 document.getElementById('restoreFileIn').addEventListener('change',e=>{
   const file=e.target.files[0];if(!file)return;
   doRestore(file);e.target.value='';
@@ -2641,21 +2723,49 @@ document.getElementById('importDoBtn').addEventListener('click',()=>{
   if(!importRows.length){ setAIStatus('importStatus','No data to import','error'); return; }
   const btn = document.getElementById('importDoBtn');
   btn.disabled=true;
-  setAIStatus('importStatus','Importing…','loading');
+  setAIStatus('importStatus','Checking for duplicates…','loading');
   try {
     const mapped = importRows.map(mapRow).filter(w=>w.brand);
-    const sold = mapped.filter(w=>w.sold);
-    const active = mapped.filter(w=>!w.sold);
-    customWatches.push(...active, ...sold);
+    
+    // Duplicate check — Brand + Reference
+    const existing = [...customWatches, ...bethWatches, ...wishWatches, ...getMom()];
+    const duplicates = [];
+    const toImport = [];
+    
+    mapped.forEach(w=>{
+      const isDuplicate = existing.some(e=>{
+        const brandMatch = (e.brand||'').toLowerCase().trim() === (w.brand||'').toLowerCase().trim();
+        const refMatch = w.ref && e.ref && (e.ref||'').toLowerCase().trim() === (w.ref||'').toLowerCase().trim();
+        return brandMatch && refMatch;
+      });
+      if(isDuplicate) duplicates.push(w);
+      else toImport.push(w);
+    });
+
+    if(duplicates.length > 0){
+      const dupNames = duplicates.map(w=>[w.brand,w.ref].filter(Boolean).join(' ')).join(', ');
+      setAIStatus('importStatus',`Skipped ${duplicates.length} duplicate${duplicates.length>1?'s':''}: ${dupNames}`,'error');
+    }
+
+    if(toImport.length === 0){
+      setAIStatus('importStatus','All watches already exist in your collection — nothing imported','error');
+      btn.disabled=false;
+      return;
+    }
+
+    const sold = toImport.filter(w=>w.sold);
+    const active = toImport.filter(w=>!w.sold);
+    customWatches.push(...active,...sold);
     saveCustom(customWatches);
+    
     document.getElementById('importStep2').style.display='none';
     document.getElementById('importStep3').style.display='block';
-    document.getElementById('importDoneMsg').textContent=`${mapped.length} watch${mapped.length===1?'':'es'} imported successfully`;
+    document.getElementById('importDoneMsg').textContent=`${toImport.length} watch${toImport.length===1?'':'es'} imported${duplicates.length?' · '+duplicates.length+' duplicate'+( duplicates.length>1?'s':'')+' skipped':''}`;
     renderAll();
     setTimeout(()=>{
       document.getElementById('importOverlay').classList.remove('open');
       document.body.style.overflow='';
-    }, 2500);
+    }, 3000);
   } catch(e) {
     setAIStatus('importStatus','Import failed — check file format','error');
     btn.disabled=false;
@@ -2954,6 +3064,8 @@ document.getElementById('aiIdentifyBtn').addEventListener('click', async ()=>{
 // ── INIT ──
 renderAll();
 showPWABanner();
+// Auto backup once per day
+setTimeout(autoBackup, 5000);
 // Load from cloud on startup
 cloudLoad().then(loaded => {
   if(loaded) renderAll();
