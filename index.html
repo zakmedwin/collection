@@ -367,7 +367,20 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 
-@media(max-width:640px){
+@media print {
+  body > *:not(#printView){ display:none !important; }
+  #printView{ display:block !important; }
+  #printView{ font-family:'Georgia',serif; color:#000; background:#fff; padding:24px; }
+  .pv-title{ font-size:22pt; font-weight:300; letter-spacing:.1em; margin-bottom:4px; }
+  .pv-sub{ font-size:9pt; letter-spacing:.2em; text-transform:uppercase; color:#666; margin-bottom:20px; }
+  .pv-table{ width:100%; border-collapse:collapse; font-size:8pt; }
+  .pv-table th{ border-bottom:1.5pt solid #000; padding:6px 8px; text-align:left; font-weight:600; letter-spacing:.08em; text-transform:uppercase; font-size:7pt; }
+  .pv-table td{ border-bottom:.5pt solid #ddd; padding:6px 8px; vertical-align:top; }
+  .pv-table tr:nth-child(even) td{ background:#f9f9f9; }
+  .pv-section{ font-size:11pt; font-weight:600; letter-spacing:.12em; text-transform:uppercase; margin:20px 0 8px; border-bottom:1pt solid #999; padding-bottom:4px; }
+  .pv-footer{ margin-top:20px; font-size:7pt; color:#999; text-align:center; letter-spacing:.1em; }
+  @page{ margin:1.5cm; }
+}
   header{flex-direction:column;align-items:flex-start;padding:28px 18px 20px}
   .tabs,.controls,.rcount,.breakdown,footer{padding-left:16px;padding-right:16px}
   .tabs{padding-left:16px}
@@ -523,6 +536,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <div style="display:flex;flex-direction:column;gap:10px">
       <button class="backup-btn" id="backupBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬇ &nbsp;Backup Collection (JSON)</button>
       <button class="backup-btn" id="csvExportBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬇ &nbsp;Export as CSV</button>
+      <button class="backup-btn" id="pdfExportBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬇ &nbsp;Print / Save as PDF</button>
       <button class="restore-btn" id="restoreBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬆ &nbsp;Restore from Backup</button>
       <button class="restore-btn" id="restoreAutoBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬆ &nbsp;Restore Today's Auto-Backup</button>
       <div style="border-top:1px solid var(--border);margin:4px 0"></div>
@@ -537,6 +551,45 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <div class="ai-status" id="serviceStatus" style="margin-top:8px"></div>
     <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);font-size:.58rem;color:var(--stone);line-height:1.7;text-align:left">
       Your data syncs automatically to the cloud. Backups are an optional safety net you can save locally.
+    </div>
+  </div>
+</div>
+
+<!-- BULK EDIT OVERLAY -->
+<div class="ws-overlay" id="bulkEditOverlay">
+  <div class="ws-modal" style="max-width:520px">
+    <div class="ws-topbar"></div>
+    <button class="ws-close" id="bulkEditClose">&#10005;</button>
+    <div class="ws-eyebrow">Bulk Edit</div>
+    <div class="ws-title" style="margin-bottom:8px">Edit Multiple Watches</div>
+    <div style="font-size:.65rem;color:var(--stone);margin-bottom:16px;line-height:1.6">Select watches below, choose a field to update, enter the new value, and apply.</div>
+
+    <!-- Field selector -->
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <select id="bulkField" class="ssel" style="flex:1">
+        <option value="">— Choose field to update —</option>
+        <option value="movement">Movement</option>
+        <option value="source">Purchase Source</option>
+        <option value="origin">Origin</option>
+        <option value="casemat">Case Material</option>
+        <option value="strap">Bracelet / Strap</option>
+        <option value="box">Box</option>
+        <option value="papers">Papers</option>
+        <option value="grade">Condition Grade</option>
+        <option value="currency">Currency</option>
+      </select>
+      <input type="text" id="bulkValue" placeholder="New value" style="flex:1;background:transparent;border:1px solid var(--border2);color:var(--cream);padding:8px 10px;font-family:'Montserrat',sans-serif;font-size:.75rem;outline:none;border-radius:0;-webkit-appearance:none">
+    </div>
+
+    <!-- Watch list with checkboxes -->
+    <div id="bulkList" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);margin-bottom:14px"></div>
+
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="m-edit-btn" id="bulkSelectAll" style="font-size:.58rem">Select All</button>
+      <button class="m-edit-btn" id="bulkSelectNone" style="font-size:.58rem">None</button>
+      <div style="flex:1"></div>
+      <div class="ai-status" id="bulkStatus" style="margin:0"></div>
+      <button class="btn-save" id="bulkApplyBtn">Apply</button>
     </div>
   </div>
 </div>
@@ -641,6 +694,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   </div>
 </div>
 <div class="backup-toast" id="backupToast"></div>
+<div id="printView" style="display:none"></div>
 
 <!-- PHOTO LIGHTBOX -->
 <div id="photoLightbox">
@@ -689,6 +743,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
       <button class="pill" data-f="New">New</button>
       <button class="pill" data-f="Gift">Gifted</button>
     </div>
+    <button class="m-edit-btn" id="bulkEditBtn" style="font-size:.55rem;padding:7px 14px;border-color:var(--border2);white-space:nowrap">☰ Bulk Edit</button>
     <select class="ssel" id="sortS">
       <option value="brand">Brand A–Z</option>
       <option value="year-d">Year ↓</option>
@@ -1463,16 +1518,22 @@ function photoHtml(pk){
 
 // ── CARD ──
 function makeCard(w,i,type){
-  const isSold=type==='sold',isMom=type==='mom',isBeth=type==='beth',isCustom=!!w._custom;
+  const isSold=type==='sold',isMom=type==='mom',isBeth=type==='beth',isWish=type==='wish',isCustom=!!w._custom;
   const pk=photoKey(w);
   const bCls='c-brand'+(isSold?' sb':isMom?' mb':isBeth?' bb':isCustom?' cb2':'');
   const cCls='wcard'+(isSold?' sold-c':isMom?' mom-c':isBeth?' beth-c':isCustom?' custom-c':'');
   const gl=(!isSold&&!isMom&&w.feb26&&w.paid)?w.feb26-w.paid:null;
   const glH=gl!=null?(gl>=0?`<div class="gl-pos">▲ ${fmtP(gl)}</div>`:`<div class="gl-neg">▼ ${fmtP(Math.abs(gl))}</div>`):'';
   const dispP=isSold?fmtP(w.soldAmt):(w.price?fmtP(w.price):(w.paid?fmtP(w.paid):'—'));
+  const wishRank = isWish ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+    <span style="font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)">#${i+1}</span>
+    <button class="wl-rank-up" data-id="${w.id}" style="background:transparent;border:1px solid var(--border2);color:var(--stone);width:22px;height:22px;cursor:pointer;font-size:.7rem;-webkit-appearance:none;border-radius:0;display:flex;align-items:center;justify-content:center" title="Move up">▲</button>
+    <button class="wl-rank-dn" data-id="${w.id}" style="background:transparent;border:1px solid var(--border2);color:var(--stone);width:22px;height:22px;cursor:pointer;font-size:.7rem;-webkit-appearance:none;border-radius:0;display:flex;align-items:center;justify-content:center" title="Move down">▼</button>
+  </div>` : '';
   return `<div class="${cCls}" style="animation-delay:${(i%16)*.03}s" data-type="${type}" data-id="${w.id}">
     ${photoHtml(pk)}
     <div class="cbody">
+      ${wishRank}
       <div class="${bCls}">${w.brand}</div>
       <div class="c-model">${[w.series,w.model].filter(Boolean).join(' · ')||w.brand}</div>
       <div class="c-ref">${w.ref||'&nbsp;'}</div>
@@ -1601,6 +1662,30 @@ function renderGrid(data,elId,type){
       inp.value='';
     });
   });
+  // Wish list priority ranking
+  el.querySelectorAll('.wl-rank-up').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const id=btn.dataset.id;
+      const idx=wishWatches.findIndex(w=>w.id===id);
+      if(idx<=0) return;
+      [wishWatches[idx-1],wishWatches[idx]]=[wishWatches[idx],wishWatches[idx-1]];
+      saveWish(wishWatches);
+      renderAll();
+    });
+  });
+  el.querySelectorAll('.wl-rank-dn').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      e.stopPropagation();
+      const id=btn.dataset.id;
+      const idx=wishWatches.findIndex(w=>w.id===id);
+      if(idx<0||idx>=wishWatches.length-1) return;
+      [wishWatches[idx],wishWatches[idx+1]]=[wishWatches[idx+1],wishWatches[idx]];
+      saveWish(wishWatches);
+      renderAll();
+    });
+  });
+
   // card click → modal
   el.querySelectorAll('.wcard').forEach(card=>{
     card.addEventListener('click',e=>{
@@ -2165,7 +2250,109 @@ function doBackup(){
   showToast('Backup saved ✓');
 }
 
-// ── AUTO BACKUP ──
+// ── BULK EDIT ──
+document.getElementById('bulkEditBtn').addEventListener('click',()=>{
+  // Populate watch list
+  const list = document.getElementById('bulkList');
+  const watches = [...customWatches.filter(w=>!w.sold)];
+  list.innerHTML = watches.map(w=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer">
+      <input type="checkbox" class="bulk-chk" data-id="${w.id}" style="width:16px;height:16px;accent-color:var(--gold)">
+      <span style="font-size:.72rem;color:var(--cream)">${w.brand}${w.series?' · '+w.series:''}</span>
+      <span style="font-size:.62rem;color:var(--stone);margin-left:auto">${w.ref||''}</span>
+    </label>`).join('');
+  document.getElementById('bulkField').value = '';
+  document.getElementById('bulkValue').value = '';
+  setAIStatus('bulkStatus','','');
+  document.getElementById('bulkEditOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+});
+document.getElementById('bulkEditClose').addEventListener('click',()=>{
+  document.getElementById('bulkEditOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+});
+document.getElementById('bulkEditOverlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('bulkEditOverlay')){
+    document.getElementById('bulkEditOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+});
+document.getElementById('bulkSelectAll').addEventListener('click',()=>{
+  document.querySelectorAll('.bulk-chk').forEach(c=>c.checked=true);
+});
+document.getElementById('bulkSelectNone').addEventListener('click',()=>{
+  document.querySelectorAll('.bulk-chk').forEach(c=>c.checked=false);
+});
+document.getElementById('bulkApplyBtn').addEventListener('click',()=>{
+  const field = document.getElementById('bulkField').value;
+  const value = document.getElementById('bulkValue').value.trim();
+  if(!field){ setAIStatus('bulkStatus','Choose a field first','error'); return; }
+  if(!value){ setAIStatus('bulkStatus','Enter a value first','error'); return; }
+
+  const selected = [...document.querySelectorAll('.bulk-chk:checked')].map(c=>c.dataset.id);
+  if(!selected.length){ setAIStatus('bulkStatus','Select at least one watch','error'); return; }
+
+  let count = 0;
+  selected.forEach(id=>{
+    const idx = customWatches.findIndex(w=>w.id===id);
+    if(idx>=0){ customWatches[idx][field]=value; count++; }
+  });
+  saveCustom(customWatches);
+  renderAll();
+  setAIStatus('bulkStatus',`✓ Updated ${count} watch${count===1?'':'es'}`, 'success');
+  setTimeout(()=>{
+    document.getElementById('bulkEditOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }, 1500);
+});
+
+// ── PDF / PRINT EXPORT ──
+function doPDFExport(){
+  const cols = ['Brand','Series','Model','Reference','Year','Movement','Case','Dial','Size','Paid','Retail','Current Value','Notes'];
+  const fields = ['brand','series','model','ref','year','movement','casemat','dial','size','paid','price','feb26','notes'];
+
+  function tableHTML(watches, title){
+    if(!watches.length) return '';
+    let html = `<div class="pv-section">${title} (${watches.length})</div>`;
+    html += `<table class="pv-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+    watches.forEach(w=>{
+      html += `<tr>${fields.map(f=>{
+        let v = w[f];
+        if(f==='paid'||f==='price'||f==='feb26') v = v ? '$'+Number(v).toLocaleString() : '';
+        return `<td>${v||''}</td>`;
+      }).join('')}</tr>`;
+    });
+    html += `</tbody></table>`;
+    return html;
+  }
+
+  const now = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const total = customWatches.filter(w=>!w.sold).length;
+  const totalPaid = customWatches.filter(w=>!w.sold).reduce((s,w)=>s+(w.paid||0),0);
+
+  let html = `<div class="pv-title">The Collection</div>`;
+  html += `<div class="pv-sub">Personal Horology Archive &nbsp;·&nbsp; ${now}</div>`;
+  html += `<div style="font-size:8pt;color:#666;margin-bottom:16px">${total} timepieces &nbsp;·&nbsp; Total paid: $${totalPaid.toLocaleString()}</div>`;
+  html += tableHTML(customWatches.filter(w=>!w.sold), 'Collection');
+  html += tableHTML(soldW(), 'Former Collection');
+  if(bethWatches.length) html += tableHTML(bethWatches, "Beth's Collection");
+  if(getMom().length) html += tableHTML(getMom(), "Mom's Collection");
+  if(wishWatches.length) html += tableHTML(wishWatches, 'Wish List');
+  html += `<div class="pv-footer">Private Archive · Not for Distribution · The Collection</div>`;
+
+  const pv = document.getElementById('printView');
+  pv.innerHTML = html;
+  pv.style.display = 'block';
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>{ pv.style.display='none'; pv.innerHTML=''; }, 500);
+  }, 200);
+}
+
+document.getElementById('pdfExportBtn').addEventListener('click', doPDFExport);
 // Auto-backup to localStorage once per day
 function autoBackup(){
   const AUTO_KEY='wc_auto_backup';
