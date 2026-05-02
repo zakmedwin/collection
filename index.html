@@ -1724,7 +1724,6 @@ function openModal(w){
     const isMech = w.movement==='Automatic'||w.movement==='Manual Wind';
     const intervalYears = isMech ? 5 : 10;
     const now = new Date();
-    // If next service date is specified, use it
     if(w.serviceNext){
       const next = new Date(w.serviceNext);
       if(!isNaN(next)){
@@ -1756,7 +1755,6 @@ function openModal(w){
     return null;
   }
 
-  let nh='';
   const svc = calcServiceStatus(w);
   if(svc) nh+=`<div class="m-svc" style="border-left:2px solid ${svc.color};padding-left:8px;margin-bottom:8px"><span style="color:${svc.color};font-size:.6rem;letter-spacing:.12em;text-transform:uppercase">${svc.label}</span></div>`;
   if(w.service||w.serviceNext) nh+=`<div class="m-svc">🔧 ${w.service||''}${w.service&&w.serviceNext?' &nbsp;|&nbsp; ':''}${w.serviceNext?'Next: '+w.serviceNext:''}</div>`;
