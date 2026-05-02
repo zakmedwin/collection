@@ -497,7 +497,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 <header>
   <div class="h-left">
     <div class="h-eye">Personal Horology Archive</div>
-    <h1>The <em>Collection</em></h1>
+    <h1><canvas id="headerIcon" width="48" height="48" style="vertical-align:middle;margin-right:10px;border-radius:10px;position:relative;top:-3px"></canvas>The <em>Collection</em></h1>
     <div class="h-sub">Curated · Documented · Personal</div>
   </div>
   <div class="hdr-btns">
@@ -2535,7 +2535,13 @@ document.getElementById('pwaBannerHow').addEventListener('click',()=>{
 });
 
 // ── STATS TOGGLE ──
-let statsVisible = true;
+let statsVisible = false;
+document.addEventListener('DOMContentLoaded', ()=>{
+  const bar = document.getElementById('statsBar');
+  const btn = document.getElementById('statsToggleBtn');
+  if(bar) bar.style.display = 'none';
+  if(btn) btn.textContent = 'Show Stats ▼';
+});
 document.getElementById('statsToggleBtn').addEventListener('click', () => {
   statsVisible = !statsVisible;
   const bar = document.getElementById('statsBar');
@@ -2544,6 +2550,25 @@ document.getElementById('statsToggleBtn').addEventListener('click', () => {
   btn.textContent = statsVisible ? 'Hide Stats ▲' : 'Show Stats ▼';
 });
 
+// ── HEADER ICON ──
+(function(){
+  try{
+    const c = document.getElementById('headerIcon');
+    if(!c) return;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#141210';
+    ctx.fillRect(0, 0, 48, 48);
+    ctx.fillStyle = '#c9a04a';
+    ctx.font = '500 38px Georgia, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('T', 24, 38);
+    ctx.font = '400 27px Georgia, serif';
+    ctx.fillText('C', 24, 34);
+  }catch(e){}
+})();
+
+// ── STATS DEFAULT HIDDEN ──
 // ── WATCH SETTER ──
 let wsInterval = null;
 let wsChimeOn = localStorage.getItem('ws_chime') !== 'off';
