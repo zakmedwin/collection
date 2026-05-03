@@ -2602,8 +2602,9 @@ document.getElementById('shareGenerateBtn').addEventListener('click', async ()=>
     canvas.toBlob(async blob=>{
       const file = new File([blob], 'the-collection.png', { type: 'image/png' });
 
-      // Try native share (iPhone)
-      if(navigator.share && navigator.canShare && navigator.canShare({ files: [file] })){
+      // Only use native share on mobile
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if(isMobile && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })){
         try{
           await navigator.share({ files: [file], title: 'The Collection' });
           setAIStatus('shareStatus','Shared ✓','success');
@@ -2611,7 +2612,7 @@ document.getElementById('shareGenerateBtn').addEventListener('click', async ()=>
           if(e.name !== 'AbortError') downloadImage(blob);
         }
       } else {
-        // Desktop — download
+        // Desktop — always download
         downloadImage(blob);
         setAIStatus('shareStatus','Image downloaded ✓','success');
       }
