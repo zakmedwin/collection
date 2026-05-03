@@ -3878,14 +3878,55 @@ document.getElementById('aiIdentifyBtn').addEventListener('click', async ()=>{
   btn.disabled = false;
 });
 
+// ── R2 PHOTO MIGRATION ──
+// Runs once to migrate existing base64 photos from localStorage to R2
+async function migratePhotosToR2(){
+  const MIGRATED_KEY = 'wc_r2_migrated_v1';
+  if(localStorage.getItem(MIGRATED_KEY)) return; // already done
+
+  const legacyPhotos = loadPhotos();
+  let migrated = 0;
+  let failed = 0;
+
+  for(const [pk, val] of Object.entries(legacyPhotos)){
+    const refs = Array.isArray(val) ? val : [val];
+    const newRefs = [];
+    for(const ref of refs){
+      if(!ref) continue;
+      if(ref.startsWith('r2:')){ newRefs.push(ref); continue; } // already R2
+      if(ref.startsWith('data:')){
+        // Upload to R2
+        const r2ref = await uploadPhotoToR2(pk, ref);
+        if(r2ref){
+          r2Cache[r2ref] = ref; // cache locally
+          newRefs.push(r2ref);
+          migrated++;
+        } else {
+          newRefs.push(ref); // keep as base64 if upload failed
+          failed++;
+        }
+      }
+    }
+    if(newRefs.length) photos[pk] = newRefs;
+    else delete photos[pk];
+  }
+
+  if(migrated > 0 || failed === 0){
+    savePhotosLocal(photos);
+    localStorage.setItem(MIGRATED_KEY, '1');
+    if(migrated > 0){
+      renderAll();
+      showToast(`${migrated} photo${migrated===1?'':'s'} synced to cloud ✓`);
+    }
+  }
+}
+
 // ── INIT ──
-renderAll();
-showPWABanner();
-// Auto backup once per day
-setTimeout(autoBackup, 5000);
 // Load from cloud on startup
 cloudLoad().then(loaded => {
   if(loaded) renderAll();
+  // Migrate existing localStorage photos to R2 (runs once)
+  setTimeout(migratePhotosToR2, 3000);
 });
 </script>
 </body>
