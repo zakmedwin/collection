@@ -1312,11 +1312,83 @@ const PHOTO_KEY  = 'wc_photos_v9';
 const CUSTOM_KEY = 'wc_custom_v9';
 const SUBCOL_KEY = 'wc_subcols_v10';
 
+// photos object: { pk: ['r2:idx0', 'r2:idx1', ...] or ['data:...'] }
 function loadPhotos(){try{return JSON.parse(localStorage.getItem(PHOTO_KEY)||'{}')}catch{return{}}}
-function savePhotos(p){
-  try{ localStorage.setItem(PHOTO_KEY,JSON.stringify(p)); scheduleSave(); return true; }
-  catch(e){ console.warn('Storage full',e); return false; }
+function savePhotosLocal(p){
+  try{ localStorage.setItem(PHOTO_KEY,JSON.stringify(p)); return true; }
+  catch(e){ console.warn('localStorage full',e); return false; }
 }
+// Keep savePhotos for legacy compat but strip large base64 before saving
+function savePhotos(p){
+  // Save R2 references only (not full base64) to keep localStorage lean
+  const lean = {};
+  for(const [k,v] of Object.entries(p)){
+    if(Array.isArray(v)){
+      const leanArr = v.map(x => x.startsWith('r2:') ? x : x); // keep all for now
+      if(leanArr.length) lean[k] = leanArr;
+    }
+  }
+  savePhotosLocal(lean);
+  scheduleSave();
+  return true;
+}
+
+// ── R2 PHOTO FUNCTIONS ──
+async function uploadPhotoToR2(pk, dataUrl){
+  try{
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const idx = Date.now();
+    const key = `${pk}_${idx}`;
+    const uploadRes = await fetch(`${WORKER_URL}/photos/${key}`, {
+      method: 'PUT',
+      headers: { 'X-Auth-Token': AUTH_TOKEN, 'Content-Type': blob.type },
+      body: blob
+    });
+    if(!uploadRes.ok) throw new Error('Upload failed');
+    return `r2:${key}`;
+  } catch(e){ console.warn('R2 upload failed:', e); return null; }
+}
+
+async function deletePhotoFromR2(ref){
+  if(!ref || !ref.startsWith('r2:')) return;
+  try{
+    const key = ref.slice(3);
+    await fetch(`${WORKER_URL}/photos/${key}`, {
+      method: 'DELETE',
+      headers: { 'X-Auth-Token': AUTH_TOKEN }
+    });
+  } catch(e){ console.warn('R2 delete failed:', e); }
+}
+
+// Photo URL cache to avoid repeated fetches
+const r2Cache = {};
+
+async function resolvePhotoRef(ref){
+  if(!ref) return null;
+  if(ref.startsWith('data:')) return ref; // legacy base64
+  if(ref.startsWith('r2:')){
+    if(r2Cache[ref]) return r2Cache[ref];
+    try{
+      const key = ref.slice(3);
+      const res = await fetch(`${WORKER_URL}/photos/${key}`, {
+        headers: { 'X-Auth-Token': AUTH_TOKEN }
+      });
+      if(!res.ok) return null;
+      const blob = await res.blob();
+      const dataUrl = await new Promise(resolve=>{
+        const reader = new FileReader();
+        reader.onload = ()=>resolve(reader.result);
+        reader.onerror = ()=>resolve(null);
+        reader.readAsDataURL(blob);
+      });
+      r2Cache[ref] = dataUrl;
+      return dataUrl;
+    } catch(e){ return null; }
+  }
+  return ref;
+}
+
 function loadCustom(){try{return JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]')}catch{return[]}}
 function saveCustom(c){ localStorage.setItem(CUSTOM_KEY,JSON.stringify(c)); scheduleSave(); }
 
@@ -1537,6 +1609,22 @@ function renderStats(){
   fEl.style.color=fNt>=0?'var(--green)':'var(--danger)';
 }
 
+// ── R2 PHOTO LAZY LOADER ──
+// Called after renderGrid to fill in any R2 photos not yet cached
+async function loadR2PhotosInView(){
+  const pending = document.querySelectorAll('img[data-r2ref]');
+  for(const img of pending){
+    const ref = img.dataset.r2ref;
+    if(!ref) continue;
+    const dataUrl = await resolvePhotoRef(ref);
+    if(dataUrl){
+      img.src = dataUrl;
+      img.style.opacity = '1';
+      img.removeAttribute('data-r2ref');
+    }
+  }
+}
+
 // ── BREAKDOWN ──
 function renderBreakdown(){
   const act=active();
@@ -1552,8 +1640,30 @@ function renderBreakdown(){
 // photos[pk] can be a string (legacy) or array (new)
 function getPhotos(pk){ const p=photos[pk]; if(!p) return []; if(Array.isArray(p)) return p; return [p]; }
 function setPhotos(pk, arr){ photos[pk]=arr.length===0?undefined:arr; if(photos[pk]===undefined) delete photos[pk]; savePhotos(photos); }
-function addPhoto(pk, dataUrl){ const arr=getPhotos(pk); arr.push(dataUrl); setPhotos(pk, arr); }
-function removePhoto(pk, idx){ const arr=getPhotos(pk); arr.splice(idx,1); setPhotos(pk, arr); }
+
+async function addPhoto(pk, dataUrl){
+  // Upload to R2, store reference
+  showToast('Uploading photo…');
+  const ref = await uploadPhotoToR2(pk, dataUrl);
+  if(ref){
+    // Store R2 ref, also cache locally for immediate display
+    r2Cache[ref] = dataUrl;
+    const arr=getPhotos(pk); arr.push(ref); setPhotos(pk, arr);
+    showToast('Photo saved ✓');
+  } else {
+    // Fallback to localStorage if R2 fails
+    const arr=getPhotos(pk); arr.push(dataUrl); setPhotos(pk, arr);
+    showToast('Photo saved locally');
+  }
+}
+
+async function removePhoto(pk, idx){
+  const arr=getPhotos(pk);
+  const ref = arr[idx];
+  await deletePhotoFromR2(ref);
+  arr.splice(idx,1);
+  setPhotos(pk, arr);
+}
 function setPrimaryPhoto(pk, idx){
   const arr=getPhotos(pk);
   if(idx===0||arr.length<2) return;
@@ -1592,8 +1702,12 @@ function photoHtml(pk){
   const idx = cardPhotoIndex[pk] || 0;
   const cur = imgs[idx];
   const multi = imgs.length > 1;
-  if(cur) return `<div class="photo-area" data-pk="${pk}">
-    <img src="${cur}" alt="">
+  if(cur){
+    // Use cached URL if available, otherwise placeholder that gets filled async
+    const src = cur.startsWith('data:') ? cur : (r2Cache[cur] || '');
+    const loadAttr = (!src && cur.startsWith('r2:')) ? `data-r2ref="${cur}"` : '';
+    return `<div class="photo-area" data-pk="${pk}">
+    <img src="${src}" alt="" ${loadAttr} style="${src?'':'opacity:0'}" onload="this.style.opacity=1">
     ${multi ? `<button class="photo-nav photo-prev" data-pk="${pk}">&#8249;</button><button class="photo-nav photo-next" data-pk="${pk}">&#8250;</button><div class="photo-count">${idx+1}/${imgs.length}</div>` : ''}
     <button class="photo-edit-btn photo-edit-toggle" data-pk="${pk}" title="Edit photo">✎</button>
     <div class="photo-overlay">
@@ -1603,6 +1717,7 @@ function photoHtml(pk){
     </div>
     <input type="file" accept="image/*" class="file-in card-file-in" data-pk="${pk}">
   </div>`;
+  }
   return `<div class="photo-area" data-pk="${pk}">
     <div class="photo-placeholder">${camIcon}<span>Tap to add photo</span><span style="font-size:.5rem;opacity:.5;margin-top:2px">On Mac: select Photos from sidebar</span></div>
     <div class="photo-overlay"><button class="photo-btn add-photo-btn" data-pk="${pk}">+ Add Photo</button></div>
@@ -1685,10 +1800,10 @@ function renderGrid(data,elId,type){
     btn.addEventListener('click',e=>{e.stopPropagation();btn.closest('.photo-area').querySelector('.card-file-in').click();});
   });
   el.querySelectorAll('.remove-photo-btn').forEach(btn=>{
-    btn.addEventListener('click',e=>{
+    btn.addEventListener('click',async e=>{
       e.stopPropagation();
       const pk=btn.dataset.pk, idx=parseInt(btn.dataset.idx||0);
-      removePhoto(pk, idx);
+      await removePhoto(pk, idx);
       if(cardPhotoIndex[pk]>=getPhotos(pk).length) cardPhotoIndex[pk]=Math.max(0,getPhotos(pk).length-1);
       renderAll();
     });
@@ -1750,9 +1865,9 @@ function renderGrid(data,elId,type){
       const pk=inp.dataset.pk;
       const file=inp.files[0];
       if(!file)return;
-      compressImage(file, compressed=>{
-        addPhoto(pk, compressed);
-        cardPhotoIndex[pk]=getPhotos(pk).length-1; // jump to new photo
+      compressImage(file, async compressed=>{
+        await addPhoto(pk, compressed);
+        cardPhotoIndex[pk]=getPhotos(pk).length-1;
         renderAll();
       });
       inp.value='';
@@ -1861,6 +1976,8 @@ function renderAll(){
     const wlVal=wishWatches.reduce((s,w)=>s+(w.price||0),0);
     const wlV=document.getElementById('wlVal');if(wlV)wlV.textContent=wlVal?'$'+Math.round(wlVal/1000)+'K':'—';
   }catch(e){console.warn('wishlist render error',e);}
+  // Load any R2 photos not yet cached
+  setTimeout(loadR2PhotosInView, 100);
 }
 
 // ── MODAL ──
@@ -2000,7 +2117,7 @@ function closeModal(){document.getElementById('overlay').classList.remove('open'
 
 // ── MODAL PHOTO HELPERS ──
 let modalPhotoIdx = 0;
-function refreshModalPhoto(){
+async function refreshModalPhoto(){
   if(!modalWatch) return;
   const pk = photoKey(modalWatch);
   const imgs = getPhotos(pk);
@@ -2013,7 +2130,10 @@ function refreshModalPhoto(){
   const expand = document.getElementById('mPhotoExpandBtn');
   if(imgs.length > 0){
     if(modalPhotoIdx >= imgs.length) modalPhotoIdx = imgs.length - 1;
-    img.src = imgs[modalPhotoIdx];
+    const ref = imgs[modalPhotoIdx];
+    // Resolve R2 ref if needed
+    const src = await resolvePhotoRef(ref);
+    img.src = src || '';
     img.style.display = 'block';
     ph.style.display = 'none';
     del.style.display = 'inline-block';
@@ -2052,22 +2172,22 @@ document.getElementById('mPhotoNext').addEventListener('click',e=>{
   modalPhotoIdx=(modalPhotoIdx+1)%len;
   refreshModalPhoto();
 });
-document.getElementById('mPhotoDelBtn').addEventListener('click',()=>{
+document.getElementById('mPhotoDelBtn').addEventListener('click', async ()=>{
   if(!modalWatch) return;
   const pk=photoKey(modalWatch);
-  removePhoto(pk, modalPhotoIdx);
+  await removePhoto(pk, modalPhotoIdx);
   if(modalPhotoIdx >= getPhotos(pk).length) modalPhotoIdx = Math.max(0, getPhotos(pk).length-1);
-  refreshModalPhoto();
+  await refreshModalPhoto();
   renderAll();
 });
 document.getElementById('mFileIn').addEventListener('change',e=>{
   if(!modalWatch) return;
   const file=e.target.files[0]; if(!file) return;
   const pk=photoKey(modalWatch);
-  compressImage(file, compressed=>{
-    addPhoto(pk, compressed);
+  compressImage(file, async compressed=>{
+    await addPhoto(pk, compressed);
     modalPhotoIdx = getPhotos(pk).length - 1;
-    refreshModalPhoto();
+    await refreshModalPhoto();
     renderAll();
   });
   e.target.value='';
