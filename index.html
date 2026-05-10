@@ -723,6 +723,12 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <div id="wsDate" style="font-family:'Montserrat',sans-serif;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone);margin-bottom:4px">—</div>
     <!-- Leap year indicator -->
     <div id="wsLeap" style="font-family:'Montserrat',sans-serif;font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--stone);margin-bottom:12px;min-height:16px"></div>
+    <!-- Moonphase display -->
+    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:16px">
+      <canvas id="wsMoon" width="80" height="80" style="margin-bottom:6px"></canvas>
+      <div id="wsMoonLabel" style="font-family:'Montserrat',sans-serif;font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)">—</div>
+      <div id="wsMoonAge" style="font-family:'Montserrat',sans-serif;font-size:.48rem;letter-spacing:.12em;color:var(--stone);margin-top:2px;opacity:.7"></div>
+    </div>
     <div class="ws-hint">Set your watch to the time shown above</div>
     <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:10px">
       <button class="ws-chime-btn" id="wsChimeBtn" title="Toggle chime">&#9836; Chime On</button>
@@ -3077,6 +3083,118 @@ document.getElementById('statsToggleBtn').addEventListener('click', () => {
 })();
 
 // ── STATS DEFAULT HIDDEN ──
+// ── MOONPHASE ──
+function getMoonPhase(date){
+  // Known new moon: Jan 6, 2000 18:14 UTC
+  const known = new Date(Date.UTC(2000, 0, 6, 18, 14));
+  const synodicMonth = 29.530588853; // days
+  const elapsed = (date - known) / (1000 * 60 * 60 * 24);
+  const age = ((elapsed % synodicMonth) + synodicMonth) % synodicMonth;
+  const illumination = (1 - Math.cos((age / synodicMonth) * 2 * Math.PI)) / 2;
+  let phaseName;
+  if(age < 1.85) phaseName = 'New Moon';
+  else if(age < 7.38) phaseName = 'Waxing Crescent';
+  else if(age < 9.22) phaseName = 'First Quarter';
+  else if(age < 14.77) phaseName = 'Waxing Gibbous';
+  else if(age < 16.61) phaseName = 'Full Moon';
+  else if(age < 22.15) phaseName = 'Waning Gibbous';
+  else if(age < 23.99) phaseName = 'Last Quarter';
+  else if(age < 29.53) phaseName = 'Waning Crescent';
+  else phaseName = 'New Moon';
+  return { age, illumination, phaseName };
+}
+
+function drawMoon(canvas, phase){
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2, r = W/2 - 4;
+  ctx.clearRect(0, 0, W, H);
+
+  // Outer bezel ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, r+3, 0, Math.PI*2);
+  ctx.strokeStyle = '#2e2c26';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Dark background (the aperture)
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.fillStyle = '#0a0a08';
+  ctx.fill();
+
+  const age = phase.age;
+  const synodicMonth = 29.530588853;
+  const isWaxing = age < synodicMonth / 2;
+
+  // Draw the illuminated portion
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.clip();
+
+  // Moon disk (gold/cream)
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, -Math.PI/2, Math.PI/2, false);
+  ctx.fillStyle = '#c9a04a';
+  ctx.fill();
+
+  // Shadow ellipse
+  const k = Math.cos((age / synodicMonth) * 2 * Math.PI);
+  ctx.beginPath();
+  ctx.save();
+  ctx.translate(cx, cy);
+  if(isWaxing){
+    ctx.scale(Math.abs(k), 1);
+    ctx.arc(0, 0, r, -Math.PI/2, Math.PI/2, k > 0);
+  } else {
+    ctx.scale(Math.abs(k), 1);
+    ctx.arc(0, 0, r, -Math.PI/2, Math.PI/2, k < 0);
+  }
+  ctx.restore();
+  ctx.fillStyle = '#0a0a08';
+  ctx.fill();
+
+  // Left half always dark for waxing, right half for waning
+  if(isWaxing){
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, Math.PI/2, -Math.PI/2, false);
+    ctx.fillStyle = '#0a0a08';
+    ctx.fill();
+  }
+
+  ctx.restore();
+
+  // Subtle glow for full moon
+  if(phase.phaseName === 'Full Moon'){
+    const grd = ctx.createRadialGradient(cx, cy, r-4, cx, cy, r+8);
+    grd.addColorStop(0, 'rgba(201,160,74,0.15)');
+    grd.addColorStop(1, 'rgba(201,160,74,0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, r+8, 0, Math.PI*2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+  }
+
+  // Thin gold ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(184,145,58,0.4)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+function updateMoonphase(){
+  const canvas = document.getElementById('wsMoon');
+  const label = document.getElementById('wsMoonLabel');
+  const ageEl = document.getElementById('wsMoonAge');
+  if(!canvas || !label) return;
+  const phase = getMoonPhase(new Date());
+  drawMoon(canvas, phase);
+  label.textContent = phase.phaseName;
+  ageEl.textContent = `Day ${Math.floor(phase.age)} of 29.5`;
+}
+
 // ── WATCH SETTER ──
 let wsInterval = null;
 let wsChimeOn = localStorage.getItem('ws_chime') !== 'off';
@@ -3210,6 +3328,8 @@ function openWatchSetter(){
   }
   tickWS();
   wsInterval = setInterval(tickWS, 100);
+  // Update moonphase when setter opens
+  updateMoonphase();
 
   // Chime toggle
   const chimeBtn = document.getElementById('wsChimeBtn');
