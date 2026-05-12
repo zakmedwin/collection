@@ -931,6 +931,8 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
       <button id="mPhotoExpandBtn" style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.3);color:#fff;width:32px;height:32px;cursor:pointer;z-index:3;-webkit-appearance:none;border-radius:0;font-size:.9rem;align-items:center;justify-content:center;display:none" title="Full screen">⤢</button>
       <div class="m-photo-actions">
         <button class="m-photo-btn" id="mPhotoAddBtn">+ Photo</button>
+        <button class="m-photo-btn" id="mPhotoMoveLeftBtn" style="display:none" title="Move photo left">← Move</button>
+        <button class="m-photo-btn" id="mPhotoMoveRightBtn" style="display:none" title="Move photo right">Move →</button>
         <button class="m-photo-btn del" id="mPhotoDelBtn" style="display:none">Remove</button>
       </div>
       <input type="file" accept="image/*" id="mFileIn" style="display:none">
@@ -1755,18 +1757,20 @@ function setPrimaryPhoto(pk, idx){
 
 // Per-card photo index state
 // Update only the photo in a card without full re-render
-function updateCardPhoto(area, pk){
+async function updateCardPhoto(area, pk){
   if(!area) return;
   const imgs = getPhotos(pk);
   const idx = cardPhotoIndex[pk] || 0;
   const img = area.querySelector('img');
-  if(img) img.src = imgs[idx] || '';
+  if(img){
+    const src = await resolvePhotoRef(imgs[idx]);
+    img.src = src || '';
+    img.style.opacity = '1';
+  }
   const counter = area.querySelector('.photo-count');
   if(counter) counter.textContent = `${idx+1}/${imgs.length}`;
-  // Update remove button idx
   const removeBtn = area.querySelector('.remove-photo-btn');
   if(removeBtn) removeBtn.dataset.idx = idx;
-  // Update primary button — keep in sync with current photo index
   const primaryBtn = area.querySelector('.set-primary-btn');
   if(primaryBtn){
     primaryBtn.dataset.idx = idx;
@@ -2208,10 +2212,11 @@ async function refreshModalPhoto(){
   const next = document.getElementById('mPhotoNext');
   const count = document.getElementById('mPhotoCount');
   const expand = document.getElementById('mPhotoExpandBtn');
+  const moveLeft = document.getElementById('mPhotoMoveLeftBtn');
+  const moveRight = document.getElementById('mPhotoMoveRightBtn');
   if(imgs.length > 0){
     if(modalPhotoIdx >= imgs.length) modalPhotoIdx = imgs.length - 1;
     const ref = imgs[modalPhotoIdx];
-    // Resolve R2 ref if needed
     const src = await resolvePhotoRef(ref);
     img.src = src || '';
     img.style.display = 'block';
@@ -2225,11 +2230,15 @@ async function refreshModalPhoto(){
     next.style.opacity = '0.85';
     count.style.display = multi ? 'block' : 'none';
     count.textContent = `${modalPhotoIdx+1}/${imgs.length}`;
+    if(moveLeft) moveLeft.style.display = multi && modalPhotoIdx > 0 ? 'inline-block' : 'none';
+    if(moveRight) moveRight.style.display = multi && modalPhotoIdx < imgs.length-1 ? 'inline-block' : 'none';
   } else {
     img.src=''; img.style.display='none';
     ph.style.display='flex';
     del.style.display='none';
     if(expand) expand.style.display = 'none';
+    if(moveLeft) moveLeft.style.display = 'none';
+    if(moveRight) moveRight.style.display = 'none';
     prev.style.display='none';
     next.style.display='none';
     count.style.display='none';
@@ -2237,6 +2246,28 @@ async function refreshModalPhoto(){
 }
 
 // ── MODAL PHOTO HANDLERS ──
+document.getElementById('mPhotoMoveLeftBtn').addEventListener('click', async ()=>{
+  if(!modalWatch) return;
+  const pk = photoKey(modalWatch);
+  const imgs = getPhotos(pk);
+  if(modalPhotoIdx <= 0) return;
+  [imgs[modalPhotoIdx-1], imgs[modalPhotoIdx]] = [imgs[modalPhotoIdx], imgs[modalPhotoIdx-1]];
+  modalPhotoIdx--;
+  setPhotos(pk, imgs);
+  await refreshModalPhoto();
+  renderAll();
+});
+document.getElementById('mPhotoMoveRightBtn').addEventListener('click', async ()=>{
+  if(!modalWatch) return;
+  const pk = photoKey(modalWatch);
+  const imgs = getPhotos(pk);
+  if(modalPhotoIdx >= imgs.length-1) return;
+  [imgs[modalPhotoIdx], imgs[modalPhotoIdx+1]] = [imgs[modalPhotoIdx+1], imgs[modalPhotoIdx]];
+  modalPhotoIdx++;
+  setPhotos(pk, imgs);
+  await refreshModalPhoto();
+  renderAll();
+});
 document.getElementById('mPhotoAddBtn').addEventListener('click',()=>document.getElementById('mFileIn').click());
 document.getElementById('mPhotoPrev').addEventListener('click',e=>{
   e.stopPropagation();
