@@ -455,6 +455,13 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <div class="s-eyebrow">Personal Horology Archive</div>
     <div class="s-title">The <em>Collection</em></div>
     <div class="s-tagline">Curated &#183; Documented &#183; Personal</div>
+    <!-- Watch of the Day -->
+    <div id="splashWotd" style="margin:18px auto 0;max-width:280px;border-top:1px solid rgba(184,145,58,.25);padding-top:14px;display:none">
+      <div style="font-family:'Montserrat',sans-serif;font-size:.48rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(184,145,58,.7);margin-bottom:6px">Watch of the Day</div>
+      <div id="splashWotdBrand" style="font-family:'Montserrat',sans-serif;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(184,145,58,.9)"></div>
+      <div id="splashWotdModel" style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:300;color:#fff;margin:2px 0 4px;font-style:italic"></div>
+      <div id="splashWotdMeta" style="font-family:'Montserrat',sans-serif;font-size:.5rem;letter-spacing:.12em;color:rgba(255,255,255,.4)"></div>
+    </div>
     <button class="s-enter" id="splashEnter">Time to Explore &#8594;</button>
   </div>
 </div>
@@ -478,6 +485,53 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   try{
     var face=document.querySelector('.s-face');
     if(face){for(var i=0;i<60;i++){var t=document.createElement('div'),a=i*6,major=i%5===0,rad=(a-90)*Math.PI/180,rv=46,len=major?10:5,x=50+(rv-len/2)*Math.cos(rad),y=50+(rv-len/2)*Math.sin(rad);t.style.cssText='position:absolute;width:'+(major?2:1)+'px;height:'+len+'px;background:'+(major?'rgba(184,145,58,.9)':'rgba(184,145,58,.3)')+';left:'+x+'%;top:'+y+'%;transform:translate(-50%,-50%) rotate('+a+'deg)';face.appendChild(t);}}
+  }catch(e){}
+  // Watch of the Day
+  try{
+    var stored = localStorage.getItem('wc_custom_v9');
+    var watches = stored ? JSON.parse(stored).filter(function(w){return !w.sold;}) : [];
+    if(watches.length > 0){
+      var now = new Date();
+      var dayOfYear = Math.floor((now - new Date(now.getFullYear(),0,0))/(1000*60*60*24));
+      var w = watches[dayOfYear % watches.length];
+      var wotd = document.getElementById('splashWotd');
+      var brandEl = document.getElementById('splashWotdBrand');
+      var modelEl = document.getElementById('splashWotdModel');
+      var metaEl = document.getElementById('splashWotdMeta');
+      if(wotd && w){
+        brandEl.textContent = w.brand || '';
+        modelEl.textContent = [w.series, w.model].filter(Boolean).join(' ') || w.brand;
+        var meta = [];
+        if(w.year) meta.push(w.year);
+        if(w.movement) meta.push(w.movement);
+        if(w.size) meta.push(w.size+'mm');
+        // Check anniversary
+        if(w.year){
+          var yearsOwned = now.getFullYear() - parseInt(w.year);
+          if(yearsOwned > 0) meta.push(yearsOwned + (yearsOwned===1?' year owned':' years owned'));
+        }
+        metaEl.textContent = meta.join('  ·  ');
+        // Try to show photo
+        try{
+          var pk = ('w_'+(w.id||w.brand+w.series+w.model+w.ref)).replace(/[\s\/\.]/g,'_').toLowerCase().substring(0,60);
+          var photoData = localStorage.getItem('wc_photos_v9');
+          if(photoData){
+            var photos = JSON.parse(photoData);
+            var imgs = photos[pk];
+            if(imgs){
+              var ref = Array.isArray(imgs) ? imgs[0] : imgs;
+              if(ref && ref.startsWith('data:')){
+                var imgEl = document.createElement('img');
+                imgEl.src = ref;
+                imgEl.style.cssText = 'width:80px;height:80px;object-fit:contain;border-radius:4px;margin:8px auto;display:block;opacity:.9';
+                wotd.insertBefore(imgEl, wotd.firstChild);
+              }
+            }
+          }
+        }catch(e){}
+        wotd.style.display = 'block';
+      }
+    }
   }catch(e){}
   // Button
   var btn=document.getElementById('splashEnter');
@@ -2522,10 +2576,25 @@ document.getElementById('formOverlay').addEventListener('click',e=>{if(e.target=
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeForm();}});
 
 // ── BACKUP & RESTORE ──
-function showToast(msg){
-  const t=document.getElementById('backupToast');
-  t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3000);
+let toastQueue = [];
+let toastRunning = false;
+
+function showToast(msg, duration=3000){
+  toastQueue.push({msg, duration});
+  if(!toastRunning) processToastQueue();
+}
+
+function processToastQueue(){
+  if(!toastQueue.length){ toastRunning=false; return; }
+  toastRunning = true;
+  const {msg, duration} = toastQueue.shift();
+  const t = document.getElementById('backupToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>{
+    t.classList.remove('show');
+    setTimeout(processToastQueue, 400);
+  }, duration);
 }
 
 function doBackup(){
@@ -3083,6 +3152,103 @@ document.getElementById('statsToggleBtn').addEventListener('click', () => {
 })();
 
 // ── STATS DEFAULT HIDDEN ──
+// ── ANNIVERSARY ALERTS ──
+function checkAnniversaries(){
+  const ANNIV_KEY = 'wc_anniv_shown_' + new Date().toISOString().slice(0,10);
+  if(localStorage.getItem(ANNIV_KEY)) return; // already shown today
+
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  const thisDay = now.getDate();
+  const allWatches = [...customWatches, ...subCols.flatMap(s=>s.watches)].filter(w=>!w.sold);
+
+  const anniversaries = allWatches.filter(w=>{
+    if(!w.year) return false;
+    // Check if purchase month/day matches today (approximate — use year only if no date)
+    // If we have a service date with month info, use that as purchase date proxy
+    const yearsOwned = now.getFullYear() - parseInt(w.year);
+    if(yearsOwned <= 0) return false;
+    // Mark anniversary in the month of January as a yearly celebration
+    // Since we only store year, fire on Jan 1 or today randomly once per year
+    return thisMonth === 0 && thisDay === 1; // New Year's Day collection review
+  });
+
+  // Better: fire for any watch where this year = purchase year + N anniversary
+  const roundAnniversaries = allWatches.filter(w=>{
+    if(!w.year) return false;
+    const yearsOwned = now.getFullYear() - parseInt(w.year);
+    return yearsOwned > 0 && yearsOwned % 5 === 0; // 5, 10, 15, 20 year anniversaries
+  });
+
+  if(roundAnniversaries.length > 0){
+    setTimeout(()=>{
+      roundAnniversaries.forEach((w, i)=>{
+        const years = now.getFullYear() - parseInt(w.year);
+        const name = [w.brand, w.series||w.model].filter(Boolean).join(' ');
+        setTimeout(()=> showToast(`🎂 ${years} years with your ${name}`, 4000), i * 1500);
+      });
+    }, 2000);
+    localStorage.setItem(ANNIV_KEY, '1');
+  }
+}
+
+// ── COLLECTION MILESTONES ──
+function checkMilestones(){
+  const MILESTONE_KEY = 'wc_milestones';
+  let seen = {};
+  try{ seen = JSON.parse(localStorage.getItem(MILESTONE_KEY)||'{}'); }catch(e){}
+
+  const act = active();
+  const milestones = [];
+
+  // Piece count milestones
+  const pieceMilestones = [5,10,15,20,25,30,40,50];
+  pieceMilestones.forEach(n=>{
+    if(act.length >= n && !seen[`pieces_${n}`]){
+      milestones.push({ key:`pieces_${n}`, msg:`🏆 ${n} timepieces in your collection` });
+    }
+  });
+
+  // Brand count milestones
+  const brands = new Set(act.map(w=>w.brand).filter(Boolean)).size;
+  const brandMilestones = [5,10,15];
+  brandMilestones.forEach(n=>{
+    if(brands >= n && !seen[`brands_${n}`]){
+      milestones.push({ key:`brands_${n}`, msg:`🌍 ${n} different brands in your collection` });
+    }
+  });
+
+  // Value milestones
+  const totalPaid = act.reduce((s,w)=>s+(w.paid||0),0);
+  const valueMilestones = [50000,100000,150000,200000,250000,300000];
+  valueMilestones.forEach(n=>{
+    if(totalPaid >= n && !seen[`value_${n}`]){
+      milestones.push({ key:`value_${n}`, msg:`💰 $${Math.round(n/1000)}K invested in your collection` });
+    }
+  });
+
+  // Mechanical count
+  const mechCount = act.filter(w=>w.movement==='Automatic'||w.movement==='Manual Wind').length;
+  const mechMilestones = [10,20];
+  mechMilestones.forEach(n=>{
+    if(mechCount >= n && !seen[`mech_${n}`]){
+      milestones.push({ key:`mech_${n}`, msg:`⚙ ${n} mechanical watches — a true collector` });
+    }
+  });
+
+  if(milestones.length > 0){
+    // Mark all as seen
+    milestones.forEach(m=>{ seen[m.key]=1; });
+    localStorage.setItem(MILESTONE_KEY, JSON.stringify(seen));
+    // Show toasts staggered
+    setTimeout(()=>{
+      milestones.forEach((m,i)=>{
+        setTimeout(()=>showToast(m.msg, 4000), i * 2000);
+      });
+    }, 3000);
+  }
+}
+
 // ── MOONPHASE ──
 function getMoonPhase(date){
   // Known new moon: Jan 6, 2000 18:14 UTC
@@ -3998,7 +4164,81 @@ document.getElementById('aiIdentifyBtn').addEventListener('click', async ()=>{
   btn.disabled = false;
 });
 
-// ── R2 PHOTO MIGRATION ──
+// ── ANNIVERSARY ALERTS ──
+function checkAnniversaries(){
+  const today = new Date();
+  const month = today.getMonth() + 1;
+  const day = today.getDate();
+  const year = today.getFullYear();
+
+  const allW = [...customWatches, ...subCols.flatMap(s=>s.watches)].filter(w=>!w.sold);
+  const alerts = [];
+
+  allW.forEach(w=>{
+    if(!w.year) return;
+    const purchaseYear = parseInt(w.year);
+    if(isNaN(purchaseYear)) return;
+    const yearsOwned = year - purchaseYear;
+    if(yearsOwned <= 0) return;
+
+    // Check if today is the anniversary (we only have year, so show on Jan 1 of each year)
+    // If they have a full date in notes, try to parse it
+    const name = [w.brand, w.series||w.model].filter(Boolean).join(' ');
+
+    // Milestone years — 1, 5, 10, 15, 20, 25
+    const milestoneYears = [1,5,10,15,20,25];
+    if(milestoneYears.includes(yearsOwned) && month === 1 && day <= 7){
+      alerts.push(`${yearsOwned} year${yearsOwned===1?'':'s'} with the ${name}`);
+    }
+  });
+
+  if(alerts.length > 0){
+    setTimeout(()=>{
+      alerts.forEach((msg, i)=>{
+        setTimeout(()=> showToast(`🎂 ${msg}`, 5000), i * 2000);
+      });
+    }, 4000);
+  }
+}
+
+// ── COLLECTION MILESTONES ──
+function checkMilestones(){
+  const MILESTONE_KEY = 'wc_milestones_seen';
+  const seen = JSON.parse(localStorage.getItem(MILESTONE_KEY)||'{}');
+  const now = Date.now();
+
+  const active = customWatches.filter(w=>!w.sold);
+  const totalPaid = active.reduce((s,w)=>s+(w.paid||0),0);
+  const totalRetail = active.reduce((s,w)=>s+(w.price||0),0);
+  const brands = new Set(active.map(w=>w.brand).filter(Boolean)).size;
+  const countries = new Set(active.map(w=>w.origin).filter(Boolean)).size;
+  const pieces = active.length;
+
+  const milestones = [
+    { key:'pieces_10', check: pieces>=10, msg:`🏆 10 timepieces in your collection` },
+    { key:'pieces_25', check: pieces>=25, msg:`🏆 25 timepieces — a serious collector` },
+    { key:'pieces_50', check: pieces>=50, msg:`🏆 50 timepieces — remarkable archive` },
+    { key:'paid_50k', check: totalPaid>=50000, msg:`💰 $50K invested in your collection` },
+    { key:'paid_100k', check: totalPaid>=100000, msg:`💰 $100K collection milestone reached` },
+    { key:'paid_250k', check: totalPaid>=250000, msg:`💰 $250K — a world-class collection` },
+    { key:'retail_100k', check: totalRetail>=100000, msg:`📈 Collection retail value exceeds $100K` },
+    { key:'retail_250k', check: totalRetail>=250000, msg:`📈 Collection retail value exceeds $250K` },
+    { key:'brands_5', check: brands>=5, msg:`🌐 Watches from ${brands} different brands` },
+    { key:'countries_5', check: countries>=5, msg:`🌍 Timepieces from ${countries} countries` },
+  ];
+
+  const toShow = milestones.filter(m=> m.check && !seen[m.key]);
+
+  if(toShow.length > 0){
+    toShow.forEach((m, i)=>{
+      setTimeout(()=>{
+        showToast(m.msg, 5000);
+        seen[m.key] = now;
+        localStorage.setItem(MILESTONE_KEY, JSON.stringify(seen));
+      }, 6000 + i * 2500);
+    });
+  }
+}
 // Runs once to migrate existing base64 photos from localStorage to R2
 async function migratePhotosToR2(){
   const MIGRATED_KEY = 'wc_r2_migrated_v1';
@@ -4047,6 +4287,9 @@ cloudLoad().then(loaded => {
   if(loaded) renderAll();
   // Migrate existing localStorage photos to R2 (runs once)
   setTimeout(migratePhotosToR2, 3000);
+  // Check milestones and anniversaries after data loads
+  setTimeout(checkMilestones, 5000);
+  setTimeout(checkAnniversaries, 7000);
 });
 </script>
 </body>
