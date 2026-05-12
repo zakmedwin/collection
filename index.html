@@ -79,7 +79,7 @@ h1 em{color:var(--gold);font-style:italic}
 .backup-toast.show{opacity:1}
 
 /* ── SPLASH SCREEN ── */
-#splash{position:fixed;inset:0;z-index:1000;background:#0b0b09;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#splash{position:fixed;inset:0;z-index:1000;background:#0b0b09;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow-y:auto;-webkit-tap-highlight-color:transparent;padding:20px 0}
 #splash.fade-out{animation:splashFade .9s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none}
 @keyframes splashFade{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05)}}
 .splash-watch{position:relative;width:200px;height:200px;margin-bottom:44px;flex-shrink:0}
@@ -370,16 +370,36 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 @media print {
   body > *:not(#printView){ display:none !important; }
   #printView{ display:block !important; }
-  #printView{ font-family:'Georgia',serif; color:#000; background:#fff; padding:24px; }
-  .pv-title{ font-size:22pt; font-weight:300; letter-spacing:.1em; margin-bottom:4px; }
-  .pv-sub{ font-size:9pt; letter-spacing:.2em; text-transform:uppercase; color:#666; margin-bottom:20px; }
-  .pv-table{ width:100%; border-collapse:collapse; font-size:8pt; }
-  .pv-table th{ border-bottom:1.5pt solid #000; padding:6px 8px; text-align:left; font-weight:600; letter-spacing:.08em; text-transform:uppercase; font-size:7pt; }
-  .pv-table td{ border-bottom:.5pt solid #ddd; padding:6px 8px; vertical-align:top; }
-  .pv-table tr:nth-child(even) td{ background:#f9f9f9; }
-  .pv-section{ font-size:11pt; font-weight:600; letter-spacing:.12em; text-transform:uppercase; margin:20px 0 8px; border-bottom:1pt solid #999; padding-bottom:4px; }
-  .pv-footer{ margin-top:20px; font-size:7pt; color:#999; text-align:center; letter-spacing:.1em; }
-  @page{ margin:1.5cm; }
+  /* Collection Passport print styles */
+  #printView{ font-family:'Georgia',serif; color:#1a1714; background:#fff; }
+  .pv-cover{ page-break-after:always; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#141210; color:#f0ebe0; text-align:center; }
+  .pv-cover-eye{ font-family:'Georgia',serif; font-size:9pt; letter-spacing:.3em; text-transform:uppercase; color:#b8913a; margin-bottom:16px; }
+  .pv-cover-title{ font-family:'Georgia',serif; font-size:52pt; font-weight:300; color:#ffffff; line-height:1; margin-bottom:4px; }
+  .pv-cover-title em{ color:#b8913a; font-style:italic; }
+  .pv-cover-rule{ width:60px; height:1px; background:#b8913a; margin:24px auto; }
+  .pv-cover-meta{ font-family:'Georgia',serif; font-size:10pt; color:#8a8478; letter-spacing:.15em; }
+  .pv-cover-stats{ margin-top:40px; display:flex; gap:40px; justify-content:center; }
+  .pv-cover-stat{ text-align:center; }
+  .pv-cover-stat-n{ font-size:24pt; color:#b8913a; font-weight:300; }
+  .pv-cover-stat-l{ font-size:7pt; letter-spacing:.2em; text-transform:uppercase; color:#6a6460; margin-top:4px; }
+  .pv-section-header{ page-break-before:always; padding:40px 48px 20px; border-bottom:0.5pt solid #b8913a; margin-bottom:0; }
+  .pv-section-eye{ font-size:7pt; letter-spacing:.25em; text-transform:uppercase; color:#b8913a; margin-bottom:6px; }
+  .pv-section-name{ font-size:22pt; font-weight:300; color:#1a1714; letter-spacing:.05em; }
+  .pv-watch{ display:grid; grid-template-columns:180pt 1fr; gap:0; border-bottom:0.5pt solid #e8e4de; padding:28px 48px; page-break-inside:avoid; }
+  .pv-watch-photo{ width:180pt; height:180pt; object-fit:contain; background:#f8f6f2; }
+  .pv-watch-photo-ph{ width:180pt; height:180pt; background:#f8f6f2; display:flex; align-items:center; justify-content:center; }
+  .pv-watch-body{ padding-left:28pt; }
+  .pv-watch-brand{ font-size:7pt; letter-spacing:.25em; text-transform:uppercase; color:#b8913a; margin-bottom:4pt; }
+  .pv-watch-model{ font-size:16pt; font-weight:300; color:#1a1714; line-height:1.2; margin-bottom:4pt; }
+  .pv-watch-ref{ font-size:8pt; color:#8a8478; letter-spacing:.1em; margin-bottom:12pt; }
+  .pv-watch-specs{ display:grid; grid-template-columns:1fr 1fr; gap:6pt 20pt; margin-bottom:12pt; }
+  .pv-spec{ }
+  .pv-spec-label{ font-size:6pt; letter-spacing:.2em; text-transform:uppercase; color:#b8913a; }
+  .pv-spec-value{ font-size:8.5pt; color:#2a2724; margin-top:1pt; }
+  .pv-watch-notes{ font-size:8pt; color:#6a6460; font-style:italic; line-height:1.5; border-top:0.3pt solid #e8e4de; padding-top:8pt; margin-top:4pt; }
+  .pv-watch-price{ font-size:13pt; color:#1a1714; font-weight:300; margin-top:10pt; }
+  .pv-footer{ position:fixed; bottom:0; left:0; right:0; padding:10px 48px; border-top:0.3pt solid #e8e4de; display:flex; justify-content:space-between; font-size:6.5pt; color:#aaa; letter-spacing:.1em; }
+  @page{ margin:0; size:letter; }
 }
 @media(max-width:640px){
   header{flex-direction:column;align-items:flex-start;padding:28px 18px 20px}
@@ -462,7 +482,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
       <div id="splashWotdModel" style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:300;color:#fff;margin:2px 0 4px;font-style:italic"></div>
       <div id="splashWotdMeta" style="font-family:'Montserrat',sans-serif;font-size:.5rem;letter-spacing:.12em;color:rgba(255,255,255,.4)"></div>
     </div>
-    <button class="s-enter" id="splashEnter">Time to Explore &#8594;</button>
+    <button class="s-enter" id="splashEnter" style="margin-top:28px">Time to Explore &#8594;</button>
   </div>
 </div>
 <script>
@@ -592,7 +612,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <div style="display:flex;flex-direction:column;gap:10px">
       <button class="backup-btn" id="backupBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬇ &nbsp;Backup Collection (JSON)</button>
       <button class="backup-btn" id="csvExportBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬇ &nbsp;Export as CSV</button>
-      <button class="backup-btn" id="pdfExportBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬇ &nbsp;Print / Save as PDF</button>
+      <button class="backup-btn" id="pdfExportBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">📄 &nbsp;Collection Passport (PDF)</button>
       <button class="restore-btn" id="restoreBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬆ &nbsp;Restore from Backup</button>
       <button class="restore-btn" id="restoreAutoBtn" style="width:100%;padding:12px 18px;text-align:left;font-size:.62rem">⬆ &nbsp;Restore Today's Auto-Backup</button>
       <div style="border-top:1px solid var(--border);margin:4px 0"></div>
@@ -2892,49 +2912,85 @@ document.getElementById('bulkApplyBtn').addEventListener('click',()=>{
   }, 1500);
 });
 
-// ── PDF / PRINT EXPORT ──
-function doPDFExport(){
-  const cols = ['Brand','Series','Model','Reference','Year','Movement','Case','Dial','Size','Paid','Retail','Current Value','Notes'];
-  const fields = ['brand','series','model','ref','year','movement','casemat','dial','size','paid','price','feb26','notes'];
+// ── COLLECTION PASSPORT ──
+async function doPDFExport(){
+  const pv = document.getElementById('printView');
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const act = active();
+  const totalRetail = act.reduce((s,w)=>s+(w.price||0),0);
+  const brands = new Set(act.map(w=>w.brand).filter(Boolean)).size;
 
-  function tableHTML(watches, title){
-    if(!watches.length) return '';
-    let html = `<div class="pv-section">${title} (${watches.length})</div>`;
-    html += `<table class="pv-table"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
-    watches.forEach(w=>{
-      html += `<tr>${fields.map(f=>{
-        let v = w[f];
-        if(f==='paid'||f==='price'||f==='feb26') v = v ? '$'+Number(v).toLocaleString() : '';
-        return `<td>${v||''}</td>`;
-      }).join('')}</tr>`;
-    });
-    html += `</tbody></table>`;
-    return html;
+  async function getPhotoSrc(w){
+    const pk = photoKey(w);
+    const imgs = getPhotos(pk);
+    if(!imgs.length) return null;
+    const ref = imgs[0];
+    if(ref.startsWith('data:')) return ref;
+    if(ref.startsWith('r2:')){
+      try{ return await resolvePhotoRef(ref); }catch(e){ return null; }
+    }
+    return null;
   }
 
-  const now = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  const total = customWatches.filter(w=>!w.sold).length;
-  const totalPaid = customWatches.filter(w=>!w.sold).reduce((s,w)=>s+(w.paid||0),0);
+  async function watchHTML(w){
+    const src = await getPhotoSrc(w);
+    const photoHTML = src
+      ? `<img class="pv-watch-photo" src="${src}">`
+      : `<div class="pv-watch-photo-ph"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg></div>`;
+    const specs = [
+      ['Movement',w.movement],['Case',w.casemat],['Dial',w.dial],
+      ['Size',w.size?w.size+'mm':null],['Water Resistance',w.wr?w.wr+'M':null],
+      ['Power Reserve',w.pr?w.pr+'h':null],['Origin',w.origin],['Year',w.year],
+      ['Reference',w.ref],['Serial',w.serial],['Condition',w.condition],['Source',w.source],
+    ].filter(([,v])=>v);
+    const priceHTML = w.price||w.paid?`<div class="pv-watch-price">${w.price?fmtP(w.price):''}${w.price&&w.paid?' · Paid: ':''}${w.paid?fmtP(w.paid):''}</div>`:'';
+    return `<div class="pv-watch">
+      ${photoHTML}
+      <div class="pv-watch-body">
+        <div class="pv-watch-brand">${w.brand||''}</div>
+        <div class="pv-watch-model">${[w.series,w.model].filter(Boolean).join(' ')||w.brand}</div>
+        ${w.ref?`<div class="pv-watch-ref">Ref. ${w.ref}</div>`:''}
+        <div class="pv-watch-specs">${specs.map(([l,v])=>`<div class="pv-spec"><div class="pv-spec-label">${l}</div><div class="pv-spec-value">${v}</div></div>`).join('')}</div>
+        ${priceHTML}
+        ${w.notes?`<div class="pv-watch-notes">${w.notes}</div>`:''}
+      </div>
+    </div>`;
+  }
 
-  let html = `<div class="pv-title">The Collection</div>`;
-  html += `<div class="pv-sub">Personal Horology Archive &nbsp;·&nbsp; ${now}</div>`;
-  html += `<div style="font-size:8pt;color:#666;margin-bottom:16px">${total} timepieces &nbsp;·&nbsp; Total paid: $${totalPaid.toLocaleString()}</div>`;
-  html += tableHTML(customWatches.filter(w=>!w.sold), 'Collection');
-  html += tableHTML(soldW(), 'Former Collection');
-  subCols.forEach(s=>{ if(s.watches.length) html += tableHTML(s.watches, s.name); });
-  if(wishWatches.length) html += tableHTML(wishWatches, 'Wish List');
-  html += `<div class="pv-footer">Private Archive · Not for Distribution · The Collection</div>`;
+  async function sectionHTML(watches, name){
+    if(!watches.length) return '';
+    const entries = await Promise.all(watches.map(watchHTML));
+    return `<div class="pv-section-header"><div class="pv-section-eye">The Collection · ${dateStr}</div><div class="pv-section-name">${name}</div></div>${entries.join('')}`;
+  }
 
-  const pv = document.getElementById('printView');
-  pv.innerHTML = html;
+  showToast('Building your Passport…');
+
+  const coverHTML = `<div class="pv-cover">
+    <div class="pv-cover-eye">Personal Horology Archive</div>
+    <div class="pv-cover-title">The <em>Collection</em></div>
+    <div class="pv-cover-rule"></div>
+    <div class="pv-cover-meta">${dateStr}</div>
+    <div class="pv-cover-stats">
+      <div class="pv-cover-stat"><div class="pv-cover-stat-n">${act.length}</div><div class="pv-cover-stat-l">Timepieces</div></div>
+      <div class="pv-cover-stat"><div class="pv-cover-stat-n">${brands}</div><div class="pv-cover-stat-l">Brands</div></div>
+      <div class="pv-cover-stat"><div class="pv-cover-stat-n">$${Math.round(totalRetail/1000)}K</div><div class="pv-cover-stat-l">Retail Value</div></div>
+    </div>
+  </div>`;
+
+  const sections = [[act,'Collection'],[soldW(),'Former Collection'],...subCols.map(s=>[s.watches,s.name]),[wishWatches,'Wish List']];
+  const sectionsHTML = (await Promise.all(sections.filter(([w])=>w.length>0).map(([w,n])=>sectionHTML(w,n)))).join('');
+  const footerHTML = `<div class="pv-footer"><span>The Collection · thecollection.watch</span><span>Private &amp; Confidential</span><span>${act.length} Timepieces · ${brands} Brands</span></div>`;
+
+  pv.innerHTML = coverHTML + sectionsHTML + footerHTML;
   pv.style.display = 'block';
   document.getElementById('settingsOverlay').classList.remove('open');
   document.body.style.overflow = '';
 
   setTimeout(()=>{
     window.print();
-    setTimeout(()=>{ pv.style.display='none'; pv.innerHTML=''; }, 500);
-  }, 200);
+    setTimeout(()=>{ pv.style.display='none'; pv.innerHTML=''; }, 1000);
+  }, 800);
 }
 
 document.getElementById('pdfExportBtn').addEventListener('click', doPDFExport);
