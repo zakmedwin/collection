@@ -178,11 +178,12 @@ h1 em{color:var(--gold);font-style:italic}
 .photo-btn:hover{background:rgba(184,145,58,.25)}
 .photo-btn.del-btn{border-color:#e05555;color:#e05555;background:rgba(20,18,16,.85)}
 .photo-btn.del-btn:hover{background:rgba(224,85,85,.2)}
-.card-photo-btns{position:absolute;bottom:8px;right:8px;display:flex;gap:6px;z-index:3}
-.card-icon-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-appearance:none;border-radius:0;transition:all .15s;touch-action:manipulation}
-.card-icon-add{background:rgba(14,12,10,.85);border:1px solid var(--gold);color:var(--gold);font-size:1.2rem;line-height:1;font-family:'Montserrat',sans-serif;font-weight:300}
+.card-photo-btns{position:absolute;bottom:8px;right:8px;display:flex;gap:6px;z-index:3;opacity:0;transition:opacity .2s;pointer-events:none}
+.photo-area:hover .card-photo-btns,.photo-area.touch-active .card-photo-btns{opacity:1;pointer-events:auto}
+.card-icon-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-appearance:none;border-radius:0;transition:all .15s;touch-action:manipulation}
+.card-icon-add{background:rgba(14,12,10,.85);border:1px solid var(--gold);color:var(--gold);font-size:1.3rem;line-height:1;font-family:'Montserrat',sans-serif;font-weight:300}
 .card-icon-add:hover,.card-icon-add:active{background:rgba(184,145,58,.25)}
-.card-icon-del{background:rgba(14,12,10,.85);border:1px solid #7a3a3a;color:#c05050}
+.card-icon-del{background:rgba(14,12,10,.85);border:1px solid #7a3a3a;color:#c05050;font-size:1.3rem}
 .card-icon-del:hover,.card-icon-del:active{background:rgba(180,50,50,.25);border-color:#c05050;color:#e07070}
 .photo-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;color:#fff;font-size:1.8rem;width:36px;height:52px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;opacity:0.75;transition:opacity .2s;-webkit-appearance:none;border-radius:0;line-height:1;touch-action:manipulation;-webkit-touch-callout:none}
 .photo-prev{left:0}.photo-next{right:0}
@@ -1248,14 +1249,17 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
       else if(entered.length < 4){ entered += v; updateDots(); if(entered.length === 4) setTimeout(tryUnlock, 120); }
     }
     btn.addEventListener('touchstart', e=>{
-      e.preventDefault();
       touched = true;
+      // Only prevent default on touch — do NOT prevent on desktop or keyboard breaks
+      e.preventDefault();
       handlePin();
     }, {passive:false});
-    btn.addEventListener('click', ()=>{
-      if(touched){ touched = false; return; } // already handled by touchstart
+    btn.addEventListener('click', e=>{
+      if(touched){ touched = false; return; }
       handlePin();
     });
+    // Reset touched flag on touchend in case click doesn't fire
+    btn.addEventListener('touchend', ()=>{ setTimeout(()=>{ touched = false; }, 500); }, {passive:true});
   });
 
   document.addEventListener('keydown', e=>{
@@ -1767,11 +1771,7 @@ function photoHtml(pk){
     ${multi ? `<button class="photo-nav photo-prev" data-pk="${pk}">&#8249;</button><button class="photo-nav photo-next" data-pk="${pk}">&#8250;</button><div class="photo-count">${idx+1}/${imgs.length}</div>` : ''}
     <div class="card-photo-btns">
       <button class="card-icon-btn card-icon-add add-photo-btn" data-pk="${pk}" title="Add photo">+</button>
-      <button class="card-icon-btn card-icon-del remove-photo-btn" data-pk="${pk}" data-idx="${idx}" title="Remove photo">
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-          <polyline points="1,3 12,3"/><path d="M3,3 L3,11 Q3,12 4,12 L9,12 Q10,12 10,11 L10,3"/><line x1="4.5" y1="3" x2="4.5" y2="1.5"/><line x1="8.5" y1="3" x2="8.5" y2="1.5"/><line x1="4.5" y1="1.5" x2="8.5" y2="1.5"/>
-        </svg>
-      </button>
+      <button class="card-icon-btn card-icon-del remove-photo-btn" data-pk="${pk}" data-idx="${idx}" title="Remove photo">🗑</button>
     </div>
     <input type="file" accept="image/*" class="file-in card-file-in" data-pk="${pk}">
   </div>`;
@@ -1836,6 +1836,15 @@ function renderGrid(data,elId,type){
   el.innerHTML=data.map((w,i)=>makeCard(w,i,type)).join('');
 
   // Pencil icon toggles photo overlay
+  // Show card photo buttons on touch (mobile)
+  el.querySelectorAll('.photo-area').forEach(area=>{
+    area.addEventListener('touchstart', ()=>{
+      // Remove touch-active from all other areas
+      document.querySelectorAll('.photo-area.touch-active').forEach(a=>{ if(a!==area) a.classList.remove('touch-active'); });
+      area.classList.toggle('touch-active');
+    }, {passive:true});
+  });
+
   // Add photo buttons — direct click, no overlay needed
   el.querySelectorAll('.add-photo-btn').forEach(btn=>{
     btn.addEventListener('click',e=>{e.stopPropagation();btn.closest('.photo-area').querySelector('.card-file-in').click();});
