@@ -192,28 +192,31 @@ h1 em{color:var(--gold);font-style:italic}
 input.file-in{display:none}
 
 /* CARD BODY */
-.cbody{padding:20px 22px}
-.c-brand{font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.cbody{padding:14px 16px}
+.c-brand{font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
 .c-brand.sb{color:var(--stone)}
 .c-brand.mb{color:#a070b8}
 .c-brand.cb2{color:#4a9a6a}
-.c-model{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:400;color:var(--cream);line-height:1.2;margin-bottom:3px}
-.c-ref{font-size:.64rem;color:var(--stone);font-style:italic;margin-bottom:12px}
-.c-div{width:20px;height:1px;background:var(--border2);margin-bottom:12px}
-.cmeta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.c-model{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:400;color:var(--cream);line-height:1.2;margin-bottom:2px}
+.c-ref{font-size:.58rem;color:var(--stone);font-style:italic;margin-bottom:8px}
+.c-div{width:20px;height:1px;background:var(--border2);margin-bottom:8px}
+.cmeta{display:none}
 .mk{font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;color:var(--stone);margin-bottom:2px}
 .mv{font-size:.72rem;color:var(--cream);font-weight:400}
-.cbot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.cp{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:300;color:var(--gold2)}
-.mbadge{font-size:.5rem;padding:2px 8px;border:1px solid var(--border2);letter-spacing:.14em;text-transform:uppercase;color:var(--stone)}
+.cspec{font-size:.58rem;color:var(--stone);letter-spacing:.04em;margin-bottom:8px;line-height:1.5;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.cspec-dot{margin:0 4px;opacity:.3}
+.cbot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.cp{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:300;color:var(--gold2)}
+.mbadge{font-size:.47rem;padding:2px 6px;border:1px solid var(--border2);letter-spacing:.12em;text-transform:uppercase;color:var(--stone)}
 .ma{border-color:#2a4a2a;color:var(--green)}
 .mm{border-color:#4a3820;color:#c8905a}
 .mq{border-color:#2a3050;color:#6a7aae}
-.stag{display:inline-block;margin-top:8px;padding:2px 8px;border:1px solid #4a2020;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:var(--danger)}
-.bp-badge{display:inline-block;padding:2px 8px;border:1px solid #2a4a2a;font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:var(--green);white-space:nowrap}
-.gl-pos{color:var(--green);font-size:.68rem;font-weight:500}
-.gl-neg{color:var(--danger);font-size:.68rem;font-weight:500}
-.cnote{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:.66rem;color:var(--stone);line-height:1.55;font-style:italic;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.stag{display:inline-block;margin-top:6px;padding:2px 6px;border:1px solid #4a2020;font-size:.47rem;letter-spacing:.12em;text-transform:uppercase;color:var(--danger)}
+.bp-badge{display:inline-block;padding:2px 6px;border:1px solid #2a4a2a;font-size:.47rem;letter-spacing:.12em;text-transform:uppercase;color:var(--green);white-space:nowrap}
+.gl-pos{color:var(--green);font-size:.62rem;font-weight:500}
+.gl-neg{color:var(--danger);font-size:.62rem;font-weight:500}
+.cbadges{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-top:5px}
+.cnote{margin-top:7px;padding-top:7px;border-top:1px solid var(--border);font-size:.6rem;color:var(--stone);line-height:1.4;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* WISHLIST */
 .wl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:2px;padding:2px}
@@ -1808,22 +1811,18 @@ function makeCard(w,i,type){
       <div class="c-model">${[w.series,w.model].filter(Boolean).join(' · ')||w.brand}</div>
       <div class="c-ref">${w.ref||'&nbsp;'}</div>
       <div class="c-div"></div>
-      <div class="cmeta">
-        <div><div class="mk">Year</div><div class="mv">${w.year||'—'}</div></div>
-        <div><div class="mk">Size</div><div class="mv">${w.size?w.size+'mm':'—'}</div></div>
-        <div><div class="mk">Dial</div><div class="mv">${w.dial||'—'}</div></div>
-        <div><div class="mk">Origin</div><div class="mv">${w.origin||'—'}</div></div>
-      </div>
+      <div class="cspec">${[w.year,w.size?w.size+'mm':null,w.dial,w.origin].filter(Boolean).map((v,i,a)=>i<a.length-1?v+'<span class="cspec-dot">·</span>':v).join('')||'&nbsp;'}</div>
       <div class="cbot"><div class="cp">${dispP}</div>${w.movement?`<div class="mbadge ${mvC(w.movement)}">${w.movement}</div>`:''}</div>
       ${glH}
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:5px;align-items:center">
-        ${w.wr?`<span style="font-size:.5rem;letter-spacing:.1em;color:var(--stone)">💧 ${w.wr}M</span>`:''}
-        ${w.pr?`<span style="font-size:.5rem;letter-spacing:.1em;color:var(--stone)">⚙ ${w.pr}h</span>`:''}
-        ${w.story?`<span style="font-size:.5rem;letter-spacing:.1em;color:var(--gold)">✦ Story</span>`:''}
-        ${w.notes&&!w.story?`<span style="font-size:.5rem;letter-spacing:.1em;color:var(--stone)">✎ Notes</span>`:''}
+      <div class="cbadges">
+        ${w.wr?`<span class="bp-badge" style="border-color:#2a3a4a;color:#6a8aae">💧${w.wr}M</span>`:''}
+        ${w.pr?`<span class="bp-badge" style="border-color:#3a3020;color:#8a7050">⚙${w.pr}h</span>`:''}
+        ${w.box==='yes'?`<span class="bp-badge">Box</span>`:''}
+        ${w.papers==='yes'?`<span class="bp-badge">Papers</span>`:''}
+        ${w.story?`<span class="bp-badge" style="border-color:#3a2a10;color:var(--gold)">✦ Story</span>`:''}
+        ${w.notes&&!w.story?`<span class="bp-badge" style="border-color:var(--border2);color:var(--stone)">✎ Notes</span>`:''}
       </div>
       ${isSold?`<div class="stag">Sold · ${fmtP(w.soldAmt)}</div>`:''}
-      ${(w.box==='yes'||w.papers==='yes')?`<div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap">${w.box==='yes'?`<span class="bp-badge">Box</span>`:''}${w.papers==='yes'?`<span class="bp-badge">Papers</span>`:''}</div>`:''}
       ${w.notes?`<div class="cnote">${w.notes}</div>`:''}
     </div>
   </div>`;
