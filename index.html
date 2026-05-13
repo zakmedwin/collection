@@ -193,30 +193,37 @@ input.file-in{display:none}
 
 /* CARD BODY */
 .cbody{padding:14px 16px}
-.c-brand{font-size:.55rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.c-brand{font-size:.52rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:3px}
 .c-brand.sb{color:var(--stone)}
 .c-brand.mb{color:#a070b8}
 .c-brand.cb2{color:#4a9a6a}
-.c-model{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:400;color:var(--cream);line-height:1.2;margin-bottom:2px}
-.c-ref{font-size:.58rem;color:var(--stone);font-style:italic;margin-bottom:8px}
-.c-div{width:20px;height:1px;background:var(--border2);margin-bottom:8px}
+.c-model{font-family:'Cormorant Garamond',serif;font-size:1.18rem;font-weight:400;color:var(--cream);line-height:1.2;margin-bottom:2px}
+.c-ref{font-size:.56rem;color:var(--stone);font-style:italic;margin-bottom:0}
+.c-div{width:100%;height:1px;background:var(--border);margin:8px 0}
 .cmeta{display:none}
 .mk{font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;color:var(--stone);margin-bottom:2px}
 .mv{font-size:.72rem;color:var(--cream);font-weight:400}
-.cspec{font-size:.58rem;color:var(--stone);letter-spacing:.04em;margin-bottom:8px;line-height:1.5;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.cspec-dot{margin:0 4px;opacity:.3}
-.cbot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:4px}
-.cp{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:300;color:var(--gold2)}
-.mbadge{font-size:.47rem;padding:2px 6px;border:1px solid var(--border2);letter-spacing:.12em;text-transform:uppercase;color:var(--stone)}
-.ma{border-color:#2a4a2a;color:var(--green)}
-.mm{border-color:#4a3820;color:#c8905a}
-.mq{border-color:#2a3050;color:#6a7aae}
-.stag{display:inline-block;margin-top:6px;padding:2px 6px;border:1px solid #4a2020;font-size:.47rem;letter-spacing:.12em;text-transform:uppercase;color:var(--danger)}
-.bp-badge{display:inline-block;padding:2px 6px;border:1px solid #2a4a2a;font-size:.47rem;letter-spacing:.12em;text-transform:uppercase;color:var(--green);white-space:nowrap}
+.cspec{font-size:.57rem;color:var(--stone);letter-spacing:.05em;line-height:1.5;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:0}
+.cspec-dot{margin:0 5px;opacity:.25}
+.cbot{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cp{font-family:'Cormorant Garamond',serif;font-size:1.22rem;font-weight:300;color:var(--gold2)}
+/* All badges same style */
+.cbadge{display:inline-flex;align-items:center;padding:2px 7px;border:1px solid var(--border2);font-size:.46rem;letter-spacing:.12em;text-transform:uppercase;color:var(--stone);white-space:nowrap;font-family:'Montserrat',sans-serif}
+.cbadge.auto{border-color:#2a4a2a;color:var(--green)}
+.cbadge.manual{border-color:#4a3820;color:#c8905a}
+.cbadge.quartz{border-color:#2a3050;color:#6a7aae}
+.cbadge.provenance{border-color:#2a4a2a;color:var(--green)}
+.cbadge.story{border-color:#3a2a10;color:var(--gold)}
+.cbadge.notes{border-color:var(--border2);color:var(--stone)}
+.cbadge.sold{border-color:#4a2020;color:var(--danger)}
+.cbadges{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+/* Legacy - keep for compat */
+.mbadge{display:none}
+.bp-badge{display:none}
+.stag{display:none}
 .gl-pos{color:var(--green);font-size:.62rem;font-weight:500}
 .gl-neg{color:var(--danger);font-size:.62rem;font-weight:500}
-.cbadges{display:flex;gap:4px;flex-wrap:wrap;align-items:center;margin-top:5px}
-.cnote{margin-top:7px;padding-top:7px;border-top:1px solid var(--border);font-size:.6rem;color:var(--stone);line-height:1.4;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cnote{font-size:.58rem;color:var(--stone);line-height:1.4;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:0}
 
 /* WISHLIST */
 .wl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:2px;padding:2px}
@@ -1213,6 +1220,9 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   }
 
   pinLock.style.display = 'flex';
+  // Force keyboard focus to PIN lock so keydown fires reliably
+  pinLock.setAttribute('tabindex', '-1');
+  setTimeout(()=>{ pinLock.focus(); }, 100);
 
   function updateDots(){
     pinDots.forEach((d,i) => d.classList.toggle('filled', i < entered.length));
@@ -1240,6 +1250,18 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     }
   }
 
+  // Handle keydown on both document and pinLock element
+  function handleKeydown(e){
+    if(pinLock.style.display === 'none' || pinLock.style.opacity === '0') return;
+    if(e.key >= '0' && e.key <= '9' && entered.length < 4){
+      entered += e.key; updateDots();
+      if(entered.length === 4) setTimeout(tryUnlock, 120);
+    } else if(e.key === 'Backspace'){ entered = entered.slice(0,-1); updateDots(); }
+    else if(e.key === 'Enter'){ tryUnlock(); }
+  }
+  document.addEventListener('keydown', handleKeydown);
+  pinLock.addEventListener('keydown', handleKeydown);
+
   document.querySelectorAll('.pin-key').forEach(btn=>{
     let touched = false;
     function handlePin(){
@@ -1253,10 +1275,8 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     }
     btn.addEventListener('touchstart', e=>{
       touched = true;
-      // Only prevent default on touch — do NOT prevent on desktop or keyboard breaks
-      e.preventDefault();
       handlePin();
-    }, {passive:false});
+    }, {passive:true});
     btn.addEventListener('click', e=>{
       if(touched){ touched = false; return; }
       handlePin();
@@ -1265,12 +1285,6 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     btn.addEventListener('touchend', ()=>{ setTimeout(()=>{ touched = false; }, 500); }, {passive:true});
   });
 
-  document.addEventListener('keydown', e=>{
-    if(pinLock.style.display === 'none') return;
-    if(e.key >= '0' && e.key <= '9' && entered.length < 4){ entered += e.key; updateDots(); if(entered.length === 4) setTimeout(tryUnlock, 120); }
-    else if(e.key === 'Backspace'){ entered = entered.slice(0,-1); updateDots(); }
-    else if(e.key === 'Enter'){ tryUnlock(); }
-  });
 })();
 const WORKER_URL = 'https://watch-api.zakmedwin.workers.dev';
 const AUTH_TOKEN = 'WatchSync2026';
@@ -1809,21 +1823,26 @@ function makeCard(w,i,type){
       ${wishRank}
       <div class="${bCls}">${w.brand}</div>
       <div class="c-model">${[w.series,w.model].filter(Boolean).join(' · ')||w.brand}</div>
-      <div class="c-ref">${w.ref||'&nbsp;'}</div>
+      ${w.ref?`<div class="c-ref">${w.ref}</div>`:''}
       <div class="c-div"></div>
       <div class="cspec">${[w.year,w.size?w.size+'mm':null,w.dial,w.origin].filter(Boolean).map((v,i,a)=>i<a.length-1?v+'<span class="cspec-dot">·</span>':v).join('')||'&nbsp;'}</div>
-      <div class="cbot"><div class="cp">${dispP}</div>${w.movement?`<div class="mbadge ${mvC(w.movement)}">${w.movement}</div>`:''}</div>
-      ${glH}
-      <div class="cbadges">
-        ${w.wr?`<span class="bp-badge" style="border-color:#2a3a4a;color:#6a8aae">💧${w.wr}M</span>`:''}
-        ${w.pr?`<span class="bp-badge" style="border-color:#3a3020;color:#8a7050">⚙${w.pr}h</span>`:''}
-        ${w.box==='yes'?`<span class="bp-badge">Box</span>`:''}
-        ${w.papers==='yes'?`<span class="bp-badge">Papers</span>`:''}
-        ${w.story?`<span class="bp-badge" style="border-color:#3a2a10;color:var(--gold)">✦ Story</span>`:''}
-        ${w.notes&&!w.story?`<span class="bp-badge" style="border-color:var(--border2);color:var(--stone)">✎ Notes</span>`:''}
+      <div class="c-div"></div>
+      <div class="cbot">
+        <div class="cp">${dispP}</div>
+        ${glH}
+        ${w.movement?`<span class="cbadge ${mvC(w.movement).replace('ma','auto').replace('mm','manual').replace('mq','quartz')}">${w.movement}</span>`:''}
       </div>
-      ${isSold?`<div class="stag">Sold · ${fmtP(w.soldAmt)}</div>`:''}
-      ${w.notes?`<div class="cnote">${w.notes}</div>`:''}
+      <div class="c-div"></div>
+      <div class="cbadges">
+        ${w.box==='yes'?`<span class="cbadge provenance">Box</span>`:''}
+        ${w.papers==='yes'?`<span class="cbadge provenance">Papers</span>`:''}
+        ${w.wr?`<span class="cbadge">💧${w.wr}M</span>`:''}
+        ${w.pr?`<span class="cbadge">⚙${w.pr}h</span>`:''}
+        ${w.story?`<span class="cbadge story">✦ Story</span>`:''}
+        ${w.notes&&!w.story?`<span class="cbadge notes">✎ Notes</span>`:''}
+        ${isSold?`<span class="cbadge sold">Sold · ${fmtP(w.soldAmt)}</span>`:''}
+      </div>
+      ${w.notes?`<div class="c-div"></div><div class="cnote">${w.notes}</div>`:''}
     </div>
   </div>`;
 }
