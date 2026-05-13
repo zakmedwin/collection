@@ -660,6 +660,24 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   </div>
 </div>
 
+<!-- MOVE WATCH DIALOG -->
+<div class="ws-overlay" id="moveWatchOverlay">
+  <div class="ws-modal" style="max-width:400px">
+    <div class="ws-topbar"></div>
+    <button class="ws-close" id="moveWatchClose">&#10005;</button>
+    <div class="ws-eyebrow">Move Watch</div>
+    <div class="ws-title" style="margin-bottom:6px" id="moveWatchTitle">Move to another collection</div>
+    <div style="font-size:.62rem;color:var(--stone);margin-bottom:16px" id="moveWatchSub"></div>
+    <select id="moveWatchSelect" class="ssel" style="width:100%;margin-bottom:20px;padding:10px 12px;font-size:.75rem">
+      <option value="">— Choose destination —</option>
+    </select>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="m-edit-btn" id="moveWatchCancel">Cancel</button>
+      <button class="btn-save" id="moveWatchConfirm">Move Watch</button>
+    </div>
+  </div>
+</div>
+
 <!-- SUB-COLLECTION NAME DIALOG -->
 <div class="ws-overlay" id="subColDialog">
   <div class="ws-modal" style="max-width:400px">
@@ -2037,9 +2055,10 @@ function openModal(w){
   const actEl=document.getElementById('mActions');
   const subCol = subCols.find(s=>s.watches.some(x=>x.id===w.id));
   const ctx = subCol ? `sub-${subCol.id}` : isWish ? 'wish' : 'custom';
-  actEl.innerHTML=`<button class="m-edit-btn" id="mEditBtn">Edit</button><button class="m-del-btn" id="mDelBtn">Remove</button>`;
+  actEl.innerHTML=`<button class="m-edit-btn" id="mEditBtn">Edit</button><button class="m-edit-btn" id="mMoveBtn">Move to…</button><button class="m-del-btn" id="mDelBtn">Remove</button>`;
   document.getElementById('mEditBtn').onclick=()=>{closeModal();openForm(w,ctx);};
   document.getElementById('mDelBtn').onclick=()=>{closeModal();openConfirm(w,ctx);};
+  document.getElementById('mMoveBtn').onclick=()=>openMoveDialog(w,ctx);
   // Show value estimator for non-wish watches
   const valueSection = document.getElementById('mValueSection');
   if(valueSection) {
@@ -2846,6 +2865,117 @@ function downloadImage(blob){
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+// ── MOVE WATCH ──
+function openMoveDialog(w, currentCtx){
+  const name = [w.brand, w.series||w.model].filter(Boolean).join(' ');
+  document.getElementById('moveWatchTitle').textContent = `Move ${name}`;
+  document.getElementById('moveWatchSub').textContent = `Currently in: ${currentCtxLabel(currentCtx)}`;
+
+  // Build destination options — all collections except current
+  const select = document.getElementById('moveWatchSelect');
+  select.innerHTML = '<option value="">— Choose destination —</option>';
+
+  const destinations = [
+    { value: 'custom', label: 'My Collection' },
+    { value: 'sold', label: 'Former Collection' },
+    { value: 'wish', label: 'Wish List' },
+    ...subCols.map(s=>({ value: `sub-${s.id}`, label: s.name }))
+  ];
+
+  destinations.forEach(d=>{
+    if(d.value === currentCtx) return; // skip current
+    const opt = document.createElement('option');
+    opt.value = d.value;
+    opt.textContent = d.label;
+    select.appendChild(opt);
+  });
+
+  // Store watch and context for the confirm handler
+  select.dataset.watchId = w.id;
+  select.dataset.fromCtx = currentCtx;
+
+  document.getElementById('moveWatchOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function currentCtxLabel(ctx){
+  if(ctx === 'custom') return 'My Collection';
+  if(ctx === 'sold') return 'Former Collection';
+  if(ctx === 'wish') return 'Wish List';
+  if(ctx.startsWith('sub-')){
+    const s = getSubColById(ctx.replace('sub-',''));
+    return s ? s.name : ctx;
+  }
+  return ctx;
+}
+
+function removeWatchFromCtx(w, ctx){
+  if(ctx === 'custom' || ctx === 'sold'){
+    customWatches = customWatches.filter(x=>x.id!==w.id);
+    saveCustom(customWatches);
+  } else if(ctx === 'wish'){
+    wishWatches = wishWatches.filter(x=>x.id!==w.id);
+    saveWish(wishWatches);
+  } else if(ctx.startsWith('sub-')){
+    const s = getSubColById(ctx.replace('sub-',''));
+    if(s){ s.watches = s.watches.filter(x=>x.id!==w.id); saveSubCols(); }
+  }
+}
+
+function addWatchToCtx(w, ctx){
+  if(ctx === 'custom'){
+    w.sold = false;
+    customWatches.push(w);
+    saveCustom(customWatches);
+  } else if(ctx === 'sold'){
+    w.sold = true;
+    customWatches.push(w);
+    saveCustom(customWatches);
+  } else if(ctx === 'wish'){
+    wishWatches.push(w);
+    saveWish(wishWatches);
+  } else if(ctx.startsWith('sub-')){
+    const s = getSubColById(ctx.replace('sub-',''));
+    if(s){ s.watches.push(w); saveSubCols(); }
+  }
+}
+
+document.getElementById('moveWatchConfirm').addEventListener('click',()=>{
+  const select = document.getElementById('moveWatchSelect');
+  const dest = select.value;
+  if(!dest){ select.style.borderColor='var(--danger)'; return; }
+  select.style.borderColor='';
+
+  const fromCtx = select.dataset.fromCtx;
+  const watchId = select.dataset.watchId;
+  const w = [...customWatches,...wishWatches,...subCols.flatMap(s=>s.watches)].find(x=>x.id===watchId);
+  if(!w) return;
+
+  removeWatchFromCtx(w, fromCtx);
+  addWatchToCtx(w, dest);
+
+  document.getElementById('moveWatchOverlay').classList.remove('open');
+  document.body.style.overflow='';
+  closeModal();
+  renderAll();
+  showToast(`Moved to ${currentCtxLabel(dest)} ✓`);
+});
+
+document.getElementById('moveWatchClose').addEventListener('click',()=>{
+  document.getElementById('moveWatchOverlay').classList.remove('open');
+  document.body.style.overflow='';
+});
+document.getElementById('moveWatchCancel').addEventListener('click',()=>{
+  document.getElementById('moveWatchOverlay').classList.remove('open');
+  document.body.style.overflow='';
+});
+document.getElementById('moveWatchOverlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('moveWatchOverlay')){
+    document.getElementById('moveWatchOverlay').classList.remove('open');
+    document.body.style.overflow='';
+  }
+});
 
 // ── BULK EDIT ──
 document.getElementById('bulkEditBtn').addEventListener('click',()=>{
