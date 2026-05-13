@@ -178,6 +178,12 @@ h1 em{color:var(--gold);font-style:italic}
 .photo-btn:hover{background:rgba(184,145,58,.25)}
 .photo-btn.del-btn{border-color:#e05555;color:#e05555;background:rgba(20,18,16,.85)}
 .photo-btn.del-btn:hover{background:rgba(224,85,85,.2)}
+.card-photo-btns{position:absolute;bottom:8px;right:8px;display:flex;gap:6px;z-index:3}
+.card-icon-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-appearance:none;border-radius:0;transition:all .15s;touch-action:manipulation}
+.card-icon-add{background:rgba(14,12,10,.85);border:1px solid var(--gold);color:var(--gold);font-size:1.2rem;line-height:1;font-family:'Montserrat',sans-serif;font-weight:300}
+.card-icon-add:hover,.card-icon-add:active{background:rgba(184,145,58,.25)}
+.card-icon-del{background:rgba(14,12,10,.85);border:1px solid #7a3a3a;color:#c05050}
+.card-icon-del:hover,.card-icon-del:active{background:rgba(180,50,50,.25);border-color:#c05050;color:#e07070}
 .photo-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;color:#fff;font-size:1.8rem;width:36px;height:52px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;opacity:0.75;transition:opacity .2s;-webkit-appearance:none;border-radius:0;line-height:1;touch-action:manipulation;-webkit-touch-callout:none}
 .photo-prev{left:0}.photo-next{right:0}
 .wcard:hover .photo-nav{opacity:0.95}
@@ -310,7 +316,7 @@ input.file-in{display:none}
 /* PIN LOCK */
 .pin-dot{width:12px;height:12px;border-radius:50%;border:1px solid var(--gold);background:transparent;transition:background .15s}
 .pin-dot.filled{background:var(--gold)}
-.pin-key{width:72px;height:72px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;font-family:'Montserrat',sans-serif;font-size:1.4rem;font-weight:300;cursor:pointer;-webkit-appearance:none;border-radius:50%;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.pin-key{width:72px;height:72px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:#fff;font-family:'Montserrat',sans-serif;font-size:1.4rem;font-weight:300;cursor:pointer;-webkit-appearance:none;border-radius:50%;transition:background .1s;display:flex;align-items:center;justify-content:center;touch-action:manipulation;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
 .pin-key:hover,.pin-key:active{background:rgba(184,145,58,.3);border-color:var(--gold);color:var(--gold)}
 .pin-clear{font-size:.9rem;color:rgba(255,255,255,.6)}
 .pin-ok{background:rgba(184,145,58,.2);border-color:var(--gold);color:var(--gold)}
@@ -429,7 +435,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 <body>
 
 <!-- ── PIN LOCK SCREEN ── -->
-<div id="pinLock" style="position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:#0b0b09;z-index:99999;flex-direction:column;align-items:center;justify-content:center;gap:0;display:none">
+<div id="pinLock" style="position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:#0b0b09;z-index:99999;flex-direction:column;align-items:center;justify-content:center;gap:0;display:none;touch-action:manipulation">
   <div style="font-size:.55rem;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Personal Horology Archive</div>
   <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;color:var(--cream);margin-bottom:32px;letter-spacing:.1em">The <em>Collection</em></div>
   <div id="pinDots" style="display:flex;gap:12px;margin-bottom:28px">
@@ -506,53 +512,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     var face=document.querySelector('.s-face');
     if(face){for(var i=0;i<60;i++){var t=document.createElement('div'),a=i*6,major=i%5===0,rad=(a-90)*Math.PI/180,rv=46,len=major?10:5,x=50+(rv-len/2)*Math.cos(rad),y=50+(rv-len/2)*Math.sin(rad);t.style.cssText='position:absolute;width:'+(major?2:1)+'px;height:'+len+'px;background:'+(major?'rgba(184,145,58,.9)':'rgba(184,145,58,.3)')+';left:'+x+'%;top:'+y+'%;transform:translate(-50%,-50%) rotate('+a+'deg)';face.appendChild(t);}}
   }catch(e){}
-  // Watch of the Day
-  try{
-    var stored = localStorage.getItem('wc_custom_v9');
-    var watches = stored ? JSON.parse(stored).filter(function(w){return !w.sold;}) : [];
-    if(watches.length > 0){
-      var now = new Date();
-      var dayOfYear = Math.floor((now - new Date(now.getFullYear(),0,0))/(1000*60*60*24));
-      var w = watches[dayOfYear % watches.length];
-      var wotd = document.getElementById('splashWotd');
-      var brandEl = document.getElementById('splashWotdBrand');
-      var modelEl = document.getElementById('splashWotdModel');
-      var metaEl = document.getElementById('splashWotdMeta');
-      if(wotd && w){
-        brandEl.textContent = w.brand || '';
-        modelEl.textContent = [w.series, w.model].filter(Boolean).join(' ') || w.brand;
-        var meta = [];
-        if(w.year) meta.push(w.year);
-        if(w.movement) meta.push(w.movement);
-        if(w.size) meta.push(w.size+'mm');
-        // Check anniversary
-        if(w.year){
-          var yearsOwned = now.getFullYear() - parseInt(w.year);
-          if(yearsOwned > 0) meta.push(yearsOwned + (yearsOwned===1?' year owned':' years owned'));
-        }
-        metaEl.textContent = meta.join('  ·  ');
-        // Try to show photo
-        try{
-          var pk = ('w_'+(w.id||w.brand+w.series+w.model+w.ref)).replace(/[\s\/\.]/g,'_').toLowerCase().substring(0,60);
-          var photoData = localStorage.getItem('wc_photos_v9');
-          if(photoData){
-            var photos = JSON.parse(photoData);
-            var imgs = photos[pk];
-            if(imgs){
-              var ref = Array.isArray(imgs) ? imgs[0] : imgs;
-              if(ref && ref.startsWith('data:')){
-                var imgEl = document.createElement('img');
-                imgEl.src = ref;
-                imgEl.style.cssText = 'width:80px;height:80px;object-fit:contain;border-radius:4px;margin:8px auto;display:block;opacity:.9';
-                wotd.insertBefore(imgEl, wotd.firstChild);
-              }
-            }
-          }
-        }catch(e){}
-        wotd.style.display = 'block';
-      }
-    }
-  }catch(e){}
+  // Watch of the Day — populated after app loads (see updateWatchOfTheDay())
   // Button
   var btn=document.getElementById('splashEnter');
   if(btn){
@@ -1277,11 +1237,24 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   }
 
   document.querySelectorAll('.pin-key').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
+    let touched = false;
+    function handlePin(){
       const v = btn.dataset.v;
+      btn.style.background = 'rgba(184,145,58,.3)';
+      btn.style.borderColor = 'rgba(184,145,58,.8)';
+      setTimeout(()=>{ btn.style.background=''; btn.style.borderColor=''; }, 150);
       if(v === 'clear'){ entered = entered.slice(0,-1); updateDots(); }
       else if(v === 'ok'){ tryUnlock(); }
       else if(entered.length < 4){ entered += v; updateDots(); if(entered.length === 4) setTimeout(tryUnlock, 120); }
+    }
+    btn.addEventListener('touchstart', e=>{
+      e.preventDefault();
+      touched = true;
+      handlePin();
+    }, {passive:false});
+    btn.addEventListener('click', ()=>{
+      if(touched){ touched = false; return; } // already handled by touchstart
+      handlePin();
     });
   });
 
@@ -1787,25 +1760,27 @@ function photoHtml(pk){
   const cur = imgs[idx];
   const multi = imgs.length > 1;
   if(cur){
-    // Use cached URL if available, otherwise placeholder that gets filled async
     const src = cur.startsWith('data:') ? cur : (r2Cache[cur] || '');
     const loadAttr = (!src && cur.startsWith('r2:')) ? `data-r2ref="${cur}"` : '';
     return `<div class="photo-area" data-pk="${pk}">
     <img src="${src}" alt="" ${loadAttr} style="${src?'':'opacity:0'}" onload="this.style.opacity=1">
     ${multi ? `<button class="photo-nav photo-prev" data-pk="${pk}">&#8249;</button><button class="photo-nav photo-next" data-pk="${pk}">&#8250;</button><div class="photo-count">${idx+1}/${imgs.length}</div>` : ''}
-    <button class="photo-edit-btn photo-edit-toggle" data-pk="${pk}" title="Edit photo">✎</button>
-    <div class="photo-overlay">
-      <button class="photo-btn add-photo-btn" data-pk="${pk}">+ Add</button>
-      <button class="photo-btn set-primary-btn" data-pk="${pk}" data-idx="${idx}" title="Set as cover" style="${idx===0?'opacity:0.3':''}" >★ Cover</button>
-      <button class="photo-btn del-btn remove-photo-btn" data-pk="${pk}" data-idx="${idx}">Remove</button>
+    <div class="card-photo-btns">
+      <button class="card-icon-btn card-icon-add add-photo-btn" data-pk="${pk}" title="Add photo">+</button>
+      <button class="card-icon-btn card-icon-del remove-photo-btn" data-pk="${pk}" data-idx="${idx}" title="Remove photo">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <polyline points="1,3 12,3"/><path d="M3,3 L3,11 Q3,12 4,12 L9,12 Q10,12 10,11 L10,3"/><line x1="4.5" y1="3" x2="4.5" y2="1.5"/><line x1="8.5" y1="3" x2="8.5" y2="1.5"/><line x1="4.5" y1="1.5" x2="8.5" y2="1.5"/>
+        </svg>
+      </button>
     </div>
     <input type="file" accept="image/*" class="file-in card-file-in" data-pk="${pk}">
   </div>`;
   }
   return `<div class="photo-area" data-pk="${pk}">
     <div class="photo-placeholder">${camIcon}<span>Tap to add photo</span><span style="font-size:.5rem;opacity:.5;margin-top:2px">On Mac: select Photos from sidebar</span></div>
-    <div class="photo-overlay"><button class="photo-btn add-photo-btn" data-pk="${pk}">+ Add Photo</button></div>
-    <button class="photo-edit-btn photo-edit-toggle" data-pk="${pk}" title="Edit photo" style="opacity:0;pointer-events:none">✎</button>
+    <div class="card-photo-btns">
+      <button class="card-icon-btn card-icon-add add-photo-btn" data-pk="${pk}" title="Add photo">+</button>
+    </div>
     <input type="file" accept="image/*" class="file-in card-file-in" data-pk="${pk}">
   </div>`;
 }
@@ -1861,27 +1836,10 @@ function renderGrid(data,elId,type){
   el.innerHTML=data.map((w,i)=>makeCard(w,i,type)).join('');
 
   // Pencil icon toggles photo overlay
-  el.querySelectorAll('.photo-edit-toggle').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      e.stopPropagation();
-      const area=btn.closest('.photo-area');
-      const ov=area.querySelector('.photo-overlay');
-      if(ov) ov.classList.toggle('visible');
-    });
-  });
-
-  // Close overlay when clicking photo area background (not buttons)
-  el.querySelectorAll('.photo-area').forEach(area=>{
-    area.addEventListener('click',e=>{
-      if(e.target.closest('.photo-btn')||e.target.closest('.photo-nav')||e.target.closest('.photo-edit-btn')) return;
-      const ov=area.querySelector('.photo-overlay');
-      if(ov&&ov.classList.contains('visible')) ov.classList.remove('visible');
-    });
-  });
-
-  // Add photo buttons
+  // Add photo buttons — direct click, no overlay needed
   el.querySelectorAll('.add-photo-btn').forEach(btn=>{
     btn.addEventListener('click',e=>{e.stopPropagation();btn.closest('.photo-area').querySelector('.card-file-in').click();});
+    btn.addEventListener('touchstart',e=>{e.stopPropagation();},{passive:true});
   });
   el.querySelectorAll('.remove-photo-btn').forEach(btn=>{
     btn.addEventListener('click',async e=>{
@@ -1892,18 +1850,6 @@ function renderGrid(data,elId,type){
       renderAll();
     });
   });
-  el.querySelectorAll('.set-primary-btn').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      e.stopPropagation();
-      const pk=btn.dataset.pk, idx=parseInt(btn.dataset.idx||0);
-      if(idx===0) return;
-      setPrimaryPhoto(pk, idx);
-      updateCardPhoto(btn.closest('.photo-area'), pk);
-      // Hide overlay after setting primary
-      const ov=btn.closest('.photo-overlay');
-      if(ov) ov.classList.remove('visible');
-    });
-  });
   // Photo nav prev/next
   el.querySelectorAll('.photo-prev').forEach(btn=>{
     const handler = e=>{
@@ -1912,14 +1858,7 @@ function renderGrid(data,elId,type){
       const pk=btn.dataset.pk, imgs=getPhotos(pk), len=imgs.length;
       if(len<2) return;
       cardPhotoIndex[pk]=((cardPhotoIndex[pk]||0)-1+len)%len;
-      const area=btn.closest('.photo-area');
-      const wasVisible=area.querySelector('.photo-overlay')?.classList.contains('visible');
-      updateCardPhoto(area, pk);
-      // Keep overlay visible if it was open
-      if(wasVisible){
-        const ov=area.querySelector('.photo-overlay');
-        if(ov) ov.classList.add('visible');
-      }
+      updateCardPhoto(btn.closest('.photo-area'), pk);
     };
     btn.addEventListener('click', handler);
     btn.addEventListener('touchend', handler, {passive:false});
@@ -1931,13 +1870,7 @@ function renderGrid(data,elId,type){
       const pk=btn.dataset.pk, imgs=getPhotos(pk), len=imgs.length;
       if(len<2) return;
       cardPhotoIndex[pk]=((cardPhotoIndex[pk]||0)+1)%len;
-      const area=btn.closest('.photo-area');
-      const wasVisible=area.querySelector('.photo-overlay')?.classList.contains('visible');
-      updateCardPhoto(area, pk);
-      if(wasVisible){
-        const ov=area.querySelector('.photo-overlay');
-        if(ov) ov.classList.add('visible');
-      }
+      updateCardPhoto(btn.closest('.photo-area'), pk);
     };
     btn.addEventListener('click', handler);
     btn.addEventListener('touchend', handler, {passive:false});
@@ -3504,6 +3437,74 @@ function playChime(type){
     }
   } catch(e){ console.warn('Chime error:', e); }
 }
+// ── WATCH OF THE DAY ──
+async function updateWatchOfTheDay(){
+  const watches = active();
+  if(!watches.length) return;
+  const now = new Date();
+  const dayOfYear = Math.floor((now - new Date(now.getFullYear(),0,0))/(1000*60*60*24));
+  const w = watches[dayOfYear % watches.length];
+  const wotd = document.getElementById('splashWotd');
+  if(!wotd || !w) return;
+
+  // Remove any previously inserted photo
+  const existingImg = wotd.querySelector('img.wotd-photo');
+  if(existingImg) existingImg.remove();
+
+  document.getElementById('splashWotdBrand').textContent = w.brand || '';
+  document.getElementById('splashWotdModel').textContent = [w.series, w.model].filter(Boolean).join(' ') || w.brand;
+
+  const meta = [];
+  if(w.year) meta.push(w.year);
+  if(w.movement) meta.push(w.movement);
+  if(w.size) meta.push(w.size+'mm');
+  if(w.year){
+    const yearsOwned = now.getFullYear() - parseInt(w.year);
+    if(yearsOwned > 0) meta.push(yearsOwned + (yearsOwned===1?' year owned':' years owned'));
+  }
+  document.getElementById('splashWotdMeta').textContent = meta.join('  ·  ');
+
+  // Try to show photo
+  try{
+    const pk = photoKey(w);
+    const imgs = getPhotos(pk);
+    if(imgs.length){
+      const src = await resolvePhotoRef(imgs[0]);
+      if(src){
+        const imgEl = document.createElement('img');
+        imgEl.className = 'wotd-photo';
+        imgEl.src = src;
+        imgEl.style.cssText = 'width:90px;height:90px;object-fit:contain;border-radius:4px;margin:8px auto 10px;display:block;opacity:.95';
+        // Insert after the "Watch of the Day" label
+        const label = wotd.querySelector('div');
+        if(label) label.after(imgEl);
+        else wotd.insertBefore(imgEl, wotd.firstChild);
+      }
+    }
+  }catch(e){}
+
+  wotd.style.display = 'block';
+}
+
+// ── SCREEN WAKE LOCK ──
+let wakeLock = null;
+async function requestWakeLock(){
+  try{
+    if('wakeLock' in navigator){
+      wakeLock = await navigator.wakeLock.request('screen');
+    }
+  }catch(e){ console.log('Wake lock not available:', e.message); }
+}
+function releaseWakeLock(){
+  if(wakeLock){ wakeLock.release(); wakeLock = null; }
+}
+// Re-acquire if user returns to app
+document.addEventListener('visibilitychange', async ()=>{
+  if(document.visibilityState === 'visible' && document.getElementById('wsOverlay').classList.contains('open')){
+    await requestWakeLock();
+  }
+});
+
 function openWatchSetter(){
   const overlay = document.getElementById('wsOverlay');
   if(!overlay) return;
@@ -3511,7 +3512,7 @@ function openWatchSetter(){
   document.body.style.overflow = 'hidden';
   // Initialize audio context on user gesture
   getAudioCtx();
-  // Build clock face once
+  requestWakeLock();
   const face = document.getElementById('wsFace');
   if(face && !face.dataset.built){
     face.dataset.built = '1';
@@ -3602,6 +3603,7 @@ function closeWatchSetter(){
   if(overlay) overlay.classList.remove('open');
   document.body.style.overflow = '';
   if(wsInterval){ clearInterval(wsInterval); wsInterval=null; }
+  releaseWakeLock();
 }
 document.getElementById('settingsBtn').addEventListener('click',()=>{
   document.getElementById('settingsOverlay').classList.add('open');
@@ -4372,6 +4374,8 @@ async function migratePhotosToR2(){
 // Load from cloud on startup
 cloudLoad().then(loaded => {
   if(loaded) renderAll();
+  // Watch of the Day — runs after data is available
+  updateWatchOfTheDay();
   // Migrate existing localStorage photos to R2 (runs once)
   setTimeout(migratePhotosToR2, 3000);
   // Check milestones and anniversaries after data loads
