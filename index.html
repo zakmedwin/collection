@@ -2065,7 +2065,10 @@ function openModal(w){
     valueSection.style.display = isWish ? 'none' : 'block';
     document.getElementById('mValueResult').innerHTML = '';
     setAIStatus('mValueStatus', '', '');
+    document.getElementById('mValueBtn').textContent = '✦ Estimate Value';
     document.getElementById('mValueBtn').disabled = false;
+    // Show saved estimate if exists
+    if(w.valueEstimate) displaySavedValue(w);
     // Load existing story if saved
     const existingStory = w.story || '';
     document.getElementById('mStoryText').textContent = existingStory;
@@ -3781,6 +3784,31 @@ document.getElementById('wsClose').addEventListener('click', closeWatchSetter);
 document.getElementById('wsOverlay').addEventListener('click', e=>{ if(e.target===document.getElementById('wsOverlay')) closeWatchSetter(); });
 
 // ── VALUE ESTIMATOR ──
+function displaySavedValue(w){
+  if(!w || !w.valueEstimate) return;
+  const r = w.valueEstimate;
+  const lo = r.low ? '$'+r.low.toLocaleString() : '—';
+  const hi = r.high ? '$'+r.high.toLocaleString() : '—';
+  const mid = r.mid ? '$'+r.mid.toLocaleString() : '—';
+  const dateStr = r.savedAt ? new Date(r.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+  document.getElementById('mValueResult').innerHTML =
+    `<span style="color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:1.3rem">${lo} — ${hi}</span>` +
+    `<span style="color:var(--stone);font-size:.65rem;margin-left:8px">(mid: ${mid})</span>` +
+    (r.notes ? `<div style="color:var(--stone);font-size:.65rem;margin-top:4px;font-style:italic">${r.notes}</div>` : '') +
+    (dateStr ? `<div style="color:var(--stone);font-size:.55rem;margin-top:6px;letter-spacing:.1em;text-transform:uppercase;opacity:.6">Estimated ${dateStr} · tap to refresh</div>` : '');
+  setAIStatus('mValueStatus', `Confidence: ${r.confidence||'medium'} — verify with current market listings`, 'success');
+  document.getElementById('mValueBtn').textContent = '✦ Refresh Estimate';
+}
+
+function saveValueToWatch(w, result){
+  const inSub = subCols.find(s=>s.watches.some(x=>x.id===w.id));
+  const isWish = wishWatches.some(x=>x.id===w.id);
+  w.valueEstimate = result;
+  if(inSub){ const idx=inSub.watches.findIndex(x=>x.id===w.id); if(idx>=0) inSub.watches[idx]=w; saveSubCols(); }
+  else if(isWish){ const idx=wishWatches.findIndex(x=>x.id===w.id); if(idx>=0) wishWatches[idx]=w; saveWish(wishWatches); }
+  else { const idx=customWatches.findIndex(x=>x.id===w.id); if(idx>=0) customWatches[idx]=w; saveCustom(customWatches); }
+}
+
 document.getElementById('mValueBtn').addEventListener('click', async ()=>{
   const w = modalWatch;
   if(!w) return;
@@ -3800,14 +3828,10 @@ document.getElementById('mValueBtn').addEventListener('click', async ()=>{
     const data = await res.json();
     if(!data.ok) throw new Error('Failed');
     const r = data.result;
-    const lo = r.low ? '$'+r.low.toLocaleString() : '—';
-    const hi = r.high ? '$'+r.high.toLocaleString() : '—';
-    const mid = r.mid ? '$'+r.mid.toLocaleString() : '—';
-    document.getElementById('mValueResult').innerHTML =
-      `<span style="color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:1.3rem">${lo} — ${hi}</span>` +
-      `<span style="color:var(--stone);font-size:.65rem;margin-left:8px">(mid: ${mid})</span>` +
-      (r.notes ? `<div style="color:var(--stone);font-size:.65rem;margin-top:4px;font-style:italic">${r.notes}</div>` : '');
-    setAIStatus('mValueStatus', `Confidence: ${r.confidence||'medium'} — verify with current market listings`, 'success');
+    r.savedAt = new Date().toISOString();
+    // Save to watch record
+    saveValueToWatch(w, r);
+    displaySavedValue(w);
   } catch(e) {
     setAIStatus('mValueStatus', 'Could not estimate value', 'error');
   }
