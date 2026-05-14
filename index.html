@@ -115,9 +115,10 @@ h1 em{color:var(--gold);font-style:italic}
 @keyframes sParticle{0%{opacity:0;transform:translateY(0) scale(1)}8%{opacity:.5}85%{opacity:.15}100%{opacity:0;transform:translateY(-100vh) scale(0)}}
 
 /* TABS */
-.tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;padding:0 40px}
+.tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;padding:0 16px;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
 .tabs::-webkit-scrollbar{display:none}
-.tab{padding:16px 20px 14px;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--stone);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Montserrat',sans-serif;font-weight:500;transition:color .2s}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:16px 20px 14px;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--stone);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Montserrat',sans-serif;font-weight:500;transition:color .2s;flex-shrink:0}
 .tab:hover{color:var(--cream)}
 .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
 .tbadge{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 4px;background:var(--border2);border-radius:9px;font-size:.52rem;margin-left:7px;color:var(--stone)}
@@ -846,7 +847,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   <button class="tab" data-tab="fmr">Former <span class="tbadge" id="bFmr">—</span></button>
   <span id="subTabButtons"></span>
   <button class="tab" data-tab="wl">Wish List <span class="tbadge" id="bWl">—</span></button>
-  <button id="addSubColBtn" style="background:transparent;border:1px solid var(--border2);color:var(--stone);padding:6px 14px;font-family:'Montserrat',sans-serif;font-size:.6rem;font-weight:500;letter-spacing:.15em;cursor:pointer;-webkit-appearance:none;border-radius:0;margin:auto 8px;white-space:nowrap;transition:all .2s" title="Add sub-collection">+ Collection</button>
+  <button id="addSubColBtn" style="background:transparent;border:1px solid var(--border2);color:var(--stone);padding:6px 14px;font-family:'Montserrat',sans-serif;font-size:.6rem;font-weight:500;letter-spacing:.15em;cursor:pointer;-webkit-appearance:none;border-radius:0;margin:auto 8px;white-space:nowrap;transition:all .2s;flex-shrink:0" title="Add sub-collection">+ Collection</button>
 </div>
 
 <!-- COLLECTION TAB -->
