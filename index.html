@@ -660,6 +660,31 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   </div>
 </div>
 
+<!-- REMOVE BG PREVIEW -->
+<div class="ws-overlay" id="removeBgOverlay">
+  <div class="ws-modal" style="max-width:480px">
+    <div class="ws-topbar"></div>
+    <button class="ws-close" id="removeBgClose">&#10005;</button>
+    <div class="ws-eyebrow">Background Removal</div>
+    <div class="ws-title" style="margin-bottom:12px">Preview</div>
+    <div class="ai-status" id="removeBgStatus" style="margin-bottom:12px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div>
+        <div style="font-size:.52rem;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);margin-bottom:6px">Original</div>
+        <img id="removeBgOriginal" src="" style="width:100%;aspect-ratio:1;object-fit:contain;background:var(--card2)">
+      </div>
+      <div>
+        <div style="font-size:.52rem;letter-spacing:.15em;text-transform:uppercase;color:var(--stone);margin-bottom:6px">Result</div>
+        <canvas id="removeBgPreview" style="width:100%;aspect-ratio:1;display:block"></canvas>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="m-edit-btn" id="removeBgCancel">Cancel</button>
+      <button class="btn-save" id="removeBgApply" disabled>Apply</button>
+    </div>
+  </div>
+</div>
+
 <!-- MOVE WATCH DIALOG -->
 <div class="ws-overlay" id="moveWatchOverlay">
   <div class="ws-modal" style="max-width:400px">
@@ -922,6 +947,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
         <button class="m-photo-btn" id="mPhotoAddBtn">+ Photo</button>
         <button class="m-photo-btn" id="mPhotoMoveLeftBtn" style="display:none" title="Move photo left">← Move</button>
         <button class="m-photo-btn" id="mPhotoMoveRightBtn" style="display:none" title="Move photo right">Move →</button>
+        <button class="m-photo-btn" id="mRemoveBgBtn" style="display:none" title="Remove background">✦ Remove BG</button>
         <button class="m-photo-btn del" id="mPhotoDelBtn" style="display:none">Remove</button>
       </div>
       <input type="file" accept="image/*" id="mFileIn" style="display:none">
@@ -938,7 +964,10 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
       <div id="mValueSection" style="margin-bottom:16px;display:none">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <div style="font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone)">Market Value Estimate</div>
-          <button class="ai-btn" id="mValueBtn">✦ Estimate Value</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="mValueClearBtn" style="display:none;background:transparent;border:none;color:var(--stone);font-size:.7rem;cursor:pointer;padding:2px 4px;opacity:.6" title="Clear estimate">✕</button>
+            <button class="ai-btn" id="mValueBtn">✦ Estimate Value</button>
+          </div>
         </div>
         <div id="mValueResult" style="font-size:.75rem;color:var(--stone);min-height:20px"></div>
         <div class="ai-status" id="mValueStatus"></div>
@@ -2067,6 +2096,8 @@ function openModal(w){
     setAIStatus('mValueStatus', '', '');
     document.getElementById('mValueBtn').textContent = '✦ Estimate Value';
     document.getElementById('mValueBtn').disabled = false;
+    const clearBtn = document.getElementById('mValueClearBtn');
+    if(clearBtn) clearBtn.style.display = 'none';
     // Show saved estimate if exists
     if(w.valueEstimate) displaySavedValue(w);
     // Load existing story if saved
@@ -2214,6 +2245,8 @@ async function refreshModalPhoto(){
     count.textContent = `${modalPhotoIdx+1}/${imgs.length}`;
     if(moveLeft) moveLeft.style.display = multi && modalPhotoIdx > 0 ? 'inline-block' : 'none';
     if(moveRight) moveRight.style.display = multi && modalPhotoIdx < imgs.length-1 ? 'inline-block' : 'none';
+    const removeBgBtn = document.getElementById('mRemoveBgBtn');
+    if(removeBgBtn) removeBgBtn.style.display = 'inline-block';
   } else {
     img.src=''; img.style.display='none';
     ph.style.display='flex';
@@ -2221,6 +2254,8 @@ async function refreshModalPhoto(){
     if(expand) expand.style.display = 'none';
     if(moveLeft) moveLeft.style.display = 'none';
     if(moveRight) moveRight.style.display = 'none';
+    const removeBgBtn = document.getElementById('mRemoveBgBtn');
+    if(removeBgBtn) removeBgBtn.style.display = 'none';
     prev.style.display='none';
     next.style.display='none';
     count.style.display='none';
@@ -3798,12 +3833,15 @@ function displaySavedValue(w){
     (dateStr ? `<div style="color:var(--stone);font-size:.55rem;margin-top:6px;letter-spacing:.1em;text-transform:uppercase;opacity:.6">Estimated ${dateStr} · tap to refresh</div>` : '');
   setAIStatus('mValueStatus', `Confidence: ${r.confidence||'medium'} — verify with current market listings`, 'success');
   document.getElementById('mValueBtn').textContent = '✦ Refresh Estimate';
+  const clearBtn = document.getElementById('mValueClearBtn');
+  if(clearBtn) clearBtn.style.display = 'inline-block';
 }
 
 function saveValueToWatch(w, result){
+  if(result === null) delete w.valueEstimate;
+  else w.valueEstimate = result;
   const inSub = subCols.find(s=>s.watches.some(x=>x.id===w.id));
   const isWish = wishWatches.some(x=>x.id===w.id);
-  w.valueEstimate = result;
   if(inSub){ const idx=inSub.watches.findIndex(x=>x.id===w.id); if(idx>=0) inSub.watches[idx]=w; saveSubCols(); }
   else if(isWish){ const idx=wishWatches.findIndex(x=>x.id===w.id); if(idx>=0) wishWatches[idx]=w; saveWish(wishWatches); }
   else { const idx=customWatches.findIndex(x=>x.id===w.id); if(idx>=0) customWatches[idx]=w; saveCustom(customWatches); }
@@ -3836,6 +3874,106 @@ document.getElementById('mValueBtn').addEventListener('click', async ()=>{
     setAIStatus('mValueStatus', 'Could not estimate value', 'error');
   }
   btn.disabled = false;
+});
+
+// ── VALUE ESTIMATE CLEAR ──
+document.getElementById('mValueClearBtn').addEventListener('click',()=>{
+  if(!modalWatch) return;
+  delete modalWatch.valueEstimate;
+  saveValueToWatch(modalWatch, null);
+  document.getElementById('mValueResult').innerHTML = '';
+  setAIStatus('mValueStatus','','');
+  document.getElementById('mValueBtn').textContent = '✦ Estimate Value';
+  document.getElementById('mValueClearBtn').style.display = 'none';
+});
+
+// ── REMOVE BACKGROUND ──
+let removeBgProcessedDataUrl = null;
+
+document.getElementById('mRemoveBgBtn').addEventListener('click', async ()=>{
+  if(!modalWatch) return;
+  const pk = photoKey(modalWatch);
+  const imgs = getPhotos(pk);
+  if(!imgs.length) return;
+
+  const ref = imgs[modalPhotoIdx];
+  const src = await resolvePhotoRef(ref);
+  if(!src) return;
+
+  const isDark = !document.body.classList.contains('light');
+  const bgColor = isDark ? '#2a2824' : '#ffffff';
+
+  document.getElementById('removeBgOriginal').src = src;
+  document.getElementById('removeBgPreview').getContext('2d').clearRect(0,0,1,1);
+  document.getElementById('removeBgApply').disabled = true;
+  removeBgProcessedDataUrl = null;
+  setAIStatus('removeBgStatus','✦ Removing background…','loading');
+  document.getElementById('removeBgOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  try{
+    const res = await fetch(WORKER_URL+'/remove-bg',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','X-Auth-Token':AUTH_TOKEN},
+      body: JSON.stringify({ imageBase64: src, isDarkMode: isDark })
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error||'Failed');
+
+    // Composite transparent PNG onto background color using canvas
+    const canvas = document.getElementById('removeBgPreview');
+    const img = new Image();
+    img.onload = ()=>{
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0,0,img.width,img.height);
+      ctx.drawImage(img,0,0);
+      removeBgProcessedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      document.getElementById('removeBgApply').disabled = false;
+      setAIStatus('removeBgStatus','Background removed — looking good?','success');
+    };
+    img.onerror = ()=>{ throw new Error('Preview failed'); };
+    img.src = data.png;
+  } catch(e){
+    setAIStatus('removeBgStatus', e.message || 'Could not remove background','error');
+  }
+});
+
+document.getElementById('removeBgApply').addEventListener('click', async ()=>{
+  if(!removeBgProcessedDataUrl || !modalWatch) return;
+  const pk = photoKey(modalWatch);
+  const imgs = getPhotos(pk);
+  // Replace current photo with processed version
+  const oldRef = imgs[modalPhotoIdx];
+  await deletePhotoFromR2(oldRef);
+  const newRef = await uploadPhotoToR2(pk, removeBgProcessedDataUrl);
+  if(newRef){
+    r2Cache[newRef] = removeBgProcessedDataUrl;
+    imgs[modalPhotoIdx] = newRef;
+  } else {
+    imgs[modalPhotoIdx] = removeBgProcessedDataUrl;
+  }
+  setPhotos(pk, imgs);
+  document.getElementById('removeBgOverlay').classList.remove('open');
+  document.body.style.overflow='';
+  await refreshModalPhoto();
+  renderAll();
+  showToast('Background removed ✓');
+});
+
+['removeBgClose','removeBgCancel'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',()=>{
+    document.getElementById('removeBgOverlay').classList.remove('open');
+    document.body.style.overflow='';
+  });
+});
+document.getElementById('removeBgOverlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('removeBgOverlay')){
+    document.getElementById('removeBgOverlay').classList.remove('open');
+    document.body.style.overflow='';
+  }
 });
 
 // ── COLLECTION INSIGHTS ──
