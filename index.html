@@ -3934,10 +3934,11 @@ document.getElementById('mRemoveBgBtn').addEventListener('click', async ()=>{
       document.getElementById('removeBgApply').disabled = false;
       setAIStatus('removeBgStatus','Background removed — looking good?','success');
     };
-    img.onerror = ()=>{ throw new Error('Preview failed'); };
+    img.onerror = ()=>{ setAIStatus('removeBgStatus', 'Could not render preview — image format issue', 'error'); };
     img.src = data.png;
   } catch(e){
-    setAIStatus('removeBgStatus', e.message || 'Could not remove background','error');
+    setAIStatus('removeBgStatus', e.message || 'Could not remove background — try again', 'error');
+    console.error('Remove BG error:', e);
   }
 });
 
