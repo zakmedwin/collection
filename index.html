@@ -844,11 +844,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 </div>
 
 <div class="tabs" id="tabsBar">
-  <button class="tab active" data-tab="col">Collection <span class="tbadge" id="bCol">—</span></button>
-  <button class="tab" data-tab="fmr">Former <span class="tbadge" id="bFmr">—</span></button>
-  <div id="subTabButtons" style="display:flex;flex-shrink:0;align-items:stretch"></div>
-  <button class="tab" data-tab="wl">Wish List <span class="tbadge" id="bWl">—</span></button>
-  <button id="addSubColBtn" style="background:transparent;border:1px solid var(--border2);color:var(--stone);padding:6px 14px;font-family:'Montserrat',sans-serif;font-size:.6rem;font-weight:500;letter-spacing:.15em;cursor:pointer;-webkit-appearance:none;border-radius:0;margin:auto 8px;white-space:nowrap;transition:all .2s;flex-shrink:0" title="Add sub-collection">+ Collection</button>
+  <!-- Tabs rendered entirely by JS via renderTabs() -->
 </div>
 
 <!-- COLLECTION TAB -->
@@ -1612,15 +1608,39 @@ function allWatches(){return customWatches;}
 function active(){return customWatches.filter(w=>!w.sold);}
 function soldW(){return customWatches.filter(w=>w.sold);}
 
-// ── SUB-COLLECTION TAB RENDERING ──
-function renderSubColTabs(){
-  // Render tab buttons
-  const span = document.getElementById('subTabButtons');
-  span.innerHTML = subCols.map(s=>
-    `<button class="tab" data-tab="sub-${s.id}">${s.name} <span class="tbadge">${s.watches.length||'—'}</span></button>`
-  ).join('');
+// ── RENDER TABS ──
+function renderTabs(){
+  const bar = document.getElementById('tabsBar');
+  const act = active(), sld = soldW();
 
-  // Render tab content panels
+  const tabHTML = [
+    `<button class="tab${curTab==='col'?' active':''}" data-tab="col">Collection <span class="tbadge">${act.length||'—'}</span></button>`,
+    `<button class="tab${curTab==='fmr'?' active':''}" data-tab="fmr">Former <span class="tbadge">${sld.length||'—'}</span></button>`,
+    ...subCols.map(s=>`<button class="tab${curTab===`sub-${s.id}`?' active':''}" data-tab="sub-${s.id}">${s.name} <span class="tbadge">${s.watches.length||'—'}</span></button>`),
+    `<button class="tab${curTab==='wl'?' active':''}" data-tab="wl">Wish List <span class="tbadge">${wishWatches.length||'—'}</span></button>`,
+    `<button id="addSubColBtn" style="background:transparent;border:1px solid var(--border2);color:var(--stone);padding:6px 14px;font-family:'Montserrat',sans-serif;font-size:.6rem;font-weight:500;letter-spacing:.15em;cursor:pointer;-webkit-appearance:none;border-radius:0;margin:auto 8px;white-space:nowrap;flex-shrink:0">+ Collection</button>`
+  ].join('');
+
+  bar.innerHTML = tabHTML;
+
+  // Wire up tab clicks
+  bar.querySelectorAll('.tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      curTab = tab.dataset.tab;
+      renderTabs();
+      showTab(curTab);
+      const srch = document.getElementById('srchIn');
+      const subName = curTab.startsWith('sub-') ? (getSubColById(curTab.replace('sub-',''))||{name:'collection'}).name : '';
+      const placeholders = {col:'Search collection…',fmr:'Search former collection…',wl:'Search wish list…'};
+      if(srch){ srch.placeholder = curTab.startsWith('sub-') ? `Search ${subName}…` : (placeholders[curTab]||'Search…'); srch.value=''; }
+    });
+  });
+
+  // Wire up + Collection button
+  const addBtn = document.getElementById('addSubColBtn');
+  if(addBtn) addBtn.addEventListener('click',()=>openSubColDialog(null));
+
+  // Render sub-collection tab content panels
   const container = document.getElementById('subColTabs');
   container.innerHTML = subCols.map(s=>`
     <div id="tab-sub-${s.id}" style="display:none">
@@ -1654,24 +1674,12 @@ function renderSubColTabs(){
     });
   });
 
-  // Wire up rename/delete buttons
   document.querySelectorAll('.sub-rename-btn').forEach(btn=>{
     btn.addEventListener('click',()=> openSubColDialog(btn.dataset.subid));
   });
 
-  // Wire up add watch buttons
   document.querySelectorAll('.sub-add-btn').forEach(btn=>{
     btn.addEventListener('click',()=> openForm(null, 'sub-'+btn.dataset.subid));
-  });
-
-  // Wire up tab clicks for sub-collection tabs
-  document.querySelectorAll('#subTabButtons .tab').forEach(tab=>{
-    tab.addEventListener('click',()=>{
-      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-      tab.classList.add('active');
-      curTab = tab.dataset.tab;
-      showTab(curTab);
-    });
   });
 }
 
@@ -1706,8 +1714,6 @@ const camIcon=`<svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="curr
 // ── STATS ──
 function renderStats(){
   const act=active(), sld=soldW();
-  document.getElementById('bCol').textContent=act.length;
-  document.getElementById('bFmr').textContent=sld.length;
   const tPd=act.reduce((s,w)=>s+(w.paid||0),0);
   const tRt=act.reduce((s,w)=>s+(w.price||0),0);
   const tF26=act.reduce((s,w)=>s+(w.feb26||0),0);
@@ -2054,17 +2060,16 @@ function renderAll(){
   try{renderBreakdown();}catch(e){console.warn('renderBreakdown error',e);}
   try{applyFS();}catch(e){console.warn('applyFS error',e);}
   try{renderGrid(soldW(),'fmrGrid','sold');}catch(e){}
-  // Render sub-collections
+  // Render tabs (replaces renderSubColTabs)
+  try{ renderTabs(); }catch(e){ console.warn('renderTabs error',e); }
+  // Render sub-collection grids
   try{
-    renderSubColTabs();
     subCols.forEach(s=>{
       try{ renderGrid(s.watches, `subGrid-${s.id}`, `sub-${s.id}`); renderSubColStats(s); }catch(e){}
     });
   }catch(e){ console.warn('subCols render error',e); }
   try{
     renderGrid(wishWatches,'wlGrid','wish');
-    const wlT=document.getElementById('wlTot');if(wlT)wlT.textContent=wishWatches.length||'—';
-    const bWl=document.getElementById('bWl');if(bWl)bWl.textContent=wishWatches.length||'—';
     const wlVal=wishWatches.reduce((s,w)=>s+(w.price||0),0);
     const wlV=document.getElementById('wlVal');if(wlV)wlV.textContent=wlVal?'$'+Math.round(wlVal/1000)+'K':'—';
   }catch(e){console.warn('wishlist render error',e);}
@@ -2520,31 +2525,15 @@ document.getElementById('confirmYes').addEventListener('click',()=>{
 let curTab = 'col';
 
 function showTab(t){
-  // Hide all static tabs
   ['col','fmr','wl'].forEach(id=>{
     const el=document.getElementById('tab-'+id);
     if(el) el.style.display=id===t?'block':'none';
   });
-  // Hide all sub-collection tabs
   subCols.forEach(s=>{
     const el=document.getElementById(`tab-sub-${s.id}`);
     if(el) el.style.display=t===`sub-${s.id}`?'block':'none';
   });
 }
-
-document.querySelectorAll('.tab').forEach(tab=>{
-  tab.addEventListener('click',()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    curTab = tab.dataset.tab;
-    showTab(curTab);
-    const srch = document.getElementById('srchIn');
-    const subName = curTab.startsWith('sub-') ? (getSubColById(curTab.replace('sub-',''))||{name:'collection'}).name : '';
-    const placeholders = {col:'Search collection…',fmr:'Search former collection…',wl:'Search wish list…'};
-    if(srch){ srch.placeholder = curTab.startsWith('sub-') ? `Search ${subName}…` : (placeholders[curTab]||'Search…'); srch.value=''; }
-    applyFS();
-  });
-});
 
 // ── ADD SUB-COLLECTION DIALOG ──
 let editingSubId = null;
@@ -2561,7 +2550,6 @@ function openSubColDialog(subId){
   setTimeout(()=>document.getElementById('subColNameInput').focus(), 100);
 }
 
-document.getElementById('addSubColBtn').addEventListener('click',()=>openSubColDialog(null));
 document.getElementById('subColDialogClose').addEventListener('click',()=>{
   document.getElementById('subColDialog').classList.remove('open');
   document.body.style.overflow='';
@@ -2582,15 +2570,11 @@ document.getElementById('subColSaveBtn').addEventListener('click',()=>{
   saveSubCols();
   document.getElementById('subColDialog').classList.remove('open');
   document.body.style.overflow='';
-  renderAll();
-  // Switch to new sub-collection tab if just created
   if(!editingSubId){
-    const newTab = `sub-${subCols[subCols.length-1].id}`;
-    setTimeout(()=>{
-      const btn = document.querySelector(`[data-tab="${newTab}"]`);
-      if(btn) btn.click();
-    }, 100);
+    curTab = `sub-${subCols[subCols.length-1].id}`;
   }
+  renderAll();
+  showTab(curTab);
 });
 document.getElementById('subColDeleteBtn').addEventListener('click',()=>{
   const s = getSubColById(editingSubId);
@@ -2603,9 +2587,6 @@ document.getElementById('subColDeleteBtn').addEventListener('click',()=>{
   curTab='col';
   renderAll();
   showTab('col');
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  const colTab=document.querySelector('[data-tab="col"]');
-  if(colTab) colTab.classList.add('active');
 });
 document.getElementById('subColNameInput').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('subColSaveBtn').click(); });
 
