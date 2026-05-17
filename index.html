@@ -845,13 +845,12 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 </div>
 
 <!-- STICKY NAV WRAPPER - tabs + controls locked together -->
-<div id="stickyNav" style="position:sticky;top:0;z-index:200;background:#141210;isolation:isolate">
+<div id="stickyNav" style="position:fixed;top:0;left:0;right:0;z-index:200;background:#141210">
 
 <div class="tabs" id="tabsBar">
   <!-- Tabs rendered entirely by JS via renderTabs() -->
 </div>
 
-<!-- PERMANENT STICKY CONTROLS BAR - outside all tab content -->
 <div class="controls" id="controlsBar" style="position:relative;top:auto;z-index:auto;box-shadow:none;border-bottom:2px solid var(--border)">
   <div class="srch"><span class="si">⌕</span><input type="text" id="srchIn" placeholder="Search brand, model, reference…"></div>
   <div class="pills" id="pillG">
@@ -878,6 +877,8 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 </div>
 
 </div><!-- end stickyNav -->
+<!-- Spacer to push content below fixed nav -->
+<div id="navSpacer"></div>
 
 <!-- COLLECTION TAB -->
 <div id="tab-col">
@@ -2529,6 +2530,26 @@ document.getElementById('confirmYes').addEventListener('click',()=>{
   renderAll();
 });
 
+// ── FIXED NAV HEIGHT ──
+function updateNavSpacer(){
+  const nav = document.getElementById('stickyNav');
+  const spacer = document.getElementById('navSpacer');
+  if(nav && spacer){
+    spacer.style.height = nav.offsetHeight + 'px';
+  }
+  // Update nav background for light/dark mode
+  if(nav){
+    nav.style.background = document.body.classList.contains('light') ? '#f0eeea' : '#141210';
+  }
+}
+window.addEventListener('resize', updateNavSpacer);
+// Call after render since nav height may change
+const _origRenderAll = renderAll;
+renderAll = function(){
+  _origRenderAll();
+  setTimeout(updateNavSpacer, 50);
+};
+
 // ── TABS ──
 let curTab = 'col';
 
@@ -3269,6 +3290,7 @@ document.getElementById('restoreFileIn').addEventListener('change',e=>{
     document.body.classList.toggle('light');
     localStorage.setItem(THEME_KEY,document.body.classList.contains('light')?'light':'dark');
     updateIcon();
+    updateNavSpacer();
   });
 })();
 
@@ -4684,7 +4706,7 @@ async function migratePhotosToR2(){
 // Load from cloud on startup
 cloudLoad().then(loaded => {
   if(loaded) renderAll();
-  // Watch of the Day — runs after data is available
+  updateNavSpacer();
   updateWatchOfTheDay();
   // Migrate existing localStorage photos to R2 (runs once)
   setTimeout(migratePhotosToR2, 3000);
