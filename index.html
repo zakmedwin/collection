@@ -115,14 +115,15 @@ h1 em{color:var(--gold);font-style:italic}
 @keyframes sParticle{0%{opacity:0;transform:translateY(0) scale(1)}8%{opacity:.5}85%{opacity:.15}100%{opacity:0;transform:translateY(-100vh) scale(0)}}
 
 /* TABS */
-.tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;padding:0 16px;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;position:sticky;top:0;z-index:99;background:#141210}
+.tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;padding:0 16px;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;position:sticky;top:0;z-index:101;background:#141210}
 .tabs::-webkit-scrollbar{display:none}
 .tab{padding:16px 20px 14px;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--stone);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Montserrat',sans-serif;font-weight:500;transition:color .2s;flex-shrink:0;display:inline-flex;align-items:center}
 .tab:hover{color:var(--cream)}
 .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
 .tbadge{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 4px;background:var(--border2);border-radius:9px;font-size:.52rem;margin-left:7px;color:var(--stone)}
 .tab.active .tbadge{background:rgba(184,145,58,.18);color:var(--gold)}
-body.light .controls{background:#f0eeea !important;box-shadow:0 6px 24px #f0eeea !important}
+body.light #stickyNav{background:#f0eeea !important}
+body.light .controls{background:#f0eeea !important;box-shadow:none !important}
 body.light .tabs{background:#f0eeea !important}
 
 /* STATS */
@@ -843,9 +844,40 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   <button class="pwa-banner-dismiss" id="pwaBannerDismiss">✕</button>
 </div>
 
+<!-- STICKY NAV WRAPPER - tabs + controls locked together -->
+<div id="stickyNav" style="position:sticky;top:0;z-index:200;background:#141210;isolation:isolate">
+
 <div class="tabs" id="tabsBar">
   <!-- Tabs rendered entirely by JS via renderTabs() -->
 </div>
+
+<!-- PERMANENT STICKY CONTROLS BAR - outside all tab content -->
+<div class="controls" id="controlsBar" style="position:relative;top:auto;z-index:auto;box-shadow:none;border-bottom:2px solid var(--border)">
+  <div class="srch"><span class="si">⌕</span><input type="text" id="srchIn" placeholder="Search brand, model, reference…"></div>
+  <div class="pills" id="pillG">
+    <button class="pill active" data-f="all">All</button>
+    <button class="pill" data-f="Automatic">Auto</button>
+    <button class="pill" data-f="Manual Wind">Manual</button>
+    <button class="pill" data-f="Quartz">Quartz</button>
+    <button class="pill" data-f="New">New</button>
+    <button class="pill" data-f="Gift">Gifted</button>
+  </div>
+  <button class="m-edit-btn" id="bulkEditBtn" style="font-size:.55rem;padding:7px 14px;border-color:var(--border2);white-space:nowrap">☰ Bulk Edit</button>
+  <button class="m-edit-btn" id="shareBtn" style="font-size:.55rem;padding:7px 14px;border-color:var(--border2);white-space:nowrap">↑ Share</button>
+  <select class="ssel" id="sortS">
+    <option value="brand">Brand A–Z</option>
+    <option value="year-d">Year ↓</option>
+    <option value="year-a">Year ↑</option>
+    <option value="paid-d">Paid ↓</option>
+    <option value="paid-a">Paid ↑</option>
+    <option value="retail-d">Retail ↓</option>
+    <option value="cv-d">Current Value ↓</option>
+    <option value="cv-a">Current Value ↑</option>
+    <option value="gl-d">Gain ↓</option>
+  </select>
+</div>
+
+</div><!-- end stickyNav -->
 
 <!-- COLLECTION TAB -->
 <div id="tab-col">
@@ -860,30 +892,6 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <div class="stat"><div class="sv" id="sF26">—</div><div class="sl">Current Value</div></div>
     <div class="stat"><div class="sv" id="sGL">—</div><div class="sl">Gain</div></div>
     <div class="stat"><div class="sv" id="sMc">—</div><div class="sl">Mechanical</div></div>
-  </div>
-  <div class="controls">
-    <div class="srch"><span class="si">⌕</span><input type="text" id="srchIn" placeholder="Search brand, model, reference…"></div>
-    <div class="pills" id="pillG">
-      <button class="pill active" data-f="all">All</button>
-      <button class="pill" data-f="Automatic">Auto</button>
-      <button class="pill" data-f="Manual Wind">Manual</button>
-      <button class="pill" data-f="Quartz">Quartz</button>
-      <button class="pill" data-f="New">New</button>
-      <button class="pill" data-f="Gift">Gifted</button>
-    </div>
-    <button class="m-edit-btn" id="bulkEditBtn" style="font-size:.55rem;padding:7px 14px;border-color:var(--border2);white-space:nowrap">☰ Bulk Edit</button>
-    <button class="m-edit-btn" id="shareBtn" style="font-size:.55rem;padding:7px 14px;border-color:var(--border2);white-space:nowrap">↑ Share</button>
-    <select class="ssel" id="sortS">
-      <option value="brand">Brand A–Z</option>
-      <option value="year-d">Year ↓</option>
-      <option value="year-a">Year ↑</option>
-      <option value="paid-d">Paid ↓</option>
-      <option value="paid-a">Paid ↑</option>
-      <option value="retail-d">Retail ↓</option>
-      <option value="cv-d">Current Value ↓</option>
-      <option value="cv-a">Current Value ↑</option>
-      <option value="gl-d">Gain ↓</option>
-    </select>
   </div>
   <div class="rcount">Showing <span id="rcN">—</span> timepieces</div>
   <div class="grid" id="gridEl"></div>
