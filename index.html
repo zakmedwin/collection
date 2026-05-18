@@ -1641,6 +1641,15 @@ function renderTabs(){
       const subName = curTab.startsWith('sub-') ? (getSubColById(curTab.replace('sub-',''))||{name:'collection'}).name : '';
       const placeholders = {col:'Search collection…',fmr:'Search former collection…',wl:'Search wish list…'};
       if(srch){ srch.placeholder = curTab.startsWith('sub-') ? `Search ${subName}…` : (placeholders[curTab]||'Search…'); srch.value=''; }
+      // Re-render the grid for the active sub-collection tab
+      if(curTab.startsWith('sub-')){
+        const subId = curTab.replace('sub-','');
+        const s = getSubColById(subId);
+        if(s){
+          try{ renderGrid(s.watches, `subGrid-${subId}`, curTab); renderSubColStats(s); }catch(e){}
+          setTimeout(loadR2PhotosInView, 100);
+        }
+      }
     });
   });
 
