@@ -188,10 +188,12 @@ body.light .tabs{background:#f0eeea !important}
 .card-icon-add:hover,.card-icon-add:active{background:rgba(184,145,58,.25)}
 .card-icon-del{background:rgba(14,12,10,.85);border:1px solid #7a3a3a;color:#c05050;font-size:1.3rem}
 .card-icon-del:hover,.card-icon-del:active{background:rgba(180,50,50,.25);border-color:#c05050;color:#e07070}
-.photo-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;color:#fff;font-size:1.8rem;width:36px;height:52px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;opacity:0.75;transition:opacity .2s;-webkit-appearance:none;border-radius:0;line-height:1;touch-action:manipulation;-webkit-touch-callout:none}
-.photo-prev{left:0}.photo-next{right:0}
-.wcard:hover .photo-nav{opacity:0.95}
-.photo-count{position:absolute;bottom:6px;right:8px;font-size:.5rem;letter-spacing:.1em;color:rgba(255,255,255,.8);background:rgba(0,0,0,.5);padding:2px 6px;z-index:2;pointer-events:none}
+.photo-nav{position:absolute;top:50%;transform:translateY(-50%);background:transparent;border:none;color:rgba(184,145,58,.6);font-size:1.1rem;width:24px;height:48px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;opacity:0;transition:opacity .25s,color .2s;-webkit-appearance:none;border-radius:0;line-height:1;touch-action:manipulation;-webkit-touch-callout:none;font-family:'Cormorant Garamond',serif;font-weight:300}
+.photo-prev{left:4px}.photo-next{right:4px}
+.photo-area:hover .photo-nav,.photo-area:active .photo-nav{opacity:1}
+.wcard:hover .photo-nav{opacity:.8}
+.photo-nav:hover{color:var(--gold)}
+.photo-count{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);font-size:.42rem;letter-spacing:.18em;color:rgba(184,145,58,.5);z-index:2;pointer-events:none;font-family:'Montserrat',sans-serif}
 input.file-in{display:none}
 
 /* CARD BODY */
@@ -449,7 +451,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
   /* Larger close button on mobile */
   .m-close{width:44px;height:44px;font-size:1.1rem;top:10px;right:10px}
   /* Photo nav always visible on mobile — no hover needed */
-  .photo-nav{opacity:0.85 !important}
+  .photo-nav{opacity:.6 !important}
   /* Modal photo nav always visible */
   #mPhotoPrev, #mPhotoNext{opacity:0.85}
 }
@@ -844,7 +846,10 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 
 <!-- PHOTO LIGHTBOX -->
 <div id="photoLightbox">
+  <button id="photoLightboxPrev" style="position:fixed;left:16px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(184,145,58,.7);font-size:2.5rem;cursor:pointer;z-index:10000;-webkit-appearance:none;font-family:'Cormorant Garamond',serif;padding:16px;transition:color .2s">‹</button>
   <img id="photoLightboxImg" src="" alt="">
+  <button id="photoLightboxNext" style="position:fixed;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(184,145,58,.7);font-size:2.5rem;cursor:pointer;z-index:10000;-webkit-appearance:none;font-family:'Cormorant Garamond',serif;padding:16px;transition:color .2s">›</button>
+  <div id="photoLightboxCount" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);font-family:'Montserrat',sans-serif;font-size:.48rem;letter-spacing:.2em;color:rgba(184,145,58,.5);pointer-events:none"></div>
 </div>
 
 <!-- PWA INSTALL BANNER -->
@@ -2039,9 +2044,10 @@ function renderGrid(data,elId,type){
       if(sessionStorage.getItem('wc_unlocked')!=='yes') return;
       e.stopPropagation();
       if(!img.src) return;
-      document.getElementById('photoLightboxImg').src=img.src;
-      document.getElementById('photoLightbox').classList.add('open');
-      document.body.style.overflow='hidden';
+      const area = img.closest('.photo-area');
+      const pk = area ? area.dataset.pk : null;
+      const idx = pk ? (cardPhotoIndex[pk] || 0) : 0;
+      openLightbox(pk, idx);
     };
     img.addEventListener('click', openFromCard);
   });
@@ -2696,7 +2702,15 @@ document.getElementById('overlay').addEventListener('click',e=>{if(e.target===do
 document.getElementById('formClose').addEventListener('click',closeForm);
 document.getElementById('formCancelBtn').addEventListener('click',closeForm);
 document.getElementById('formOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('formOverlay'))closeForm();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeForm();}});
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('photoLightbox').classList.contains('open')){
+    if(e.key==='Escape') closeLightbox();
+    else if(e.key==='ArrowLeft'){ lightboxIdx--; showLightboxPhoto(); }
+    else if(e.key==='ArrowRight'){ lightboxIdx++; showLightboxPhoto(); }
+    return;
+  }
+  if(e.key==='Escape'){closeModal();closeForm();}
+});
 
 // ── BACKUP & RESTORE ──
 let toastQueue = [];
@@ -4138,33 +4152,70 @@ document.getElementById('mPhotoWrap').addEventListener('click', ()=>{
 });
 
 // ── PHOTO LIGHTBOX ──
-function openLightbox(){
-  const img = document.getElementById('mPhotoImg');
-  if(!img || img.style.display === 'none' || !img.src) return;
-  document.getElementById('photoLightboxImg').src = img.src;
+let lightboxPk = null;
+let lightboxIdx = 0;
+
+async function openLightbox(pk, idx){
+  lightboxPk = pk || (modalWatch ? photoKey(modalWatch) : null);
+  lightboxIdx = (idx !== undefined) ? idx : (modalWatch ? modalPhotoIdx : 0);
+  await showLightboxPhoto();
   document.getElementById('photoLightbox').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-document.getElementById('mPhotoExpandBtn').addEventListener('click', e=>{
-  e.stopPropagation();
-  openLightbox();
-});
-document.getElementById('mPhotoImg').addEventListener('click', e=>{
-  e.stopPropagation();
-  openLightbox();
-});
-document.getElementById('photoLightbox').addEventListener('click', ()=>{
+
+async function showLightboxPhoto(){
+  if(!lightboxPk) return;
+  const imgs = getPhotos(lightboxPk);
+  if(!imgs.length) return;
+  if(lightboxIdx >= imgs.length) lightboxIdx = 0;
+  if(lightboxIdx < 0) lightboxIdx = imgs.length - 1;
+  const src = await resolvePhotoRef(imgs[lightboxIdx]);
+  if(src) document.getElementById('photoLightboxImg').src = src;
+  const count = document.getElementById('photoLightboxCount');
+  const prev = document.getElementById('photoLightboxPrev');
+  const next = document.getElementById('photoLightboxNext');
+  const multi = imgs.length > 1;
+  if(count) count.textContent = multi ? `${lightboxIdx + 1}  ·  ${imgs.length}` : '';
+  if(prev) prev.style.opacity = multi ? '1' : '0';
+  if(next) next.style.opacity = multi ? '1' : '0';
+}
+
+function closeLightbox(){
   document.getElementById('photoLightbox').classList.remove('open');
   document.getElementById('photoLightboxImg').src = '';
   document.body.style.overflow = '';
+  lightboxPk = null;
+}
+
+document.getElementById('photoLightboxPrev').addEventListener('click', async e=>{
+  e.stopPropagation(); lightboxIdx--; await showLightboxPhoto();
 });
-// Close on Escape
-document.addEventListener('keydown', e=>{
-  if(e.key==='Escape' && document.getElementById('photoLightbox').classList.contains('open')){
-    document.getElementById('photoLightbox').classList.remove('open');
-    document.getElementById('photoLightboxImg').src = '';
-    document.body.style.overflow = '';
-  }
+document.getElementById('photoLightboxNext').addEventListener('click', async e=>{
+  e.stopPropagation(); lightboxIdx++; await showLightboxPhoto();
+});
+document.getElementById('photoLightbox').addEventListener('click', e=>{
+  if(e.target===document.getElementById('photoLightbox')||e.target===document.getElementById('photoLightboxImg')) closeLightbox();
+});
+
+// Swipe support
+let lbTouchX = null;
+document.getElementById('photoLightbox').addEventListener('touchstart',e=>{ lbTouchX=e.touches[0].clientX; },{passive:true});
+document.getElementById('photoLightbox').addEventListener('touchend',async e=>{
+  if(lbTouchX===null) return;
+  const diff = lbTouchX - e.changedTouches[0].clientX;
+  if(Math.abs(diff)>40){ if(diff>0) lightboxIdx++; else lightboxIdx--; await showLightboxPhoto(); }
+  lbTouchX=null;
+},{passive:true});
+
+document.getElementById('mPhotoExpandBtn').addEventListener('click', e=>{
+  e.stopPropagation();
+  if(!modalWatch) return;
+  openLightbox(photoKey(modalWatch), modalPhotoIdx);
+});
+document.getElementById('mPhotoImg').addEventListener('click', e=>{
+  e.stopPropagation();
+  if(!modalWatch) return;
+  openLightbox(photoKey(modalWatch), modalPhotoIdx);
 });
 // Column mapping: source heading → app field key
 const IMPORT_FIELD_MAP = {
