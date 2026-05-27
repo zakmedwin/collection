@@ -252,6 +252,11 @@ input.file-in{display:none}
 @keyframes mIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .m-topbar{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold))}
 .m-photo{width:100%;aspect-ratio:16/9;background:var(--ink);position:relative;overflow:hidden;cursor:zoom-in}
+.m-photo-strip{display:flex;gap:6px;padding:8px 0 4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.m-photo-strip::-webkit-scrollbar{display:none}
+.m-thumb{width:52px;height:52px;flex-shrink:0;object-fit:cover;cursor:pointer;border:2px solid transparent;opacity:.65;transition:all .2s;background:var(--card2)}
+.m-thumb.active{border-color:var(--gold);opacity:1}
+.m-thumb:hover{opacity:.9}
 .m-photo img{width:100%;height:100%;object-fit:contain;background:var(--card);cursor:pointer;transform-origin:center;transition:none}
 /* Fullscreen photo lightbox */
 #photoLightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out}
@@ -958,6 +963,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
       <button class="m-photo-btn" id="mRemoveBgBtn" style="display:none" title="Remove background">✦ Remove BG</button>
       <button class="m-photo-btn del" id="mPhotoDelBtn" style="display:none">Remove</button>
     </div>
+    <div class="m-photo-strip" id="mPhotoStrip"></div>
     <div class="m-head">
       <div class="m-brand-lbl" id="mBrand"></div>
       <div class="m-model-lbl" id="mModel"></div>
@@ -2251,6 +2257,9 @@ async function refreshModalPhoto(){
   const expand = document.getElementById('mPhotoExpandBtn');
   const moveLeft = document.getElementById('mPhotoMoveLeftBtn');
   const moveRight = document.getElementById('mPhotoMoveRightBtn');
+  const removeBgBtn = document.getElementById('mRemoveBgBtn');
+  const strip = document.getElementById('mPhotoStrip');
+
   if(imgs.length > 0){
     if(modalPhotoIdx >= imgs.length) modalPhotoIdx = imgs.length - 1;
     const ref = imgs[modalPhotoIdx];
@@ -2260,17 +2269,55 @@ async function refreshModalPhoto(){
     ph.style.display = 'none';
     del.style.display = 'inline-block';
     if(expand) expand.style.display = 'flex';
-    const multi = imgs.length > 1;
-    prev.style.display = multi ? 'flex' : 'none';
-    next.style.display = multi ? 'flex' : 'none';
-    prev.style.opacity = '0.85';
-    next.style.opacity = '0.85';
-    count.style.display = multi ? 'block' : 'none';
-    count.textContent = `${modalPhotoIdx+1}/${imgs.length}`;
-    if(moveLeft) moveLeft.style.display = multi && modalPhotoIdx > 0 ? 'inline-block' : 'none';
-    if(moveRight) moveRight.style.display = multi && modalPhotoIdx < imgs.length-1 ? 'inline-block' : 'none';
-    const removeBgBtn = document.getElementById('mRemoveBgBtn');
     if(removeBgBtn) removeBgBtn.style.display = 'inline-block';
+    // Hide nav arrows — replaced by strip
+    prev.style.display = 'none';
+    next.style.display = 'none';
+    count.style.display = 'none';
+    if(moveLeft) moveLeft.style.display = imgs.length > 1 && modalPhotoIdx > 0 ? 'inline-block' : 'none';
+    if(moveRight) moveRight.style.display = imgs.length > 1 && modalPhotoIdx < imgs.length-1 ? 'inline-block' : 'none';
+
+    // Build thumbnail strip
+    if(strip){
+      strip.innerHTML = '';
+      imgs.forEach((r, i)=>{
+        const thumb = document.createElement('img');
+        thumb.className = 'm-thumb' + (i === modalPhotoIdx ? ' active' : '');
+        thumb.title = i === 0 ? '★ Cover photo' : `Photo ${i+1} — tap to set as cover`;
+        // Load thumbnail async
+        resolvePhotoRef(r).then(s=>{ if(s) thumb.src = s; });
+        thumb.addEventListener('click', async ()=>{
+          if(i === modalPhotoIdx) return;
+          // Move tapped photo to position 0 (cover) if it's not already
+          // Or just navigate to it
+          modalPhotoIdx = i;
+          await refreshModalPhoto();
+        });
+        // Long press or double tap to set as cover
+        let pressTimer;
+        thumb.addEventListener('touchstart', ()=>{ pressTimer = setTimeout(async ()=>{
+          if(i === 0) return;
+          // Move to front
+          const arr = getPhotos(pk);
+          const [item] = arr.splice(i, 1);
+          arr.unshift(item);
+          setPhotos(pk, arr);
+          modalPhotoIdx = 0;
+          await refreshModalPhoto();
+          showToast('Set as cover photo ✓');
+        }, 600); }, {passive:true});
+        thumb.addEventListener('touchend', ()=>clearTimeout(pressTimer), {passive:true});
+        thumb.addEventListener('touchmove', ()=>clearTimeout(pressTimer), {passive:true});
+        strip.appendChild(thumb);
+      });
+      // Add a "+" thumbnail at the end
+      const addThumb = document.createElement('div');
+      addThumb.style.cssText = 'width:52px;height:52px;flex-shrink:0;border:1px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--stone);font-size:1.4rem;background:transparent';
+      addThumb.textContent = '+';
+      addThumb.title = 'Add photo';
+      addThumb.addEventListener('click', ()=>document.getElementById('mFileIn').click());
+      strip.appendChild(addThumb);
+    }
   } else {
     img.src=''; img.style.display='none';
     ph.style.display='flex';
@@ -2278,11 +2325,11 @@ async function refreshModalPhoto(){
     if(expand) expand.style.display = 'none';
     if(moveLeft) moveLeft.style.display = 'none';
     if(moveRight) moveRight.style.display = 'none';
-    const removeBgBtn = document.getElementById('mRemoveBgBtn');
     if(removeBgBtn) removeBgBtn.style.display = 'none';
     prev.style.display='none';
     next.style.display='none';
     count.style.display='none';
+    if(strip) strip.innerHTML = '';
   }
 }
 
