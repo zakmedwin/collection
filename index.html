@@ -198,7 +198,7 @@ input.file-in{display:none}
 
 /* CARD BODY */
 .cbody{padding:14px 16px}
-.c-brand{font-size:.52rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:3px}
+.c-brand{font-size:.58rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:3px}
 .c-brand.sb{color:var(--stone)}
 .c-brand.mb{color:#a070b8}
 .c-brand.cb2{color:#4a9a6a}
@@ -254,19 +254,23 @@ input.file-in{display:none}
 @keyframes mIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .m-topbar{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold))}
 .m-photo{width:100%;aspect-ratio:16/9;background:var(--ink);position:relative;overflow:hidden;cursor:zoom-in}
-.m-photo-strip{display:flex;gap:6px;padding:10px 0 6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:flex-start}
+.m-photo-strip{display:flex;gap:6px;padding:10px 0 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:flex-start}
 .m-photo-strip::-webkit-scrollbar{display:none}
 .m-thumb-wrap{position:relative;flex-shrink:0;width:54px}
 .m-thumb{width:54px;height:54px;object-fit:cover;cursor:pointer;border:1.5px solid transparent;opacity:.55;transition:all .2s;background:var(--card2);display:block}
 .m-thumb.active{border-color:var(--gold);opacity:1}
 .m-thumb:hover{opacity:.85}
 .m-thumb-star{position:absolute;top:2px;left:2px;font-size:.6rem;color:var(--gold);line-height:1;text-shadow:0 0 4px rgba(0,0,0,.8);pointer-events:none}
-.m-thumb-star-btn{position:absolute;bottom:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:var(--stone);width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.55rem;-webkit-appearance:none;border-radius:0;transition:color .15s;padding:0}
-.m-thumb-star-btn:hover{color:var(--gold)}
-.m-thumb-del-btn{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:rgba(255,255,255,.5);width:18px;height:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.55rem;-webkit-appearance:none;border-radius:0;transition:color .15s;padding:0}
-.m-thumb-del-btn:hover{color:#e07070}
 .m-thumb-add{width:54px;height:54px;flex-shrink:0;border:1px dashed var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--stone);font-size:1.4rem;background:transparent;transition:all .2s;-webkit-appearance:none}
 .m-thumb-add:hover{border-color:var(--gold);color:var(--gold)}
+/* Thumbnail action bar */
+.m-thumb-actions{display:none;gap:8px;padding:8px 0 4px;align-items:center}
+.m-thumb-actions.visible{display:flex}
+.m-thumb-action-btn{flex:1;padding:8px 12px;font-family:'Montserrat',sans-serif;font-size:.58rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;-webkit-appearance:none;border-radius:0;transition:all .2s;text-align:center}
+.m-thumb-action-cover{background:transparent;border:1px solid var(--gold);color:var(--gold)}
+.m-thumb-action-cover:hover,.m-thumb-action-cover:active{background:rgba(184,145,58,.15)}
+.m-thumb-action-del{background:transparent;border:1px solid #7a3a3a;color:#c05050}
+.m-thumb-action-del:hover,.m-thumb-action-del:active{background:rgba(180,50,50,.15);color:#e07070}
 .m-photo img{width:100%;height:100%;object-fit:contain;background:var(--card);cursor:pointer;transform-origin:center;transition:none}
 /* Fullscreen photo lightbox */
 #photoLightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out}
@@ -973,6 +977,10 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
       <button class="m-photo-btn" id="mRemoveBgBtn" style="display:none" title="Remove background">✦ Remove BG</button>
     </div>
     <div class="m-photo-strip" id="mPhotoStrip"></div>
+    <div class="m-thumb-actions" id="mThumbActions">
+      <button class="m-thumb-action-btn m-thumb-action-cover" id="mThumbCoverBtn">★ Set as Cover</button>
+      <button class="m-thumb-action-btn m-thumb-action-del" id="mThumbDelBtn">Remove Photo</button>
+    </div>
     <div class="m-head">
       <div class="m-brand-lbl" id="mBrand"></div>
       <div class="m-model-lbl" id="mModel"></div>
@@ -2277,6 +2285,33 @@ async function refreshModalPhoto(){
     // Build thumbnail strip
     if(strip){
       strip.innerHTML = '';
+      const actionsBar = document.getElementById('mThumbActions');
+      const coverBtn = document.getElementById('mThumbCoverBtn');
+      const delBtn2 = document.getElementById('mThumbDelBtn');
+      let selectedIdx = modalPhotoIdx;
+
+      function updateActionBar(){
+        actionsBar.classList.add('visible');
+        coverBtn.style.display = selectedIdx === 0 ? 'none' : 'block';
+      }
+
+      coverBtn.onclick = async ()=>{
+        const arr = getPhotos(pk);
+        const [item] = arr.splice(selectedIdx, 1);
+        arr.unshift(item);
+        setPhotos(pk, arr);
+        modalPhotoIdx = 0;
+        await refreshModalPhoto();
+        renderAll();
+        showToast('Cover photo updated ✓');
+      };
+
+      delBtn2.onclick = async ()=>{
+        await removePhoto(pk, selectedIdx);
+        modalPhotoIdx = Math.max(0, Math.min(selectedIdx, getPhotos(pk).length - 1));
+        await refreshModalPhoto();
+        renderAll();
+      };
 
       imgs.forEach((r, i)=>{
         const wrap = document.createElement('div');
@@ -2286,7 +2321,6 @@ async function refreshModalPhoto(){
         thumb.className = 'm-thumb' + (i === modalPhotoIdx ? ' active' : '');
         resolvePhotoRef(r).then(s=>{ if(s) thumb.src = s; });
 
-        // ★ Cover indicator on first photo (always visible)
         if(i === 0){
           const star = document.createElement('div');
           star.className = 'm-thumb-star';
@@ -2294,77 +2328,37 @@ async function refreshModalPhoto(){
           wrap.appendChild(star);
         }
 
-        // ★ Set as cover button — hidden by default
-        const starBtn = document.createElement('button');
-        starBtn.className = 'm-thumb-star-btn';
-        starBtn.title = 'Set as cover';
-        starBtn.textContent = '★';
-        starBtn.style.display = 'none';
-        if(i > 0){
-          starBtn.addEventListener('click', async e=>{
-            e.stopPropagation();
-            const arr = getPhotos(pk);
-            const [item] = arr.splice(i, 1);
-            arr.unshift(item);
-            setPhotos(pk, arr);
-            modalPhotoIdx = 0;
-            await refreshModalPhoto();
-            renderAll();
-            showToast('Cover photo updated ✓');
-          });
-          wrap.appendChild(starBtn);
-        }
-
-        // ✕ Delete button — hidden by default
-        const delBtn = document.createElement('button');
-        delBtn.className = 'm-thumb-del-btn';
-        delBtn.title = 'Remove photo';
-        delBtn.style.display = 'none';
-        delBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/></svg>`;
-        delBtn.addEventListener('click', async e=>{
-          e.stopPropagation();
-          await removePhoto(pk, i);
-          if(modalPhotoIdx >= getPhotos(pk).length) modalPhotoIdx = Math.max(0, getPhotos(pk).length - 1);
-          await refreshModalPhoto();
-          renderAll();
-        });
-        wrap.appendChild(delBtn);
-
-        // Tap thumbnail — first tap selects/views, shows buttons; already-selected shows buttons
         thumb.addEventListener('click', async e=>{
           e.stopPropagation();
-          // Dismiss all other thumbnails' buttons
-          document.querySelectorAll('.m-thumb-wrap').forEach(w=>{
-            w.querySelectorAll('.m-thumb-star-btn,.m-thumb-del-btn').forEach(b=>b.style.display='none');
-          });
-          if(i !== modalPhotoIdx){
-            // First tap — just navigate to this photo
-            modalPhotoIdx = i;
-            await refreshModalPhoto();
-          } else {
-            // Already active — show action buttons
-            if(i > 0) starBtn.style.display = 'flex';
-            delBtn.style.display = 'flex';
-          }
+          strip.querySelectorAll('.m-thumb').forEach((t,j)=>t.classList.toggle('active', j===i));
+          selectedIdx = i;
+          modalPhotoIdx = i;
+          const src = await resolvePhotoRef(imgs[i]);
+          const mainImg = document.getElementById('mPhotoImg');
+          if(src && mainImg) mainImg.src = src;
+          updateActionBar();
         });
 
         wrap.appendChild(thumb);
         strip.appendChild(wrap);
       });
 
-      // + Add tile
       const addTile = document.createElement('button');
       addTile.className = 'm-thumb-add';
       addTile.title = 'Add photo';
       addTile.textContent = '+';
       addTile.addEventListener('click', ()=>document.getElementById('mFileIn').click());
       strip.appendChild(addTile);
+
+      updateActionBar();
     }
   } else {
     img.src=''; img.style.display='none';
     ph.style.display='flex';
     if(expand) expand.style.display = 'none';
     if(removeBgBtn) removeBgBtn.style.display = 'none';
+    const actBar = document.getElementById('mThumbActions');
+    if(actBar) actBar.classList.remove('visible');
     if(strip){
       strip.innerHTML = '';
       const addTile = document.createElement('button');
@@ -4145,11 +4139,6 @@ document.querySelectorAll('.insights-chip').forEach(chip=>{
     lastTap=now;
   },{passive:true});
 })();
-
-// Dismiss thumbnail action buttons when tapping outside strip
-document.getElementById('mPhotoWrap').addEventListener('click', ()=>{
-  document.querySelectorAll('.m-thumb-star-btn,.m-thumb-del-btn').forEach(b=>b.style.display='none');
-});
 
 // ── PHOTO LIGHTBOX ──
 let lightboxPk = null;
