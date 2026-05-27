@@ -2280,15 +2280,7 @@ async function refreshModalPhoto(){
         thumb.className = 'm-thumb' + (i === modalPhotoIdx ? ' active' : '');
         resolvePhotoRef(r).then(s=>{ if(s) thumb.src = s; });
 
-        // Tap thumbnail to view
-        thumb.addEventListener('click', async ()=>{
-          modalPhotoIdx = i;
-          await refreshModalPhoto();
-        });
-
-        wrap.appendChild(thumb);
-
-        // ★ Cover indicator on first photo
+        // ★ Cover indicator on first photo (always visible)
         if(i === 0){
           const star = document.createElement('div');
           star.className = 'm-thumb-star';
@@ -2296,12 +2288,13 @@ async function refreshModalPhoto(){
           wrap.appendChild(star);
         }
 
-        // ★ Set as cover button on non-cover photos
+        // ★ Set as cover button — hidden by default
+        const starBtn = document.createElement('button');
+        starBtn.className = 'm-thumb-star-btn';
+        starBtn.title = 'Set as cover';
+        starBtn.textContent = '★';
+        starBtn.style.display = 'none';
         if(i > 0){
-          const starBtn = document.createElement('button');
-          starBtn.className = 'm-thumb-star-btn';
-          starBtn.title = 'Set as cover';
-          starBtn.textContent = '★';
           starBtn.addEventListener('click', async e=>{
             e.stopPropagation();
             const arr = getPhotos(pk);
@@ -2316,10 +2309,11 @@ async function refreshModalPhoto(){
           wrap.appendChild(starBtn);
         }
 
-        // 🗑 Delete button on all photos
+        // ✕ Delete button — hidden by default
         const delBtn = document.createElement('button');
         delBtn.className = 'm-thumb-del-btn';
         delBtn.title = 'Remove photo';
+        delBtn.style.display = 'none';
         delBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/></svg>`;
         delBtn.addEventListener('click', async e=>{
           e.stopPropagation();
@@ -2330,6 +2324,25 @@ async function refreshModalPhoto(){
         });
         wrap.appendChild(delBtn);
 
+        // Tap thumbnail — first tap selects/views, shows buttons; already-selected shows buttons
+        thumb.addEventListener('click', async e=>{
+          e.stopPropagation();
+          // Dismiss all other thumbnails' buttons
+          document.querySelectorAll('.m-thumb-wrap').forEach(w=>{
+            w.querySelectorAll('.m-thumb-star-btn,.m-thumb-del-btn').forEach(b=>b.style.display='none');
+          });
+          if(i !== modalPhotoIdx){
+            // First tap — just navigate to this photo
+            modalPhotoIdx = i;
+            await refreshModalPhoto();
+          } else {
+            // Already active — show action buttons
+            if(i > 0) starBtn.style.display = 'flex';
+            delBtn.style.display = 'flex';
+          }
+        });
+
+        wrap.appendChild(thumb);
         strip.appendChild(wrap);
       });
 
@@ -4118,6 +4131,11 @@ document.querySelectorAll('.insights-chip').forEach(chip=>{
     lastTap=now;
   },{passive:true});
 })();
+
+// Dismiss thumbnail action buttons when tapping outside strip
+document.getElementById('mPhotoWrap').addEventListener('click', ()=>{
+  document.querySelectorAll('.m-thumb-star-btn,.m-thumb-del-btn').forEach(b=>b.style.display='none');
+});
 
 // ── PHOTO LIGHTBOX ──
 function openLightbox(){
