@@ -115,7 +115,7 @@ h1 em{color:var(--gold);font-style:italic}
 @keyframes sParticle{0%{opacity:0;transform:translateY(0) scale(1)}8%{opacity:.5}85%{opacity:.15}100%{opacity:0;transform:translateY(-100vh) scale(0)}}
 
 /* TABS */
-.tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;padding:0 16px;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;position:sticky;top:0;z-index:101;background:#141210}
+.tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;padding:0 16px;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;background:#141210}
 .tabs::-webkit-scrollbar{display:none}
 .tab{padding:16px 20px 14px;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--stone);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;font-family:'Montserrat',sans-serif;font-weight:500;transition:color .2s;flex-shrink:0;display:inline-flex;align-items:center}
 .tab:hover{color:var(--cream)}
@@ -124,8 +124,8 @@ h1 em{color:var(--gold);font-style:italic}
 .tab.active .tbadge{background:rgba(184,145,58,.18);color:var(--gold)}
 body.light #stickyNav{background:#f0eeea !important}
 body.light header{background:#f0eeea !important}
-body.light .controls{background:#f0eeea !important;box-shadow:none !important}
 body.light .tabs{background:#f0eeea !important}
+body.light .controls{background:#f0eeea !important}
 
 /* STATS */
 .stats{display:flex;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border)}
@@ -136,7 +136,7 @@ body.light .tabs{background:#f0eeea !important}
 .sl{margin-top:4px;font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--stone)}
 
 /* CONTROLS */
-.controls{padding:16px 40px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;background:#141210;box-shadow:0 6px 24px #141210}
+.controls{padding:16px 40px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--border);background:#141210}
 .srch{flex:1;min-width:160px;position:relative}
 .srch input{width:100%;background:transparent;border:1px solid var(--border2);color:var(--cream);padding:8px 12px 8px 34px;font-family:'Montserrat',sans-serif;font-size:.72rem;font-weight:300;outline:none;transition:border-color .2s;-webkit-appearance:none;border-radius:0}
 .srch input::placeholder{color:var(--stone)}
@@ -875,7 +875,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
 
 <!-- STICKY NAV WRAPPER - tabs + controls locked together -->
 <!-- STICKY NAV WRAPPER - tabs + controls locked together -->
-<div id="stickyNav" style="position:sticky;top:0;z-index:200;background:#141210;-webkit-transform:translateZ(0);transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden">
+<div id="stickyNav" style="background:#141210;-webkit-transform:translateZ(0);transform:translateZ(0)">
 
 <div class="tabs" id="tabsBar">
   <!-- Tabs rendered entirely by JS via renderTabs() -->
@@ -2616,19 +2616,6 @@ document.getElementById('searchBtn').addEventListener('click',()=>{
   if(nav) nav.scrollIntoView({behavior:'smooth', block:'start'});
   setTimeout(()=>{ srch.focus(); srch.select(); }, 400);
 });
-
-// ── STICKY NAV TOP ──
-// Position stickyNav below the sticky header
-function updateStickyNavTop(){
-  const hdr = document.querySelector('header');
-  const nav = document.getElementById('stickyNav');
-  if(hdr && nav){
-    nav.style.top = hdr.offsetHeight + 'px';
-  }
-}
-window.addEventListener('resize', updateStickyNavTop);
-document.addEventListener('DOMContentLoaded', updateStickyNavTop);
-setTimeout(updateStickyNavTop, 200);
 
 // ── TABS ──
 let curTab = 'col';
@@ -4831,7 +4818,6 @@ async function migratePhotosToR2(){
 cloudLoad().then(loaded => {
   if(loaded) renderAll();
   updateWatchOfTheDay();
-  setTimeout(updateStickyNavTop, 300);
   // Migrate existing localStorage photos to R2 (runs once)
   setTimeout(migratePhotosToR2, 3000);
   // Check milestones and anniversaries after data loads
