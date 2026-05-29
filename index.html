@@ -61,7 +61,8 @@ header,footer,.tabs,.stats,.controls,.wcard,.modal,.form-modal,.stat,.tab,
 .m-fin,.m-spec,.m-rref,.m-svc,.breakdown,.bd-track,.rcount{transition:background .3s,border-color .3s,color .3s}
 
 /* HEADER */
-header{padding:40px 40px 28px;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:300;background:#141210;-webkit-transform:translateZ(0);transform:translateZ(0)}
+header{padding:40px 40px 28px;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;position:fixed;top:0;left:0;right:0;z-index:300;background:#141210;-webkit-transform:translateZ(0);transform:translateZ(0)}
+body.light header{background:#f0eeea}
 .h-left{}
 .h-eye{font-size:.56rem;letter-spacing:.32em;text-transform:uppercase;color:var(--stone);margin-bottom:10px;display:flex;align-items:center;gap:12px}
 .h-eye::before{content:'';display:block;width:32px;height:1px;background:var(--gold)}
@@ -611,6 +612,7 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <input type="file" accept=".json" id="restoreFileIn" style="display:none">
   </div>
 </header>
+<div id="mainContent">
 
 <!-- SETTINGS OVERLAY -->
 <div class="ws-overlay" id="settingsOverlay">
@@ -2611,6 +2613,22 @@ document.getElementById('confirmYes').addEventListener('click',()=>{
   renderAll();
 });
 
+// ── FIXED HEADER OFFSET ──
+function updateHeaderOffset(){
+  const hdr = document.querySelector('header');
+  const main = document.getElementById('mainContent');
+  if(hdr && main){
+    main.style.paddingTop = hdr.offsetHeight + 'px';
+  }
+  // Also update light mode
+  if(hdr){
+    hdr.style.background = document.body.classList.contains('light') ? '#f0eeea' : '#141210';
+  }
+}
+window.addEventListener('resize', updateHeaderOffset);
+setTimeout(updateHeaderOffset, 100);
+setTimeout(updateHeaderOffset, 500); // second pass after fonts load
+
 // ── SEARCH BUTTON & OVERLAY ──
 const searchOverlay = document.getElementById('searchOverlay');
 const hdrSrchIn = document.getElementById('hdrSrchIn');
@@ -3403,6 +3421,7 @@ document.getElementById('restoreFileIn').addEventListener('change',e=>{
     localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
     document.documentElement.style.background = isLight ? '#f0eeea' : '#141210';
     updateIcon();
+    updateHeaderOffset();
   });
 })();
 
@@ -4856,6 +4875,7 @@ async function migratePhotosToR2(){
 cloudLoad().then(loaded => {
   if(loaded) renderAll();
   updateWatchOfTheDay();
+  setTimeout(updateHeaderOffset, 300);
   // Migrate existing localStorage photos to R2 (runs once)
   setTimeout(migratePhotosToR2, 3000);
   // Check milestones and anniversaries after data loads
@@ -4863,5 +4883,6 @@ cloudLoad().then(loaded => {
   setTimeout(checkAnniversaries, 7000);
 });
 </script>
+</div><!-- end mainContent -->
 </body>
 </html>
