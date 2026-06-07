@@ -854,12 +854,25 @@ footer{padding:24px 40px;border-top:1px solid var(--border);display:flex;justify
     <div id="wsDate" style="font-family:'Montserrat',sans-serif;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone);margin-bottom:4px">—</div>
     <!-- Leap year indicator -->
     <div id="wsLeap" style="font-family:'Montserrat',sans-serif;font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--stone);margin-bottom:12px;min-height:16px"></div>
-    <!-- Moonphase display -->
-    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:16px">
-      <canvas id="wsMoon" width="80" height="80" style="margin-bottom:6px"></canvas>
-      <div id="wsMoonLabel" style="font-family:'Montserrat',sans-serif;font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)">—</div>
-      <div id="wsMoonAge" style="font-family:'Montserrat',sans-serif;font-size:.48rem;letter-spacing:.12em;color:var(--stone);margin-top:2px;opacity:.7"></div>
+
+    <!-- Moonphase Setter -->
+    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:20px">
+      <!-- Date picker -->
+      <div style="margin-bottom:14px;display:flex;align-items:center;gap:8px">
+        <span style="font-family:'Montserrat',sans-serif;font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;color:var(--stone)">Date</span>
+        <input type="date" id="wsMoonDate" style="background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--cream);font-family:'Montserrat',sans-serif;font-size:.65rem;letter-spacing:.08em;padding:4px 8px;cursor:pointer;-webkit-appearance:none;color-scheme:dark">
+      </div>
+      <!-- Aperture window -->
+      <div style="position:relative;width:160px;height:80px;overflow:hidden;border-radius:80px 80px 0 0;margin-bottom:12px">
+        <canvas id="wsMoon" width="320" height="160" style="width:160px;height:80px;display:block"></canvas>
+      </div>
+      <!-- Phase info -->
+      <div id="wsMoonLabel" style="font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:300;color:var(--cream);letter-spacing:.08em;margin-bottom:4px">—</div>
+      <div id="wsMoonAge" style="font-family:'Montserrat',sans-serif;font-size:.48rem;letter-spacing:.14em;text-transform:uppercase;color:var(--stone);margin-bottom:3px"></div>
+      <div id="wsMoonIllum" style="font-family:'Montserrat',sans-serif;font-size:.46rem;letter-spacing:.12em;text-transform:uppercase;color:var(--stone);opacity:.7;margin-bottom:3px"></div>
+      <div id="wsMoonNext" style="font-family:'Montserrat',sans-serif;font-size:.46rem;letter-spacing:.1em;color:var(--stone);opacity:.6;font-style:italic"></div>
     </div>
+
     <div class="ws-hint">Set your watch to the time shown above</div>
     <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:10px">
       <button class="ws-chime-btn" id="wsChimeBtn" title="Toggle chime">&#9836; Chime On</button>
@@ -3613,9 +3626,8 @@ function checkMilestones(){
 
 // ── MOONPHASE ──
 function getMoonPhase(date){
-  // Known new moon: Jan 6, 2000 18:14 UTC
   const known = new Date(Date.UTC(2000, 0, 6, 18, 14));
-  const synodicMonth = 29.530588853; // days
+  const synodicMonth = 29.530588853;
   const elapsed = (date - known) / (1000 * 60 * 60 * 24);
   const age = ((elapsed % synodicMonth) + synodicMonth) % synodicMonth;
   const illumination = (1 - Math.cos((age / synodicMonth) * 2 * Math.PI)) / 2;
@@ -3627,100 +3639,184 @@ function getMoonPhase(date){
   else if(age < 16.61) phaseName = 'Full Moon';
   else if(age < 22.15) phaseName = 'Waning Gibbous';
   else if(age < 23.99) phaseName = 'Last Quarter';
-  else if(age < 29.53) phaseName = 'Waning Crescent';
-  else phaseName = 'New Moon';
-  return { age, illumination, phaseName };
+  else phaseName = 'Waning Crescent';
+
+  // Days until next full moon and new moon
+  const daysToFull = age < 14.77 ? 14.77 - age : synodicMonth - age + 14.77;
+  const daysToNew = age > 0 ? synodicMonth - age : 0;
+
+  return { age, illumination, phaseName, daysToFull: Math.round(daysToFull), daysToNew: Math.round(daysToNew) };
 }
 
 function drawMoon(canvas, phase){
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
-  const cx = W/2, cy = H/2, r = W/2 - 4;
   ctx.clearRect(0, 0, W, H);
 
-  // Outer bezel ring
-  ctx.beginPath();
-  ctx.arc(cx, cy, r+3, 0, Math.PI*2);
-  ctx.strokeStyle = '#2e2c26';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  // Full aperture circle center — centered horizontally, bottom half hidden
+  const cx = W/2, cy = H; // center at bottom edge so top half shows
+  const r = H - 8; // radius fills the aperture
 
-  // Dark background (the aperture)
+  // Sky background — deep navy with gradient
+  ctx.save();
   ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI*2);
-  ctx.fillStyle = '#0a0a08';
+  ctx.arc(cx, cy, r, Math.PI, 0, false); // top semicircle
+  ctx.closePath();
+  const skyGrad = ctx.createRadialGradient(cx, cy*0.4, 0, cx, cy, r);
+  skyGrad.addColorStop(0, '#0a0e1a');
+  skyGrad.addColorStop(1, '#050810');
+  ctx.fillStyle = skyGrad;
   ctx.fill();
+  ctx.restore();
 
+  // Stars
+  const stars = [
+    [0.15, 0.2, 0.8], [0.28, 0.45, 0.6], [0.42, 0.15, 1.0],
+    [0.58, 0.35, 0.7], [0.72, 0.18, 0.9], [0.85, 0.42, 0.6],
+    [0.22, 0.68, 0.5], [0.65, 0.6, 0.8], [0.78, 0.72, 0.5],
+    [0.35, 0.8, 0.4], [0.90, 0.25, 0.7], [0.10, 0.55, 0.6],
+    [0.50, 0.55, 0.5], [0.82, 0.58, 0.4], [0.18, 0.35, 0.6],
+  ];
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI, 0, false);
+  ctx.closePath();
+  ctx.clip();
+  stars.forEach(([sx, sy, op])=>{
+    const x = sx * W, y = sy * (H * 0.92);
+    ctx.beginPath();
+    ctx.arc(x, y, 1.2, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,245,220,${op * 0.7})`;
+    ctx.fill();
+  });
+  ctx.restore();
+
+  // Moon disc — moves across aperture based on phase
+  // Position: new moon far left, full moon center, old moon far right
   const age = phase.age;
   const synodicMonth = 29.530588853;
-  const isWaxing = age < synodicMonth / 2;
+  // moonX moves from left to right over full cycle
+  const t = age / synodicMonth; // 0 to 1
+  // Center at full moon (t=0.5), edges at new moon
+  const moonX = cx + (t - 0.5) * (r * 1.6);
+  const moonY = cy; // sits at bottom of aperture
+  const moonR = r * 0.52;
 
-  // Draw the illuminated portion
   ctx.save();
   ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI*2);
+  ctx.arc(cx, cy, r, Math.PI, 0, false);
+  ctx.closePath();
   ctx.clip();
 
-  // Moon disk (gold/cream)
+  // Moon base — gold
   ctx.beginPath();
-  ctx.arc(cx, cy, r, -Math.PI/2, Math.PI/2, false);
-  ctx.fillStyle = '#c9a04a';
+  ctx.arc(moonX, moonY, moonR, 0, Math.PI*2);
+  const moonGrad = ctx.createRadialGradient(moonX - moonR*0.2, moonY - moonR*0.3, moonR*0.1, moonX, moonY, moonR);
+  moonGrad.addColorStop(0, '#f5d78e');
+  moonGrad.addColorStop(0.5, '#c9a04a');
+  moonGrad.addColorStop(1, '#8a6620');
+  ctx.fillStyle = moonGrad;
   ctx.fill();
 
-  // Shadow ellipse
+  // Shadow to show correct phase
+  const isWaxing = age < synodicMonth / 2;
   const k = Math.cos((age / synodicMonth) * 2 * Math.PI);
-  ctx.beginPath();
+
   ctx.save();
-  ctx.translate(cx, cy);
-  if(isWaxing){
-    ctx.scale(Math.abs(k), 1);
-    ctx.arc(0, 0, r, -Math.PI/2, Math.PI/2, k > 0);
-  } else {
-    ctx.scale(Math.abs(k), 1);
-    ctx.arc(0, 0, r, -Math.PI/2, Math.PI/2, k < 0);
-  }
-  ctx.restore();
-  ctx.fillStyle = '#0a0a08';
-  ctx.fill();
-
-  // Left half always dark for waxing, right half for waning
-  if(isWaxing){
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, Math.PI/2, -Math.PI/2, false);
-    ctx.fillStyle = '#0a0a08';
-    ctx.fill();
-  }
-
-  ctx.restore();
-
-  // Subtle glow for full moon
-  if(phase.phaseName === 'Full Moon'){
-    const grd = ctx.createRadialGradient(cx, cy, r-4, cx, cy, r+8);
-    grd.addColorStop(0, 'rgba(201,160,74,0.15)');
-    grd.addColorStop(1, 'rgba(201,160,74,0)');
-    ctx.beginPath();
-    ctx.arc(cx, cy, r+8, 0, Math.PI*2);
-    ctx.fillStyle = grd;
-    ctx.fill();
-  }
-
-  // Thin gold ring
   ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI*2);
-  ctx.strokeStyle = 'rgba(184,145,58,0.4)';
-  ctx.lineWidth = 1;
+  ctx.arc(moonX, moonY, moonR, 0, Math.PI*2);
+  ctx.clip();
+
+  // Draw shadow ellipse
+  ctx.beginPath();
+  if(isWaxing){
+    // Shadow on left side
+    ctx.ellipse(moonX + k * moonR, moonY, Math.abs(k) * moonR, moonR, 0, 0, Math.PI*2);
+    ctx.fillStyle = '#050810';
+    ctx.fill();
+    // Fill left half with sky
+    ctx.beginPath();
+    ctx.rect(moonX - moonR, moonY - moonR, moonR, moonR*2);
+    ctx.fillStyle = '#050810';
+    ctx.fill();
+  } else {
+    // Shadow on right side
+    ctx.ellipse(moonX + k * moonR, moonY, Math.abs(k) * moonR, moonR, 0, 0, Math.PI*2);
+    ctx.fillStyle = '#050810';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.rect(moonX, moonY - moonR, moonR, moonR*2);
+    ctx.fillStyle = '#050810';
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // Subtle crater texture on lit portion
+  ctx.globalAlpha = 0.08;
+  [[0.3, 0.35, 0.06], [0.6, 0.5, 0.04], [0.45, 0.65, 0.03]].forEach(([dx, dy, cr])=>{
+    ctx.beginPath();
+    ctx.arc(moonX + (dx-0.5)*moonR*1.2, moonY + (dy-0.5)*moonR*1.2, cr*moonR, 0, Math.PI*2);
+    ctx.fillStyle = '#8a6620';
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  ctx.restore();
+
+  // Aperture bezel ring — gold
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI, 0, false);
+  ctx.closePath();
+  ctx.strokeStyle = 'rgba(184,145,58,0.5)';
+  ctx.lineWidth = 2;
   ctx.stroke();
+  ctx.restore();
+
+  // Inner bezel dots (like a watch dial)
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, Math.PI, 0, false);
+  ctx.closePath();
+  ctx.clip();
+  for(let i = 0; i <= 12; i++){
+    const angle = Math.PI + (i / 12) * Math.PI;
+    const dotX = cx + (r - 6) * Math.cos(angle);
+    const dotY = cy + (r - 6) * Math.sin(angle);
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, i % 3 === 0 ? 1.8 : 1.0, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(184,145,58,${i % 3 === 0 ? 0.6 : 0.3})`;
+    ctx.fill();
+  }
+  ctx.restore();
 }
 
 function updateMoonphase(){
   const canvas = document.getElementById('wsMoon');
   const label = document.getElementById('wsMoonLabel');
   const ageEl = document.getElementById('wsMoonAge');
+  const illumEl = document.getElementById('wsMoonIllum');
+  const nextEl = document.getElementById('wsMoonNext');
+  const dateInput = document.getElementById('wsMoonDate');
   if(!canvas || !label) return;
-  const phase = getMoonPhase(new Date());
+
+  let date = new Date();
+  if(dateInput && dateInput.value){
+    const parts = dateInput.value.split('-');
+    date = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+  }
+
+  const phase = getMoonPhase(date);
   drawMoon(canvas, phase);
   label.textContent = phase.phaseName;
-  ageEl.textContent = `Day ${Math.floor(phase.age)} of 29.5`;
+  if(ageEl) ageEl.textContent = `Day ${Math.floor(phase.age)} of 29.5`;
+  if(illumEl) illumEl.textContent = `${Math.round(phase.illumination * 100)}% illuminated`;
+  if(nextEl){
+    if(phase.phaseName === 'Full Moon') nextEl.textContent = `New moon in ${phase.daysToNew} days`;
+    else if(phase.phaseName === 'New Moon') nextEl.textContent = `Full moon in ${phase.daysToFull} days`;
+    else if(phase.age < 14.77) nextEl.textContent = `Full moon in ${phase.daysToFull} day${phase.daysToFull===1?'':'s'}`;
+    else nextEl.textContent = `New moon in ${phase.daysToNew} day${phase.daysToNew===1?'':'s'}`;
+  }
 }
 
 // ── WATCH SETTER ──
@@ -3926,6 +4022,17 @@ function openWatchSetter(){
   wsInterval = setInterval(tickWS, 100);
   // Update moonphase when setter opens
   updateMoonphase();
+  // Set date input to today
+  const moonDateInput = document.getElementById('wsMoonDate');
+  if(moonDateInput){
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth()+1).padStart(2,'0');
+    const d = String(now.getDate()).padStart(2,'0');
+    moonDateInput.value = `${y}-${m}-${d}`;
+    moonDateInput.addEventListener('input', updateMoonphase);
+    moonDateInput.addEventListener('change', updateMoonphase);
+  }
 
   // Chime toggle
   const chimeBtn = document.getElementById('wsChimeBtn');
