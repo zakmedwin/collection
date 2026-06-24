@@ -3652,168 +3652,169 @@ function drawMoon(canvas, phase){
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
-
   const cx = W/2, cy = H/2;
-  const apertureR = W/2 - 4;
+  const aperR = W/2 - 6;
+  const syn = 29.530588853;
+  const age = phase.age;
 
-  // ── OUTER BEZEL RING ──
+  // Dark outer background
   ctx.beginPath();
-  ctx.arc(cx, cy, apertureR + 4, 0, Math.PI*2);
-  ctx.fillStyle = '#1a1612';
+  ctx.arc(cx, cy, aperR+10, 0, Math.PI*2);
+  ctx.fillStyle = '#0c0e18';
   ctx.fill();
-  ctx.beginPath();
-  ctx.arc(cx, cy, apertureR + 4, 0, Math.PI*2);
-  ctx.strokeStyle = 'rgba(184,145,58,0.7)';
-  ctx.lineWidth = 3;
-  ctx.stroke();
 
-  // ── CLIP to aperture circle ──
+  // Clip to aperture circle
   ctx.save();
   ctx.beginPath();
-  ctx.arc(cx, cy, apertureR, 0, Math.PI*2);
+  ctx.arc(cx, cy, aperR, 0, Math.PI*2);
   ctx.clip();
 
-  // ── DARK STARFIELD BACKGROUND ──
-  ctx.fillStyle = '#0a0f1e';
+  // Night sky background
+  ctx.fillStyle = '#08101e';
   ctx.fillRect(0, 0, W, H);
 
-  // ── ROTATING DISC ──
-  // Disc rotates clockwise. Has two gold moons 180° apart.
-  // At full moon (age=14.77): moon 1 centered in aperture
-  // Rotation: 1 full revolution per synodic month, clockwise
-  const age = phase.age;
-  const synodicMonth = 29.530588853;
-  // Angle: 0 at new moon, π at full moon (moon centered at bottom of disc = cx,cy)
-  // Clockwise means angle increases
-  const discAngle = (age / synodicMonth) * 2 * Math.PI;
+  // ROTATING DISC:
+  // Two gold moons sit on a disc, 180deg apart, disc rotates clockwise.
+  // Moon 1 starts hidden at BOTTOM (6 o'clock) at new moon.
+  // Moon 1 rises to TOP (12 o'clock) at full moon.
+  // discAngle: at age=0 moon 1 points down (π/2), at age=14.77 points up (-π/2)
+  // Clockwise rotation: angle decreases (or add negative)
+  const discR = aperR * 0.68;
+  const moonR = aperR * 0.42;
+  const discAngle = Math.PI/2 - (age / syn) * 2 * Math.PI;
 
-  // Disc radius — large enough that moons are spaced correctly
-  const discR = apertureR * 0.78; // distance from disc center to each moon center
-  const moonR = apertureR * 0.48; // size of each gold moon
-
-  // Draw starfield on rotating disc — stars move with the disc
+  // Stars rotate with disc
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(discAngle);
-  // Stars scattered on the disc
-  const starPositions = [
-    [-0.6, -0.3, 0.9, 1.2], [0.5, -0.6, 0.7, 1.0], [-0.2, 0.65, 0.6, 0.9],
-    [0.7, 0.2, 0.8, 1.1], [-0.7, 0.4, 0.5, 0.8], [0.3, 0.7, 0.6, 1.0],
-    [-0.4, -0.7, 0.7, 1.3], [0.65, -0.4, 0.5, 0.9], [-0.1, -0.5, 0.8, 1.0],
-    [0.2, -0.8, 0.6, 0.8], [-0.8, -0.1, 0.5, 0.9], [0.8, 0.5, 0.4, 0.8],
-    [0.1, 0.9, 0.5, 0.7], [-0.5, 0.7, 0.4, 0.8], [0.4, -0.1, 0.3, 0.7],
+
+  const stars = [
+    [0.0, 0.38, 1.2], [0.32, -0.28, 0.9], [-0.35, -0.22, 1.0],
+    [0.55, 0.12, 0.8], [-0.52, 0.18, 0.7], [0.18, 0.62, 0.9],
+    [-0.18, -0.62, 1.1], [0.50, -0.44, 0.7], [0.62, -0.20, 0.8],
+    [-0.62, -0.32, 0.7], [0.28, -0.72, 0.8], [-0.28, 0.70, 0.6],
+    [0.42, 0.48, 0.6], [-0.44, 0.48, 0.6], [-0.72, 0.08, 0.5],
+    [0.72, 0.28, 0.5], [0.02, -0.86, 0.8], [-0.30, 0.18, 0.4],
   ];
-  starPositions.forEach(([sx, sy, op, size])=>{
-    const x = sx * apertureR;
-    const y = sy * apertureR;
+  stars.forEach(([sx, sy, sz]) => {
+    const x = sx * aperR, y = sy * aperR;
     ctx.beginPath();
-    ctx.arc(x, y, size, 0, Math.PI*2);
-    ctx.fillStyle = `rgba(255,248,220,${op * 0.75})`;
+    ctx.arc(x, y, sz, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,248,215,${0.55 + sz*0.22})`;
     ctx.fill();
-    if(op > 0.75){
-      ctx.strokeStyle = `rgba(255,248,220,${op*0.3})`;
+    if(sz > 0.95){
+      ctx.strokeStyle = 'rgba(255,248,215,0.2)';
       ctx.lineWidth = 0.5;
       ctx.beginPath();
-      ctx.moveTo(x - size*2.5, y); ctx.lineTo(x + size*2.5, y);
-      ctx.moveTo(x, y - size*2.5); ctx.lineTo(x, y + size*2.5);
+      ctx.moveTo(x-sz*3, y); ctx.lineTo(x+sz*3, y);
+      ctx.moveTo(x, y-sz*3); ctx.lineTo(x, y+sz*3);
       ctx.stroke();
     }
   });
 
-  // Draw two gold moons on the rotating disc, 180° apart
+  // Two gold moons, 180deg apart on disc
   for(let m = 0; m < 2; m++){
-    const mAngle = m * Math.PI; // 0° and 180°
-    const mx = discR * Math.sin(mAngle); // using sin/cos relative to disc
-    const my = -discR * Math.cos(mAngle); // -cos so moon 1 starts at top
+    const mAngle = m * Math.PI;
+    const mx = discR * Math.cos(mAngle);
+    const my = discR * Math.sin(mAngle);
 
-    // Gold moon gradient
-    const moonGrad = ctx.createRadialGradient(mx - moonR*0.2, my - moonR*0.25, moonR*0.05, mx, my, moonR);
-    moonGrad.addColorStop(0, '#fef2b0');
-    moonGrad.addColorStop(0.4, '#e0bc45');
-    moonGrad.addColorStop(0.8, '#c09030');
-    moonGrad.addColorStop(1, '#7a5010');
+    const g = ctx.createRadialGradient(mx-moonR*0.2, my-moonR*0.2, moonR*0.05, mx, my, moonR);
+    g.addColorStop(0, '#fff5b0');
+    g.addColorStop(0.35, '#e8c048');
+    g.addColorStop(0.75, '#c09030');
+    g.addColorStop(1, '#7a5010');
     ctx.beginPath();
     ctx.arc(mx, my, moonR, 0, Math.PI*2);
-    ctx.fillStyle = moonGrad;
+    ctx.fillStyle = g;
     ctx.fill();
 
     // Craters
-    [[0.28,0.32,0.07],[0.60,0.26,0.05],[0.42,0.63,0.06],[0.70,0.58,0.04],[0.18,0.58,0.04]].forEach(([dx,dy,cr])=>{
+    [[0.28,0.32,0.07],[0.60,0.28,0.05],[0.42,0.62,0.06],[0.68,0.55,0.04]].forEach(([dx,dy,cr]) => {
       ctx.beginPath();
-      ctx.arc(mx+(dx-0.5)*moonR*1.5, my+(dy-0.5)*moonR*1.5, cr*moonR, 0, Math.PI*2);
+      ctx.arc(mx+(dx-0.5)*moonR*1.4, my+(dy-0.5)*moonR*1.4, cr*moonR, 0, Math.PI*2);
       ctx.fillStyle = 'rgba(80,50,5,0.18)';
       ctx.fill();
     });
 
-    // Soft edge shadow
-    const edgeGrad = ctx.createRadialGradient(mx, my, moonR*0.6, mx, my, moonR);
-    edgeGrad.addColorStop(0, 'rgba(0,0,0,0)');
-    edgeGrad.addColorStop(1, 'rgba(0,0,0,0.35)');
+    // Edge shadow
+    const eg = ctx.createRadialGradient(mx, my, moonR*0.55, mx, my, moonR);
+    eg.addColorStop(0, 'rgba(0,0,0,0)');
+    eg.addColorStop(1, 'rgba(0,0,0,0.4)');
     ctx.beginPath();
     ctx.arc(mx, my, moonR, 0, Math.PI*2);
-    ctx.fillStyle = edgeGrad;
+    ctx.fillStyle = eg;
     ctx.fill();
   }
   ctx.restore();
 
-  ctx.restore(); // end aperture clip
+  // STATIC MASK - two humps along horizontal axis (between 9 and 3 o'clock)
+  // Dark circles centered left and right, their upper arcs form the "two humps"
+  // Everything below cy is always hidden
+  const maskR = aperR * 0.74;
+  const maskOffset = aperR * 0.58;
 
-  // ── STATIC MASK — two gold circles that never move ──
-  // These sit on top of everything and partially cover the disc
-  // Positioned left and right, creating the classic moonphase window
-  const maskR = apertureR * 0.82;
-  const maskOffset = apertureR * 0.72; // how far left/right from center
+  // Solid dark fill for bottom half
+  ctx.fillStyle = '#08101e';
+  ctx.fillRect(0, cy, W, H - cy);
 
-  for(let side = -1; side <= 1; side += 2){
-    const mx = cx + side * maskOffset;
-
-    // Dark fill behind mask circle (covers the disc at the edges)
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy, apertureR, 0, Math.PI*2); // clip to aperture
-    ctx.clip();
-    ctx.beginPath();
-    ctx.arc(mx, cy, maskR, 0, Math.PI*2);
-    ctx.fillStyle = '#0a0f1e'; // same as background — hides disc behind mask
-    ctx.fill();
-    ctx.restore();
-
-    // Gold ring outline for mask circle
-    ctx.beginPath();
-    ctx.arc(mx, cy, maskR, 0, Math.PI*2);
-    ctx.strokeStyle = 'rgba(184,145,58,0.55)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-  }
-
-  // ── APERTURE BEZEL DOTS ──
-  for(let i = 0; i < 60; i++){
-    const angle = (i / 60) * Math.PI * 2;
-    const major = i % 5 === 0;
-    ctx.beginPath();
-    ctx.arc(
-      cx + (apertureR - 3) * Math.cos(angle),
-      cy + (apertureR - 3) * Math.sin(angle),
-      major ? 2.0 : 0.8, 0, Math.PI*2
-    );
-    ctx.fillStyle = `rgba(184,145,58,${major ? 0.65 : 0.25})`;
-    ctx.fill();
-  }
-
-  // ── APERTURE OUTER RING ──
+  // Left hump
   ctx.beginPath();
-  ctx.arc(cx, cy, apertureR, 0, Math.PI*2);
-  ctx.strokeStyle = 'rgba(184,145,58,0.6)';
-  ctx.lineWidth = 2;
+  ctx.arc(cx - maskOffset, cy, maskR, 0, Math.PI*2);
+  ctx.fillStyle = '#08101e';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx - maskOffset, cy, maskR, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(184,142,55,0.55)';
+  ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // Full moon glow when centered
-  if(Math.abs(age - 14.77) < 2 || Math.abs(age - 0) < 1 || Math.abs(age - 29.53) < 1){
-    const glow = ctx.createRadialGradient(cx, cy, apertureR*0.5, cx, cy, apertureR*1.2);
-    glow.addColorStop(0, 'rgba(220,180,60,0.12)');
+  // Right hump
+  ctx.beginPath();
+  ctx.arc(cx + maskOffset, cy, maskR, 0, Math.PI*2);
+  ctx.fillStyle = '#08101e';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx + maskOffset, cy, maskR, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(184,142,55,0.55)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Thin gold line at center horizon
+  ctx.beginPath();
+  ctx.moveTo(cx - aperR, cy);
+  ctx.lineTo(cx + aperR, cy);
+  ctx.strokeStyle = 'rgba(184,142,55,0.4)';
+  ctx.lineWidth = 0.5;
+  ctx.stroke();
+
+  ctx.restore(); // end aperture clip
+
+  // Gold outer bezel ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, aperR, 0, Math.PI*2);
+  ctx.strokeStyle = 'rgba(184,142,55,0.85)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Bezel minute dots
+  for(let i = 0; i < 60; i++){
+    const a = (i/60) * Math.PI * 2;
+    const major = i % 5 === 0;
+    ctx.beginPath();
+    ctx.arc(cx + (aperR-4)*Math.cos(a), cy + (aperR-4)*Math.sin(a), major ? 2.0 : 0.8, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(184,142,55,${major ? 0.7 : 0.28})`;
+    ctx.fill();
+  }
+
+  // Full moon glow
+  if(Math.abs(age - 14.77) < 2.5){
+    const moonX = cx + discR * Math.cos(discAngle);
+    const moonY = cy + discR * Math.sin(discAngle);
+    const glow = ctx.createRadialGradient(moonX, moonY, moonR*0.5, moonX, moonY, moonR*2);
+    glow.addColorStop(0, 'rgba(220,180,60,0.18)');
     glow.addColorStop(1, 'rgba(220,180,60,0)');
     ctx.beginPath();
-    ctx.arc(cx, cy, apertureR*1.2, 0, Math.PI*2);
+    ctx.arc(moonX, moonY, moonR*2, 0, Math.PI*2);
     ctx.fillStyle = glow;
     ctx.fill();
   }
