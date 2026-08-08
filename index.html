@@ -548,26 +548,13 @@ body{background:var(--bg);color:var(--fg)}
     <div style="height:24px"></div>
   </div>
 
-<!-- SEARCH OVERLAY -->
-<div id="searchOverlay" style="display:none;position:fixed;top:0;left:0;right:0;z-index:600;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 16px;-webkit-transform:translateZ(0);transform:translateZ(0)">
-  <div style="max-width:430px;margin:0 auto;display:flex;align-items:center;gap:12px">
-    <input type="text" id="overlaySearchInput" placeholder="Search brand, model, reference…"
-      autocomplete="off" autocorrect="off" spellcheck="false"
-      style="flex:1;height:44px;background:var(--tile);border:none;outline:none;padding:0 14px;font-family:'Archivo',sans-serif;font-size:14px;color:var(--fg);border-radius:0">
-    <button id="overlaySearchClose" style="min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:.5;border:none;background:none;color:var(--fg);cursor:pointer">✕</button>
-  </div>
-</div>
+<!-- SEARCH OVERLAY (removed - search bar is in header) -->
 
-  <!-- ── BOTTOM NAV ── -->
   <nav id="bottomNav">
-    <div class="nav-inner">
+    <div class="nav-inner" style="grid-template-columns:repeat(4,1fr)">
       <button class="nav-btn active" data-nav="list" aria-label="Collection">
         <svg viewBox="0 0 20 20"><rect x="2" y="2" width="7" height="7"/><rect x="11" y="2" width="7" height="7"/><rect x="2" y="11" width="7" height="7"/><rect x="11" y="11" width="7" height="7"/></svg>
         <span class="t-nav-label">Collection</span>
-      </button>
-      <button class="nav-btn" data-nav="search" aria-label="Search">
-        <svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/></svg>
-        <span class="t-nav-label">Search</span>
       </button>
       <button class="nav-btn-add" data-nav="add" aria-label="Add watch">
         <svg viewBox="0 0 18 18"><line x1="9" y1="3" x2="9" y2="15"/><line x1="3" y1="9" x2="15" y2="9"/></svg>
@@ -771,7 +758,6 @@ function applyTheme(){
 
 // ── NAVIGATION ──
 function navigate(view){
-  closeSearchOverlay();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+view).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));
@@ -1242,34 +1228,6 @@ document.getElementById('importClose').addEventListener('click',()=>{
 document.getElementById('exportBtn').addEventListener('click',doExport);
 document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFileInput').click());
 document.getElementById('importFileInput').addEventListener('change',e=>{ if(e.target.files[0]) doImport(e.target.files[0]); });
-
-// ── SEARCH OVERLAY ──
-function openSearchOverlay(){
-  const overlay = document.getElementById('searchOverlay');
-  const input = document.getElementById('overlaySearchInput');
-  overlay.style.display = 'block';
-  input.value = query;
-  setTimeout(()=>input.focus(), 50);
-}
-
-function closeSearchOverlay(){
-  document.getElementById('searchOverlay').style.display = 'none';
-}
-
-document.getElementById('overlaySearchClose').addEventListener('click', closeSearchOverlay);
-
-document.getElementById('overlaySearchInput').addEventListener('input', e=>{
-  query = e.target.value;
-  // Make sure we're on list screen
-  if(currentView !== 'list'){
-    navigate('list');
-  }
-  renderList();
-});
-
-document.getElementById('overlaySearchInput').addEventListener('keydown', e=>{
-  if(e.key === 'Escape') closeSearchOverlay();
-});
 
 // ── INIT ──
 (async function(){
