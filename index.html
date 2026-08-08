@@ -1180,7 +1180,15 @@ document.querySelectorAll('[data-nav]').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const v=btn.dataset.nav;
     if(v==='add'){ openForm(null); return; }
-    if(v==='search'){ navigate('list'); setTimeout(()=>document.getElementById('searchInput').focus(),100); return; }
+    if(v==='search'){
+      navigate('list');
+      document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.nav==='list'));
+      setTimeout(()=>{
+        window.scrollTo({top:0,behavior:'smooth'});
+        document.getElementById('searchInput').focus();
+      },50);
+      return;
+    }
     navigate(v);
   });
 });
