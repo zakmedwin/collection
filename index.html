@@ -338,6 +338,87 @@ body{background:var(--bg);color:var(--fg)}
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar{width:0;height:0}
 
+/* ── DESKTOP RESPONSIVE ── */
+@media (min-width:769px){
+  body{overflow:auto}
+  #app{max-width:none;display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+  #bottomNav{
+    position:fixed;left:0;top:0;bottom:0;width:220px;
+    border-top:none;border-right:1px solid var(--line);
+    background:var(--navBg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    display:flex;flex-direction:column;justify-content:flex-start;
+    padding:40px 0 0;z-index:500;
+  }
+  #bottomNav .nav-inner{
+    display:flex;flex-direction:column;gap:4px;padding:0 16px;
+    grid-template-columns:none;
+  }
+  .nav-btn{
+    flex-direction:row;justify-content:flex-start;gap:14px;
+    padding:12px 14px;opacity:.45;border-radius:0;
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  }
+  .nav-btn .t-nav-label{display:block;font-size:11px}
+  .nav-btn-add{
+    width:auto;height:48px;border-radius:0;
+    justify-content:flex-start;gap:14px;padding:12px 14px;
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    opacity:.9;
+  }
+  .nav-btn-add::after{content:'Add piece'}
+  .nav-btn-add svg{flex:none}
+  .screen{padding-bottom:0;padding-left:0}
+  #screen-list .list-header{padding:40px 40px 20px}
+  #screen-list .search-wrap{padding:0 40px 16px}
+  #screen-list .chips-wrap{padding:0 40px 16px}
+  .watch-list{background:none;gap:0}
+  .watch-row{padding:20px 40px;border-bottom:1px solid var(--line)}
+  /* Detail two-column */
+  #screen-detail{display:none;flex-direction:row;align-items:flex-start;min-height:100vh}
+  #screen-detail.active{display:flex}
+  #detail-left{width:380px;flex:none;position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--tile)}
+  #detail-right{flex:1;min-width:0;padding:40px;overflow-y:auto}
+  #screen-detail .detail-hero{height:320px;position:relative}
+  .detail-hero-back{top:20px;left:20px}
+  /* Thumbnail strip on desktop */
+  #desktopThumbs{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;background:var(--tile);scrollbar-width:none}
+  #desktopThumbs::-webkit-scrollbar{display:none}
+  .d-thumb{width:56px;height:56px;object-fit:cover;cursor:pointer;border:1.5px solid transparent;opacity:.55;transition:all .2s;flex:none;background:var(--bg)}
+  .d-thumb.active{border-color:var(--accent);opacity:1}
+  .d-thumb-add{width:56px;height:56px;flex:none;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fg);font-size:1.3rem;opacity:.4;transition:all .2s}
+  .d-thumb-add:hover{opacity:.8;border-color:var(--accent);color:var(--accent)}
+  /* Form desktop */
+  #screen-form .form-header{padding:40px 40px 24px}
+  .photo-well{margin:0 40px}
+  .form-fields{padding:20px 40px 0}
+  .form-actions{padding:24px 40px 0}
+  /* Insights/tools desktop */
+  #screen-insights .insights-header{padding:40px 40px 20px}
+  .stat-row{padding:0 40px 24px}
+  .insights-section{padding:20px 40px 0}
+  #screen-tools .tools-header{padding:40px 40px 20px}
+  .theme-cards{padding:12px 40px 0}
+  .tool-list{padding:0 40px}
+  .tools-actions{padding:20px 40px 0}
+  .section-pad{padding:0 40px}
+  /* Hide mobile-only dot indicators */
+  #photoDots{display:none}
+}
+
+/* ── PHOTO SWIPE (mobile) ── */
+.hero-swipe-wrap{position:relative;width:100%;height:100%;overflow:hidden;touch-action:pan-y}
+.hero-swipe-inner{display:flex;height:100%;transition:transform .3s ease;will-change:transform}
+.hero-slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--tile)}
+.hero-slide img{width:100%;height:100%;object-fit:contain}
+.hero-slide-placeholder{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
+#photoDots{position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:6px;pointer-events:none;z-index:2}
+.photo-dot{width:5px;height:5px;border-radius:50%;background:var(--fg);opacity:.25;transition:opacity .2s}
+.photo-dot.active{opacity:.8}
+
+/* ── DESKTOP THUMB STAR/DEL ── */
+.d-thumb-wrap{position:relative;flex:none}
+.d-thumb-star{position:absolute;top:2px;left:2px;font-size:.55rem;color:var(--accent);pointer-events:none;line-height:1;text-shadow:0 0 3px rgba(0,0,0,.6)}
+
 /* ── UTILITY ── */
 .section-pad{padding:0 24px}
 .mt-18{margin-top:18px}
@@ -404,25 +485,40 @@ body{background:var(--bg);color:var(--fg)}
 
   <!-- ── SCREEN 2: WATCH DETAIL ── -->
   <div id="screen-detail" class="screen">
-    <div class="detail-hero" id="detailHero">
-      <button class="detail-hero-back" id="detailBack">
-        <svg viewBox="0 0 20 20"><polyline points="13 5 7 10 13 15"/></svg>
-      </button>
-      <div class="detail-hero-label t-photo-placeholder" id="detailPhotoLabel">PHOTO</div>
+    <!-- LEFT column (desktop) / full width (mobile) -->
+    <div id="detail-left">
+      <div class="detail-hero" id="detailHero">
+        <button class="detail-hero-back" id="detailBack">
+          <svg viewBox="0 0 20 20"><polyline points="13 5 7 10 13 15"/></svg>
+        </button>
+        <!-- Swipe container -->
+        <div class="hero-swipe-wrap" id="heroSwipeWrap">
+          <div class="hero-swipe-inner" id="heroSwipeInner">
+            <!-- slides injected by JS -->
+          </div>
+        </div>
+        <div id="photoDots"></div>
+      </div>
+      <!-- Desktop thumbnail strip -->
+      <div id="desktopThumbs" style="display:none"></div>
     </div>
-    <div class="detail-title-block">
-      <div class="t-brand-detail" id="detailBrand"></div>
-      <div class="t-detail" id="detailModel"></div>
-      <div class="t-ref" id="detailRef"></div>
-    </div>
-    <div class="spec-table" id="specTable"></div>
-    <div class="detail-story" id="detailStory" style="display:none">
-      <div class="t-section-label detail-story-label">The story</div>
-      <div class="t-body" id="detailStoryText"></div>
-    </div>
-    <div class="detail-actions">
-      <button class="btn-primary" id="detailEdit">Edit</button>
-      <button class="btn-secondary" id="detailClose">Back</button>
+    <!-- RIGHT column (desktop) / below hero (mobile) -->
+    <div id="detail-right">
+      <div class="detail-title-block">
+        <div class="t-brand-detail" id="detailBrand"></div>
+        <div class="t-detail" id="detailModel"></div>
+        <div class="t-ref" id="detailRef"></div>
+      </div>
+      <div class="spec-table" id="specTable"></div>
+      <div class="detail-story" id="detailStory" style="display:none">
+        <div class="t-section-label detail-story-label">The story</div>
+        <div class="t-body" id="detailStoryText"></div>
+      </div>
+      <div class="detail-actions">
+        <button class="btn-primary" id="detailEdit">Edit</button>
+        <button class="btn-secondary" id="detailClose">Back</button>
+      </div>
+      <div style="height:24px"></div>
     </div>
   </div>
 
@@ -433,8 +529,20 @@ body{background:var(--bg);color:var(--fg)}
       <button class="form-cancel" id="formCancel">Cancel</button>
     </div>
     <div class="photo-well" id="photoWell">
-      <span class="t-photo-placeholder">PHOTO</span>
-      <input type="file" accept="image/*" id="formPhotoInput" style="position:absolute;inset:0;opacity:0;cursor:pointer">
+      <span class="t-photo-placeholder" id="photoWellLabel">PHOTO</span>
+      <input type="file" accept="image/*" capture="environment" id="formCameraInput" style="display:none">
+      <input type="file" accept="image/*" id="formLibraryInput" style="display:none">
+    </div>
+    <!-- Upload buttons -->
+    <div style="display:flex;gap:12px;margin:10px 24px 0;justify-content:flex-start">
+      <button id="formCameraBtn" style="min-height:44px;min-width:44px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:transparent;color:var(--fg);padding:10px 16px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.7">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1 6.5A1.5 1.5 0 0 1 2.5 5h.879a2 2 0 0 0 1.414-.586l.828-.828A2 2 0 0 1 7.035 3h5.93a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 16.621 5H17.5A1.5 1.5 0 0 1 19 6.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 1 15.5v-9z"/><circle cx="10" cy="11" r="3"/></svg>
+        Camera
+      </button>
+      <button id="formLibraryBtn" style="min-height:44px;min-width:44px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:transparent;color:var(--fg);padding:10px 16px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.7">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="3" width="16" height="14" rx="1"/><circle cx="7" cy="8" r="1.5"/><polyline points="2 15 7 10 10 13 13 10 18 15"/></svg>
+        Library
+      </button>
     </div>
     <div class="form-fields">
       <div class="form-field"><div class="field-label">Brand</div><input class="field-input" id="f-brand" placeholder="Omega" type="text"></div>
@@ -547,6 +655,13 @@ body{background:var(--bg);color:var(--fg)}
     </div>
     <div style="height:24px"></div>
   </div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.95);flex-direction:column;align-items:center;justify-content:center;touch-action:none">
+  <button id="lbClose" style="position:absolute;top:20px;right:20px;color:#fff;font-size:24px;opacity:.6;border:none;background:none;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center">✕</button>
+  <img id="lbImg" src="" alt="" style="max-width:100%;max-height:85vh;object-fit:contain">
+  <div id="lbCounter" style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;color:rgba(255,255,255,.4)"></div>
+</div>
 
 <!-- SEARCH OVERLAY (removed - search bar is in header) -->
 
@@ -866,59 +981,192 @@ function buildChips(){
   });
 }
 
-// ── DETAIL ──
-function openDetail(w){
-  selectedId=w.id;
-  document.getElementById('detailBrand').textContent=w.brand||'';
-  document.getElementById('detailModel').textContent=composeModel(w);
-  document.getElementById('detailRef').textContent=[`REF. ${w.ref}`,w.year].filter(v=>v&&v!=='REF. ').join(' · ');
+// ── DETAIL PHOTO SYSTEM ──
+let detailPhotos = [];
+let detailPhotoIdx = 0;
+let swipeStartX = 0, swipeStartY = 0, swiping = false;
 
-  // Hero photo
-  const hero=document.getElementById('detailHero');
-  // Remove old img
-  hero.querySelectorAll('img').forEach(img=>img.remove());
-  document.getElementById('detailPhotoLabel').style.display='';
-  const pk=photoKey(w);
-  const imgs=getPhotos(pk);
-  if(imgs.length){
-    resolvePhotoRef(imgs[0]).then(src=>{
-      if(!src) return;
-      const img=document.createElement('img');
-      img.src=src;
-      hero.appendChild(img);
-      document.getElementById('detailPhotoLabel').style.display='none';
-    });
+function buildDetailPhotos(w){
+  const pk = photoKey(w);
+  const refs = getPhotos(pk);
+  detailPhotos = refs;
+  detailPhotoIdx = 0;
+  renderDetailPhotos();
+}
+
+async function renderDetailPhotos(){
+  const inner = document.getElementById('heroSwipeInner');
+  const dots = document.getElementById('photoDots');
+  const desktopThumbs = document.getElementById('desktopThumbs');
+  const isDesktop = window.innerWidth > 768;
+
+  inner.innerHTML = '';
+  dots.innerHTML = '';
+
+  if(detailPhotos.length === 0){
+    // Placeholder slide
+    const slide = document.createElement('div');
+    slide.className = 'hero-slide hero-slide-placeholder';
+    slide.innerHTML = '<span class="t-photo-placeholder">PHOTO</span>';
+    inner.appendChild(slide);
+    if(desktopThumbs) desktopThumbs.style.display = 'none';
+    return;
   }
 
-  // Spec table
+  // Build slides
+  detailPhotos.forEach((ref, i)=>{
+    const slide = document.createElement('div');
+    slide.className = 'hero-slide';
+    const img = document.createElement('img');
+    img.alt = '';
+    resolvePhotoRef(ref).then(src=>{ if(src) img.src = src; });
+    slide.appendChild(img);
+    inner.appendChild(slide);
+
+    // Dot indicators (mobile)
+    if(detailPhotos.length > 1){
+      const dot = document.createElement('div');
+      dot.className = 'photo-dot' + (i === 0 ? ' active' : '');
+      dots.appendChild(dot);
+    }
+  });
+
+  updateSwipePosition(false);
+
+  // Desktop thumbnail strip
+  if(isDesktop && desktopThumbs){
+    desktopThumbs.style.display = 'flex';
+    desktopThumbs.innerHTML = '';
+    detailPhotos.forEach((ref, i)=>{
+      const wrap = document.createElement('div');
+      wrap.className = 'd-thumb-wrap';
+      const img = document.createElement('img');
+      img.className = 'd-thumb' + (i === 0 ? ' active' : '');
+      resolvePhotoRef(ref).then(src=>{ if(src) img.src = src; });
+      img.addEventListener('click', ()=>{ detailPhotoIdx = i; updateSwipePosition(true); updateDesktopThumbs(); });
+      wrap.appendChild(img);
+      if(i === 0){
+        const star = document.createElement('div');
+        star.className = 'd-thumb-star';
+        star.textContent = '★';
+        wrap.appendChild(star);
+      }
+      desktopThumbs.appendChild(wrap);
+    });
+    // + add button on desktop
+    const addBtn = document.createElement('div');
+    addBtn.className = 'd-thumb-add';
+    addBtn.textContent = '+';
+    addBtn.title = 'Add photo';
+    addBtn.addEventListener('click', ()=>{ if(selectedId){ openForm(findWatch(selectedId)); } });
+    desktopThumbs.appendChild(addBtn);
+  } else if(desktopThumbs){
+    desktopThumbs.style.display = 'none';
+  }
+}
+
+function updateSwipePosition(animate){
+  const inner = document.getElementById('heroSwipeInner');
+  if(!inner) return;
+  inner.style.transition = animate ? 'transform .3s ease' : 'none';
+  inner.style.transform = `translateX(-${detailPhotoIdx * 100}%)`;
+  // Update dots
+  document.querySelectorAll('.photo-dot').forEach((d,i)=>d.classList.toggle('active', i===detailPhotoIdx));
+}
+
+function updateDesktopThumbs(){
+  document.querySelectorAll('.d-thumb').forEach((t,i)=>t.classList.toggle('active', i===detailPhotoIdx));
+  updateSwipePosition(true);
+}
+
+// Swipe handlers
+function initSwipe(){
+  const wrap = document.getElementById('heroSwipeWrap');
+  if(!wrap) return;
+
+  wrap.addEventListener('touchstart', e=>{
+    swipeStartX = e.touches[0].clientX;
+    swipeStartY = e.touches[0].clientY;
+    swiping = false;
+  }, {passive:true});
+
+  wrap.addEventListener('touchmove', e=>{
+    const dx = e.touches[0].clientX - swipeStartX;
+    const dy = e.touches[0].clientY - swipeStartY;
+    if(!swiping && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) swiping = true;
+  }, {passive:true});
+
+  wrap.addEventListener('touchend', e=>{
+    if(!swiping) return;
+    const dx = e.changedTouches[0].clientX - swipeStartX;
+    if(Math.abs(dx) > 40){
+      if(dx < 0 && detailPhotoIdx < detailPhotos.length - 1) detailPhotoIdx++;
+      else if(dx > 0 && detailPhotoIdx > 0) detailPhotoIdx--;
+      updateSwipePosition(true);
+      updateDesktopThumbs();
+    }
+    swiping = false;
+  }, {passive:true});
+
+  // Tap to open lightbox
+  wrap.addEventListener('click', e=>{
+    if(swiping) return;
+    if(detailPhotos.length > 0) openLightbox();
+  });
+}
+
+// ── LIGHTBOX ──
+let lbOpen = false;
+function openLightbox(){
+  if(!detailPhotos.length) return;
+  const lb = document.getElementById('lightbox');
+  if(!lb) return;
+  lbOpen = true;
+  lb.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  renderLightboxSlide();
+}
+function closeLightbox(){
+  lbOpen = false;
+  const lb = document.getElementById('lightbox');
+  if(lb) lb.style.display = 'none';
+  document.body.style.overflow = '';
+}
+function renderLightboxSlide(){
+  const img = document.getElementById('lbImg');
+  const counter = document.getElementById('lbCounter');
+  if(!img) return;
+  resolvePhotoRef(detailPhotos[detailPhotoIdx]).then(src=>{ if(src) img.src=src; });
+  if(counter) counter.textContent = detailPhotos.length > 1 ? `${detailPhotoIdx+1} · ${detailPhotos.length}` : '';
+}
+
+// ── OPEN DETAIL ──
+function openDetail(w){
+  selectedId = w.id;
+  document.getElementById('detailBrand').textContent = w.brand||'';
+  document.getElementById('detailModel').textContent = composeModel(w);
+  document.getElementById('detailRef').textContent = [w.ref?`REF. ${w.ref}`:'', w.year].filter(Boolean).join(' · ');
+
   const specDefs=[
     ['Movement',w.movement],
-    ['Case',w.casemat&&w.size?`${w.casemat} · ${w.size}mm`:w.casemat||w.size?`${w.casemat||w.size+'mm'}`:''],
+    ['Case',w.casemat&&w.size?`${w.casemat} · ${w.size}mm`:w.casemat||(w.size?w.size+'mm':'')],
     ['Dial',w.dial],['Strap',w.strap],
     ['Power reserve',w.pr?w.pr+' h':''],
     ['Water resistance',w.wr?w.wr+' m':''],
     ['Origin',w.origin],['Year',w.year],
     ['Serial',w.serial],['Condition',w.grade],
-    ['Finish',w.finish],
     ['Box & papers',[w.box==='yes'?'Box':null,w.papers==='yes'?'Papers':null].filter(Boolean).join(' · ')],
-    ['Source',w.source],['Dealer',w.dealer],
+    ['Source',w.source],
     ['Paid',fmtPrice(w.paid)],['Market',fmtPrice(w.price)],
-    ['Service due',w.serviceNext],
   ];
-  const table=document.getElementById('specTable');
-  table.innerHTML=specDefs.filter(([,v])=>v).map(([l,v])=>`
-    <div class="spec-row">
-      <div class="t-spec-label spec-row-label">${l}</div>
-      <div class="t-spec-val spec-row-val">${v}</div>
-    </div>`).join('');
+  document.getElementById('specTable').innerHTML = specDefs.filter(([,v])=>v)
+    .map(([l,v])=>`<div class="spec-row"><div class="t-spec-label spec-row-label">${l}</div><div class="t-spec-val spec-row-val">${v}</div></div>`).join('');
 
-  // Story
-  const storyEl=document.getElementById('detailStory');
-  if(w.notes){
-    document.getElementById('detailStoryText').textContent=w.notes;
-    storyEl.style.display='';
-  } else { storyEl.style.display='none'; }
+  const storyEl = document.getElementById('detailStory');
+  if(w.notes){ document.getElementById('detailStoryText').textContent=w.notes; storyEl.style.display=''; }
+  else storyEl.style.display='none';
 
+  buildDetailPhotos(w);
   navigate('detail');
 }
 
@@ -944,6 +1192,7 @@ function openForm(watch){
   // Photo well
   const well=document.getElementById('photoWell');
   well.querySelectorAll('img').forEach(i=>i.remove());
+  document.getElementById('photoWellLabel').style.display='';
   if(watch){
     const pk=photoKey(watch);
     const imgs=getPhotos(pk);
@@ -953,6 +1202,7 @@ function openForm(watch){
         const img=document.createElement('img');
         img.src=src;
         well.appendChild(img);
+        document.getElementById('photoWellLabel').style.display='none';
       });
     }
   }
@@ -1228,6 +1478,73 @@ document.getElementById('importClose').addEventListener('click',()=>{
 document.getElementById('exportBtn').addEventListener('click',doExport);
 document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFileInput').click());
 document.getElementById('importFileInput').addEventListener('change',e=>{ if(e.target.files[0]) doImport(e.target.files[0]); });
+
+// ── LIGHTBOX EVENTS ──
+document.getElementById('lbClose').addEventListener('click', closeLightbox);
+document.getElementById('lightbox').addEventListener('click', e=>{
+  if(e.target === document.getElementById('lightbox')) closeLightbox();
+});
+// Swipe in lightbox
+let lbTouchX = 0;
+document.getElementById('lightbox').addEventListener('touchstart', e=>{ lbTouchX=e.touches[0].clientX; },{passive:true});
+document.getElementById('lightbox').addEventListener('touchend', e=>{
+  const dx=e.changedTouches[0].clientX - lbTouchX;
+  if(Math.abs(dx)>40){
+    if(dx<0 && detailPhotoIdx<detailPhotos.length-1) detailPhotoIdx++;
+    else if(dx>0 && detailPhotoIdx>0) detailPhotoIdx--;
+    renderLightboxSlide();
+    updateSwipePosition(true);
+  }
+},{passive:true});
+document.addEventListener('keydown',e=>{
+  if(lbOpen){
+    if(e.key==='Escape') closeLightbox();
+    if(e.key==='ArrowRight'&&detailPhotoIdx<detailPhotos.length-1){ detailPhotoIdx++; renderLightboxSlide(); updateSwipePosition(true); }
+    if(e.key==='ArrowLeft'&&detailPhotoIdx>0){ detailPhotoIdx--; renderLightboxSlide(); updateSwipePosition(true); }
+  }
+});
+
+// ── PHOTO UPLOAD ──
+async function handlePhotoFile(file){
+  if(!file||!draft) return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const dataUrl=e.target.result;
+    const pk=photoKey(draft);
+    const arr=getPhotos(pk);
+    // Upload to R2
+    try{
+      const key=pk+'_'+Date.now();
+      const blob=await fetch(dataUrl).then(r=>r.blob());
+      await fetch(`${WORKER_URL}/photos/${key}`,{
+        method:'PUT',headers:{'X-Auth-Token':AUTH_TOKEN,'Content-Type':blob.type},body:blob
+      });
+      const ref='r2:'+key;
+      arr.push(ref);
+      r2Cache[ref]=dataUrl;
+    }catch(err){
+      arr.push(dataUrl); // fallback: store as data URL
+    }
+    photos[pk]=arr;
+    savePhotos(photos);
+    // Show in well
+    const well=document.getElementById('photoWell');
+    well.querySelectorAll('img').forEach(i=>i.remove());
+    const img=document.createElement('img');
+    img.src=dataUrl;
+    well.appendChild(img);
+    document.getElementById('photoWellLabel').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById('formCameraBtn').addEventListener('click',()=>document.getElementById('formCameraInput').click());
+document.getElementById('formLibraryBtn').addEventListener('click',()=>document.getElementById('formLibraryInput').click());
+document.getElementById('formCameraInput').addEventListener('change',e=>handlePhotoFile(e.target.files[0]));
+document.getElementById('formLibraryInput').addEventListener('change',e=>handlePhotoFile(e.target.files[0]));
+
+// ── INIT SWIPE ──
+initSwipe();
 
 // ── INIT ──
 (async function(){
