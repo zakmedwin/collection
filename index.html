@@ -341,7 +341,7 @@ body{background:var(--bg);color:var(--fg)}
 /* ── DESKTOP RESPONSIVE ── */
 @media (min-width:769px){
   body{overflow:auto}
-  #app{max-width:none;display:grid;grid-template-columns:220px 1fr;min-height:100vh}
+  #app{max-width:none;min-height:100vh;padding-left:220px}
   #bottomNav{
     position:fixed;left:0;top:0;bottom:0;width:220px;
     border-top:none;border-right:1px solid var(--line);
@@ -355,30 +355,30 @@ body{background:var(--bg);color:var(--fg)}
   }
   .nav-btn{
     flex-direction:row;justify-content:flex-start;gap:14px;
-    padding:12px 14px;opacity:.45;border-radius:0;
+    padding:12px 14px;opacity:.45;border-radius:0;width:100%;
     font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
   }
   .nav-btn .t-nav-label{display:block;font-size:11px}
   .nav-btn-add{
-    width:auto;height:48px;border-radius:0;
+    width:100%;height:48px;border-radius:0;
     justify-content:flex-start;gap:14px;padding:12px 14px;
+    background:var(--accent);color:var(--bg);
     font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-    opacity:.9;
+    opacity:1 !important;margin:4px 0;
   }
   .nav-btn-add::after{content:'Add piece'}
   .nav-btn-add svg{flex:none}
-  .screen{padding-bottom:0;padding-left:0}
+  .screen{padding-bottom:0;max-width:none}
   #screen-list .list-header{padding:40px 40px 20px}
   #screen-list .search-wrap{padding:0 40px 16px}
   #screen-list .chips-wrap{padding:0 40px 16px}
   .watch-list{background:none;gap:0}
   .watch-row{padding:20px 40px;border-bottom:1px solid var(--line)}
   /* Detail two-column */
-  #screen-detail{display:none;flex-direction:row;align-items:flex-start;min-height:100vh}
-  #screen-detail.active{display:flex}
+  #screen-detail{flex-direction:row;align-items:flex-start}
   #detail-left{width:380px;flex:none;position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--tile)}
   #detail-right{flex:1;min-width:0;padding:40px;overflow-y:auto}
-  #screen-detail .detail-hero{height:320px;position:relative}
+  #screen-detail .detail-hero{height:320px}
   .detail-hero-back{top:20px;left:20px}
   /* Thumbnail strip on desktop */
   #desktopThumbs{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;background:var(--tile);scrollbar-width:none}
@@ -392,6 +392,7 @@ body{background:var(--bg);color:var(--fg)}
   .photo-well{margin:0 40px}
   .form-fields{padding:20px 40px 0}
   .form-actions{padding:24px 40px 0}
+  .photo-upload-btns{margin:10px 40px 0 !important}
   /* Insights/tools desktop */
   #screen-insights .insights-header{padding:40px 40px 20px}
   .stat-row{padding:0 40px 24px}
@@ -401,12 +402,12 @@ body{background:var(--bg);color:var(--fg)}
   .tool-list{padding:0 40px}
   .tools-actions{padding:20px 40px 0}
   .section-pad{padding:0 40px}
-  /* Hide mobile-only dot indicators */
+  /* Hide dot indicators on desktop */
   #photoDots{display:none}
 }
 
 /* ── PHOTO SWIPE (mobile) ── */
-.hero-swipe-wrap{position:relative;width:100%;height:100%;overflow:hidden;touch-action:pan-y}
+.hero-swipe-wrap{position:relative;width:100%;height:100%;overflow:hidden;touch-action:pan-y pinch-zoom}
 .hero-swipe-inner{display:flex;height:100%;transition:transform .3s ease;will-change:transform}
 .hero-slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--tile)}
 .hero-slide img{width:100%;height:100%;object-fit:contain}
@@ -534,7 +535,7 @@ body{background:var(--bg);color:var(--fg)}
       <input type="file" accept="image/*" id="formLibraryInput" style="display:none">
     </div>
     <!-- Upload buttons -->
-    <div style="display:flex;gap:12px;margin:10px 24px 0;justify-content:flex-start">
+    <div class="photo-upload-btns" style="display:flex;gap:12px;margin:10px 24px 0;justify-content:flex-start">
       <button id="formCameraBtn" style="min-height:44px;min-width:44px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:transparent;color:var(--fg);padding:10px 16px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.7">
         <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1 6.5A1.5 1.5 0 0 1 2.5 5h.879a2 2 0 0 0 1.414-.586l.828-.828A2 2 0 0 1 7.035 3h5.93a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 16.621 5H17.5A1.5 1.5 0 0 1 19 6.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 1 15.5v-9z"/><circle cx="10" cy="11" r="3"/></svg>
         Camera
@@ -1083,36 +1084,40 @@ function updateDesktopThumbs(){
 function initSwipe(){
   const wrap = document.getElementById('heroSwipeWrap');
   if(!wrap) return;
+  let startX=0, startY=0, isDragging=false, isHorizontal=false;
 
   wrap.addEventListener('touchstart', e=>{
-    swipeStartX = e.touches[0].clientX;
-    swipeStartY = e.touches[0].clientY;
-    swiping = false;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isDragging = true;
+    isHorizontal = false;
   }, {passive:true});
 
   wrap.addEventListener('touchmove', e=>{
-    const dx = e.touches[0].clientX - swipeStartX;
-    const dy = e.touches[0].clientY - swipeStartY;
-    if(!swiping && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) swiping = true;
-  }, {passive:true});
+    if(!isDragging) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if(!isHorizontal && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8){
+      isHorizontal = true;
+    }
+    if(isHorizontal) e.preventDefault(); // prevent page scroll during horizontal swipe
+  }, {passive:false});
 
   wrap.addEventListener('touchend', e=>{
-    if(!swiping) return;
-    const dx = e.changedTouches[0].clientX - swipeStartX;
-    if(Math.abs(dx) > 40){
+    if(!isDragging) return;
+    isDragging = false;
+    const dx = e.changedTouches[0].clientX - startX;
+    if(isHorizontal && Math.abs(dx) > 40){
       if(dx < 0 && detailPhotoIdx < detailPhotos.length - 1) detailPhotoIdx++;
       else if(dx > 0 && detailPhotoIdx > 0) detailPhotoIdx--;
       updateSwipePosition(true);
       updateDesktopThumbs();
+    } else if(!isHorizontal && Math.abs(dx) < 10){
+      // Tap — open lightbox
+      if(detailPhotos.length > 0) openLightbox();
     }
-    swiping = false;
+    isHorizontal = false;
   }, {passive:true});
-
-  // Tap to open lightbox
-  wrap.addEventListener('click', e=>{
-    if(swiping) return;
-    if(detailPhotos.length > 0) openLightbox();
-  });
 }
 
 // ── LIGHTBOX ──
@@ -1439,8 +1444,20 @@ document.querySelectorAll('[data-nav]').forEach(btn=>{
 });
 
 // Detail back
-document.getElementById('detailBack').addEventListener('click',()=>navigate('list'));
-document.getElementById('detailClose').addEventListener('click',()=>navigate('list'));
+['detailBack','detailClose'].forEach(id=>{
+  const btn=document.getElementById(id);
+  let touched=false;
+  btn.addEventListener('touchend',e=>{
+    e.preventDefault();
+    touched=true;
+    navigate('list');
+  },{passive:false});
+  btn.addEventListener('click',()=>{ if(touched){touched=false;return;} navigate('list'); });
+});
+document.getElementById('detailEdit').addEventListener('touchend',e=>{
+  e.preventDefault();
+  const w=findWatch(selectedId); if(w) openForm(w);
+},{passive:false});
 document.getElementById('detailEdit').addEventListener('click',()=>{ const w=findWatch(selectedId); if(w) openForm(w); });
 
 // Form
