@@ -582,6 +582,20 @@ body{background:var(--bg);color:var(--fg)}
         <button class="btn-primary" id="detailEdit">Edit</button>
         <button class="btn-secondary" id="detailClose">Back</button>
       </div>
+      <!-- AI Actions -->
+      <div style="padding:12px 24px 0;display:flex;flex-direction:column;gap:8px">
+        <div class="t-section-label" style="margin-bottom:4px">AI · Powered by Claude</div>
+        <button class="btn-outline-pill" id="aiStoryBtn" style="height:44px;font-size:10px">✦ Generate story</button>
+        <button class="btn-outline-pill" id="aiValueBtn" style="height:44px;font-size:10px">✦ Estimate value</button>
+        <button class="btn-outline-pill" id="aiAutofillBtn" style="height:44px;font-size:10px">✦ Autofill specs</button>
+      </div>
+      <div id="aiResult" style="padding:16px 24px 0;display:none">
+        <div class="t-body" id="aiResultText" style="padding:14px;border:1px solid var(--line);line-height:1.7"></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn-primary" id="aiSaveBtn" style="height:40px;font-size:10px;flex:1">Save</button>
+          <button class="btn-secondary" id="aiDismissBtn" style="height:40px;font-size:10px;flex:1">Dismiss</button>
+        </div>
+      </div>
       <div style="height:24px"></div>
     </div>
   </div>
@@ -590,7 +604,10 @@ body{background:var(--bg);color:var(--fg)}
   <div id="screen-form" class="screen">
     <div class="form-header">
       <div class="t-form" id="formTitle">Add a piece</div>
-      <button class="form-cancel" id="formCancel">Cancel</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="formAiAutofill" style="min-height:44px;padding:0 14px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;opacity:.8">✦ Autofill</button>
+        <button class="form-cancel" id="formCancel">Cancel</button>
+      </div>
     </div>
     <div class="photo-well" id="photoWell">
       <span class="t-photo-placeholder" id="photoWellLabel">PHOTO</span>
@@ -1089,7 +1106,6 @@ async function renderDetailPhotos(){
   dots.innerHTML = '';
 
   if(detailPhotos.length === 0){
-    // Placeholder slide
     const slide = document.createElement('div');
     slide.className = 'hero-slide hero-slide-placeholder';
     slide.innerHTML = '<span class="t-photo-placeholder">PHOTO</span>';
@@ -1098,14 +1114,21 @@ async function renderDetailPhotos(){
     return;
   }
 
-  // Build slides
-  detailPhotos.forEach((ref, i)=>{
+  // Resolve ALL photo URLs first before building slides
+  const srcs = await Promise.all(detailPhotos.map(ref => resolvePhotoRef(ref)));
+
+  // Build slides with resolved URLs
+  srcs.forEach((src, i)=>{
     const slide = document.createElement('div');
     slide.className = 'hero-slide';
-    const img = document.createElement('img');
-    img.alt = '';
-    resolvePhotoRef(ref).then(src=>{ if(src) img.src = src; });
-    slide.appendChild(img);
+    if(src){
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = '';
+      slide.appendChild(img);
+    } else {
+      slide.innerHTML = '<span class="t-photo-placeholder">PHOTO</span>';
+    }
     inner.appendChild(slide);
 
     // Dot indicators (mobile)
@@ -1122,12 +1145,12 @@ async function renderDetailPhotos(){
   if(isDesktop && desktopThumbs){
     desktopThumbs.style.display = 'flex';
     desktopThumbs.innerHTML = '';
-    detailPhotos.forEach((ref, i)=>{
+    srcs.forEach((src, i)=>{
       const wrap = document.createElement('div');
       wrap.className = 'd-thumb-wrap';
       const img = document.createElement('img');
       img.className = 'd-thumb' + (i === 0 ? ' active' : '');
-      resolvePhotoRef(ref).then(src=>{ if(src) img.src = src; });
+      if(src) img.src = src;
       img.addEventListener('click', ()=>{ detailPhotoIdx = i; updateSwipePosition(true); updateDesktopThumbs(); });
       wrap.appendChild(img);
       if(i === 0){
@@ -1138,7 +1161,7 @@ async function renderDetailPhotos(){
       }
       desktopThumbs.appendChild(wrap);
     });
-    // + add button on desktop
+    // + add button
     const addBtn = document.createElement('div');
     addBtn.className = 'd-thumb-add';
     addBtn.textContent = '+';
@@ -1672,21 +1695,27 @@ document.querySelectorAll('.theme-card').forEach(c=>{
   c.addEventListener('click',()=>{ theme=c.dataset.themeVal; applyTheme(); renderTools(); });
 });
 
-// Nav — use touchend with preventDefault to avoid iOS double-tap-to-focus issue
+// Nav — reliable on iPhone regardless of scroll position
+// Use touchend+preventDefault to bypass Safari's scroll-then-tap behavior
 document.querySelectorAll('[data-nav]').forEach(btn=>{
+  let touchMoved = false;
+
+  btn.addEventListener('touchstart', ()=>{ touchMoved = false; }, {passive:true});
+  btn.addEventListener('touchmove', ()=>{ touchMoved = true; }, {passive:true});
+
   btn.addEventListener('touchend', e=>{
+    if(touchMoved) return; // finger dragged, not a tap
     e.preventDefault();
-    const v=btn.dataset.nav;
+    const v = btn.dataset.nav;
     if(v==='add'){ openForm(null); return; }
-    if(v==='search'){ openSearchOverlay(); return; }
     navigate(v);
   }, {passive:false});
-  // Fallback for desktop
+
+  // Desktop fallback
   btn.addEventListener('click', e=>{
-    if(e.isTrusted && window.matchMedia('(hover:none)').matches) return; // already handled by touch
-    const v=btn.dataset.nav;
+    if(e.isTrusted && 'ontouchstart' in window) return; // handled by touchend on touch devices
+    const v = btn.dataset.nav;
     if(v==='add'){ openForm(null); return; }
-    if(v==='search'){ openSearchOverlay(); return; }
     navigate(v);
   });
 });
@@ -1810,6 +1839,101 @@ document.getElementById('formLibraryInput').addEventListener('change',e=>handleP
 
 // ── INIT SWIPE ──
 initSwipe();
+
+// ── AI FEATURES ──
+let aiPendingType = null;
+
+async function callAI(route, payload){
+  const res = await fetch(`${WORKER_URL}${route}`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-Auth-Token':AUTH_TOKEN},
+    body:JSON.stringify(payload)
+  });
+  if(!res.ok) throw new Error('AI request failed');
+  return await res.json();
+}
+
+function showAIResult(text, type){
+  aiPendingType = type;
+  const el = document.getElementById('aiResult');
+  document.getElementById('aiResultText').textContent = text;
+  el.style.display = 'block';
+  el.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function hideAIResult(){
+  document.getElementById('aiResult').style.display = 'none';
+  aiPendingType = null;
+}
+
+async function runAIStory(){
+  const w = findWatch(selectedId);
+  if(!w) return;
+  const btn = document.getElementById('aiStoryBtn');
+  btn.textContent = '✦ Generating…'; btn.disabled = true;
+  try{
+    const data = await callAI('/ai/story', {watch:w});
+    showAIResult(data.story || data.text || JSON.stringify(data), 'story');
+  } catch(e){ showToast('AI unavailable — try again'); }
+  btn.textContent = '✦ Generate story'; btn.disabled = false;
+}
+
+async function runAIValue(){
+  const w = findWatch(selectedId);
+  if(!w) return;
+  const btn = document.getElementById('aiValueBtn');
+  btn.textContent = '✦ Estimating…'; btn.disabled = true;
+  try{
+    const data = await callAI('/ai/value', {watch:w});
+    const text = data.estimate || data.value || data.text || JSON.stringify(data);
+    showAIResult(text, 'value');
+  } catch(e){ showToast('AI unavailable — try again'); }
+  btn.textContent = '✦ Estimate value'; btn.disabled = false;
+}
+
+async function runAIAutofill(fromForm){
+  const w = fromForm ? draft : findWatch(selectedId);
+  if(!w) return;
+  const btn = fromForm ? document.getElementById('formAiAutofill') : document.getElementById('aiAutofillBtn');
+  const orig = btn.textContent;
+  btn.textContent = '✦ Searching…'; btn.disabled = true;
+  try{
+    const data = await callAI('/ai/autofill', {watch:w});
+    const filled = data.watch || data;
+    if(fromForm){
+      // Apply directly to form fields
+      const fields = ['brand','series','model','ref','movement','casemat','dial','strap','size','wr','pr','origin'];
+      fields.forEach(f=>{ if(filled[f] && !document.getElementById('f-'+f).value){ document.getElementById('f-'+f).value = filled[f]; } });
+      showToast('Specs filled ✓');
+    } else {
+      showAIResult(JSON.stringify(filled, null, 2), 'autofill');
+    }
+  } catch(e){ showToast('AI unavailable — try again'); }
+  btn.textContent = orig; btn.disabled = false;
+}
+
+document.getElementById('aiStoryBtn').addEventListener('click', runAIStory);
+document.getElementById('aiValueBtn').addEventListener('click', runAIValue);
+document.getElementById('aiAutofillBtn').addEventListener('click', ()=>runAIAutofill(false));
+document.getElementById('formAiAutofill').addEventListener('click', ()=>runAIAutofill(true));
+
+document.getElementById('aiSaveBtn').addEventListener('click', ()=>{
+  const w = findWatch(selectedId);
+  if(!w || !aiPendingType) return;
+  const text = document.getElementById('aiResultText').textContent;
+  if(aiPendingType === 'story' || aiPendingType === 'value'){
+    const idx = customWatches.findIndex(c=>c.id===w.id);
+    if(idx>=0){
+      if(aiPendingType==='story') customWatches[idx].notes = text;
+      if(aiPendingType==='value') customWatches[idx].price = text;
+      saveCustom(customWatches);
+    }
+  }
+  hideAIResult();
+  showToast('Saved ✓');
+});
+
+document.getElementById('aiDismissBtn').addEventListener('click', hideAIResult);
 
 // ── INIT ──
 (async function(){
