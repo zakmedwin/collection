@@ -328,11 +328,72 @@ body{background:var(--bg);color:var(--fg)}
 }
 #toast.show{opacity:1}
 
-/* ── WATCH SETTER (in overlay) ── */
-.ws-clock-wrap{display:flex;justify-content:center;padding:20px 0}
-.ws-time{font-family:'Bodoni Moda',serif;font-size:56px;font-weight:400;letter-spacing:.02em;line-height:1}
-.ws-date-line{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.5;text-align:center;margin-top:8px}
-.ws-leap{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);text-align:center;margin-top:6px;min-height:16px}
+/* ── WATCH SETTER ── */
+.ws-overlay-body{
+  display:flex;flex-direction:column;align-items:center;
+  padding:40px 24px 40px;flex:1;
+}
+.ws-eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.24em;
+  text-transform:uppercase;opacity:.4;margin-bottom:32px;text-align:center;
+}
+.ws-clock-face{
+  display:flex;flex-direction:column;align-items:center;
+  border:1px solid var(--line);padding:36px 48px 32px;
+  margin-bottom:32px;position:relative;width:100%;max-width:340px;
+}
+.ws-clock-face::before{
+  content:'';position:absolute;top:6px;left:6px;right:6px;bottom:6px;
+  border:1px solid var(--line);opacity:.4;pointer-events:none;
+}
+.ws-day-of-week{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.22em;
+  text-transform:uppercase;opacity:.4;margin-bottom:16px;
+}
+.ws-time{
+  font-family:'Bodoni Moda',serif;font-size:64px;font-weight:400;
+  letter-spacing:-.01em;line-height:1;color:var(--fg);
+  font-variant-numeric:tabular-nums;
+}
+.ws-time-sub{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;opacity:.35;margin-top:14px;
+}
+.ws-date-full{
+  font-family:'Bodoni Moda',serif;font-size:16px;font-weight:400;
+  opacity:.7;margin-top:6px;letter-spacing:.01em;
+}
+.ws-meta{
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  margin-bottom:32px;width:100%;max-width:340px;
+}
+.ws-leap-badge{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent);
+  border:1px solid var(--accent);padding:5px 12px;opacity:.8;
+}
+.ws-instruction{
+  font-family:'Archivo',sans-serif;font-size:12px;line-height:1.6;
+  opacity:.45;text-align:center;max-width:260px;
+}
+/* Moonphase placeholder */
+.ws-moonphase-slot{
+  width:100%;max-width:340px;border:1px dashed var(--line);
+  padding:24px;display:flex;flex-direction:column;align-items:center;gap:10px;
+  opacity:.4;cursor:default;
+}
+.ws-moonphase-slot-icon{
+  width:48px;height:48px;border-radius:50%;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+}
+.ws-moonphase-slot-label{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;
+  text-transform:uppercase;
+}
+.ws-moonphase-slot-sub{
+  font-family:'Archivo',sans-serif;font-size:11px;text-align:center;line-height:1.5;
+}
+
 .ws-hint{font-family:'Archivo',sans-serif;font-size:12px;opacity:.5;text-align:center;margin-top:16px}
 
 /* ── SCROLLBAR ── */
@@ -694,13 +755,33 @@ body{background:var(--bg);color:var(--fg)}
     <div class="t-form">Watch setter</div>
     <button class="overlay-close" id="wsClose">✕</button>
   </div>
-  <div class="overlay-body" style="display:flex;flex-direction:column;align-items:center">
-    <div class="ws-clock-wrap">
+  <div class="ws-overlay-body">
+
+    <div class="ws-eyebrow">Reference time · Device clock</div>
+
+    <!-- Clock face -->
+    <div class="ws-clock-face">
+      <div class="ws-day-of-week" id="wsDayOfWeek">—</div>
       <div class="ws-time" id="wsTime">00:00:00</div>
+      <div class="ws-date-full" id="wsDateFull">—</div>
+      <div class="ws-time-sub">Hacking seconds · Advance crown to set</div>
     </div>
-    <div class="ws-date-line" id="wsDate"></div>
-    <div class="ws-leap" id="wsLeap"></div>
-    <div class="ws-hint">Set your watch to the time shown above</div>
+
+    <!-- Meta -->
+    <div class="ws-meta">
+      <div class="ws-leap" id="wsLeap" style="min-height:0"></div>
+      <div class="ws-instruction">
+        Pull the crown to the hacking position and wait for the second hand to reach 12. Push the crown in when the seconds display reaches :00.
+      </div>
+    </div>
+
+    <!-- Moonphase placeholder -->
+    <div class="ws-moonphase-slot">
+      <div class="ws-moonphase-slot-icon">☽</div>
+      <div class="ws-moonphase-slot-label">Moonphase setter</div>
+      <div class="ws-moonphase-slot-sub">Coming soon — set your bosom moonphase complication to the correct lunar position</div>
+    </div>
+
   </div>
 </div>
 
@@ -1309,12 +1390,27 @@ function tickWS(){
   const m=String(now.getMinutes()).padStart(2,'0');
   const s=String(now.getSeconds()).padStart(2,'0');
   document.getElementById('wsTime').textContent=`${h}:${m}:${s}`;
+
   const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('wsDate').textContent=`${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+  const dow=days[now.getDay()];
+  const dateStr=`${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+
+  const dowEl=document.getElementById('wsDayOfWeek');
+  if(dowEl) dowEl.textContent=dow;
+  const dateEl=document.getElementById('wsDateFull');
+  if(dateEl) dateEl.textContent=dateStr;
+
   const yr=now.getFullYear();
   const isLeap=(yr%4===0&&yr%100!==0)||(yr%400===0);
-  document.getElementById('wsLeap').textContent=isLeap?`${yr} is a leap year`:'';
+  const leapEl=document.getElementById('wsLeap');
+  if(leapEl){
+    if(isLeap){
+      leapEl.innerHTML=`<div class="ws-leap-badge">${yr} · Leap year</div>`;
+    } else {
+      leapEl.innerHTML='';
+    }
+  }
 }
 
 // ── EXPORT ──
