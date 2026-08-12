@@ -762,6 +762,7 @@ body{background:var(--bg);color:var(--fg)}
     <!-- Clock face -->
     <div class="ws-clock-face">
       <div class="ws-day-of-week" id="wsDayOfWeek">—</div>
+      <canvas id="wsAnalog" width="220" height="220" style="display:block;margin:0 auto 16px"></canvas>
       <div class="ws-time" id="wsTime">00:00:00</div>
       <div class="ws-date-full" id="wsDateFull">—</div>
       <div class="ws-time-sub">Hacking seconds · Advance crown to set</div>
@@ -1384,6 +1385,156 @@ function closeWatchSetter(){
   document.body.style.overflow='';
   if(wsInterval){ clearInterval(wsInterval); wsInterval=null; }
 }
+function drawAnalogClock(now){
+  const canvas = document.getElementById('wsAnalog');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2, r = W/2 - 8;
+
+  // Detect current colors from CSS vars
+  const style = getComputedStyle(document.documentElement);
+  const fg = style.getPropertyValue('--fg').trim() || '#1B1917';
+  const bg = style.getPropertyValue('--bg').trim() || '#F4F1EC';
+  const accent = style.getPropertyValue('--accent').trim() || '#8A6A2F';
+  const line = style.getPropertyValue('--line').trim() || 'rgba(27,25,23,.14)';
+
+  ctx.clearRect(0,0,W,H);
+
+  // Dial face
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.fillStyle = bg;
+  ctx.fill();
+
+  // Outer ring
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle = fg;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.25;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Inner ring
+  ctx.beginPath();
+  ctx.arc(cx,cy,r-6,0,Math.PI*2);
+  ctx.strokeStyle = fg;
+  ctx.lineWidth = 0.5;
+  ctx.globalAlpha = 0.12;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Hour markers
+  for(let i=0; i<12; i++){
+    const angle = (i/12)*Math.PI*2 - Math.PI/2;
+    const isMajor = i%3===0;
+    const outer = r - 8;
+    const inner = isMajor ? r - 20 : r - 14;
+    const x1 = cx + outer*Math.cos(angle);
+    const y1 = cy + outer*Math.sin(angle);
+    const x2 = cx + inner*Math.cos(angle);
+    const y2 = cy + inner*Math.sin(angle);
+    ctx.beginPath();
+    ctx.moveTo(x1,y1);
+    ctx.lineTo(x2,y2);
+    ctx.strokeStyle = fg;
+    ctx.lineWidth = isMajor ? 1.5 : 0.8;
+    ctx.globalAlpha = isMajor ? 0.7 : 0.35;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // Minute markers
+  for(let i=0; i<60; i++){
+    if(i%5===0) continue; // already drawn as hour markers
+    const angle = (i/60)*Math.PI*2 - Math.PI/2;
+    const outer = r - 8;
+    const inner = r - 12;
+    ctx.beginPath();
+    ctx.moveTo(cx+outer*Math.cos(angle), cy+outer*Math.sin(angle));
+    ctx.lineTo(cx+inner*Math.cos(angle), cy+inner*Math.sin(angle));
+    ctx.strokeStyle = fg;
+    ctx.lineWidth = 0.5;
+    ctx.globalAlpha = 0.2;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // Brand text
+  ctx.font = `400 9px 'IBM Plex Mono', monospace`;
+  ctx.fillStyle = fg;
+  ctx.globalAlpha = 0.3;
+  ctx.textAlign = 'center';
+  ctx.letterSpacing = '0.2em';
+  ctx.fillText('THE COLLECTION', cx, cy - 28);
+  ctx.globalAlpha = 1;
+
+  const h = now.getHours() % 12;
+  const m = now.getMinutes();
+  const s = now.getSeconds();
+
+  // Hour hand
+  const hourAngle = ((h + m/60)/12)*Math.PI*2 - Math.PI/2;
+  drawHand(ctx, cx, cy, hourAngle, r*0.52, 3, fg, 0.9);
+
+  // Minute hand
+  const minAngle = ((m + s/60)/60)*Math.PI*2 - Math.PI/2;
+  drawHand(ctx, cx, cy, minAngle, r*0.75, 2, fg, 0.9);
+
+  // Second hand
+  const secAngle = (s/60)*Math.PI*2 - Math.PI/2;
+  // Counterweight tail
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  const tailLen = r * 0.2;
+  ctx.lineTo(cx + tailLen*Math.cos(secAngle+Math.PI), cy + tailLen*Math.sin(secAngle+Math.PI));
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 1.2;
+  ctx.globalAlpha = 0.9;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+  // Second hand main
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + r*0.82*Math.cos(secAngle), cy + r*0.82*Math.sin(secAngle));
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 1.2;
+  ctx.globalAlpha = 0.9;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Center cap
+  ctx.beginPath();
+  ctx.arc(cx, cy, 4, 0, Math.PI*2);
+  ctx.fillStyle = accent;
+  ctx.globalAlpha = 0.9;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 2, 0, Math.PI*2);
+  ctx.fillStyle = bg;
+  ctx.fill();
+}
+
+function drawHand(ctx, cx, cy, angle, length, width, color, alpha){
+  // Tapered hand — wider at base, pointed at tip
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+  ctx.beginPath();
+  ctx.moveTo(-width*0.6, 0);
+  ctx.lineTo(0, -length);
+  ctx.lineTo(width*0.6, 0);
+  ctx.lineTo(0, length*0.12);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.globalAlpha = alpha;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
 function tickWS(){
   const now=new Date();
   const h=String(now.getHours()).padStart(2,'0');
@@ -1411,6 +1562,8 @@ function tickWS(){
       leapEl.innerHTML='';
     }
   }
+
+  drawAnalogClock(now);
 }
 
 // ── EXPORT ──
