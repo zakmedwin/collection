@@ -398,8 +398,34 @@ body{background:var(--bg);color:var(--fg)}
 
 .ws-hint{font-family:'Archivo',sans-serif;font-size:12px;opacity:.5;text-align:center;margin-top:16px}
 
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:0;height:0}
+/* ── CLASSIC GRID LAYOUT ── */
+.watch-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+.watch-card{
+  background:var(--bg);cursor:pointer;display:flex;flex-direction:column;
+  aspect-ratio:3/4;position:relative;overflow:hidden;
+}
+.watch-card:active{opacity:.85}
+.watch-card-photo{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  transition:transform .3s;
+}
+.watch-card-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.2) 50%, transparent 100%);
+}
+.watch-card-text{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:14px 12px 12px;display:flex;flex-direction:column;gap:3px;
+}
+.watch-card-brand{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+.watch-card-model{font-family:'Bodoni Moda',serif;font-size:15px;line-height:1.15;color:#fff}
+.watch-card-ref{font-family:'IBM Plex Mono',monospace;font-size:8px;color:rgba(255,255,255,.5)}
+.watch-card-nophoto{
+  position:absolute;inset:0;background:var(--tile);display:flex;align-items:center;justify-content:center;
+}
+@media(min-width:769px){
+  .watch-grid{grid-template-columns:repeat(4,1fr)}
+}
 
 /* ── DESKTOP RESPONSIVE ── */
 @media (min-width:769px){
@@ -701,28 +727,47 @@ body{background:var(--bg);color:var(--fg)}
     </div>
     <!-- Appearance -->
     <div class="t-section-label section-pad" style="margin-bottom:0">Appearance</div>
+    <div style="padding:10px 24px 0;display:flex;gap:8px;align-items:center">
+      <span class="t-spec-label">Mode</span>
+    </div>
+    <div style="padding:6px 24px 16px;display:flex;gap:10px">
+      <button id="toolsLightBtn" class="btn-secondary" style="flex:1;height:40px;font-size:10px">Light</button>
+      <button id="toolsDarkBtn" class="btn-secondary" style="flex:1;height:40px;font-size:10px">Dark</button>
+    </div>
+    <!-- Layout -->
+    <div class="t-section-label section-pad" style="margin-bottom:0">Layout</div>
     <div class="theme-cards" id="themeCards">
-      <div class="theme-card active" data-theme-val="archive">
-        <div class="theme-swatches">
-          <div class="theme-swatch-light" style="background:#F4F1EC"></div>
-          <div class="theme-swatch-dark" style="background:#14171C"></div>
-          <div class="theme-swatch-accent" style="background:#8A6A2F"></div>
+      <div class="theme-card active" data-layout-val="modern">
+        <div style="display:flex;flex-direction:column;gap:3px;flex:none;width:60px">
+          <div style="height:22px;background:var(--tile);display:flex;align-items:center;padding:0 6px;gap:4px">
+            <div style="width:16px;height:10px;background:var(--line)"></div>
+            <div style="flex:1;height:4px;background:var(--line);opacity:.5"></div>
+          </div>
+          <div style="height:22px;background:var(--tile);display:flex;align-items:center;padding:0 6px;gap:4px">
+            <div style="width:16px;height:10px;background:var(--line)"></div>
+            <div style="flex:1;height:4px;background:var(--line);opacity:.5"></div>
+          </div>
+          <div style="height:22px;background:var(--tile);display:flex;align-items:center;padding:0 6px;gap:4px">
+            <div style="width:16px;height:10px;background:var(--line)"></div>
+            <div style="flex:1;height:4px;background:var(--line);opacity:.5"></div>
+          </div>
         </div>
         <div class="theme-card-text">
-          <div class="t-theme-name">Archive</div>
-          <div class="t-helper">Warm parchment with editorial gold. The new default.</div>
+          <div class="t-theme-name">Modern</div>
+          <div class="t-helper">Horizontal rows with photo and details side by side</div>
         </div>
         <div class="theme-card-dot"></div>
       </div>
-      <div class="theme-card" data-theme-val="classic">
-        <div class="theme-swatches">
-          <div class="theme-swatch-light" style="background:#F6F1E8"></div>
-          <div class="theme-swatch-dark" style="background:#1C1512"></div>
-          <div class="theme-swatch-accent" style="background:#9A7A23"></div>
+      <div class="theme-card" data-layout-val="classic">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;flex:none;width:60px">
+          <div style="height:34px;background:var(--tile)"></div>
+          <div style="height:34px;background:var(--tile)"></div>
+          <div style="height:34px;background:var(--tile)"></div>
+          <div style="height:34px;background:var(--tile)"></div>
         </div>
         <div class="theme-card-text">
           <div class="t-theme-name">Classic</div>
-          <div class="t-helper">The original espresso and gold. Always available.</div>
+          <div class="t-helper">Photo-dominant grid, two columns, full visual impact</div>
         </div>
         <div class="theme-card-dot"></div>
       </div>
@@ -924,6 +969,7 @@ let query = '';
 let activeSub = 'all';
 let dark = false;
 let theme = 'archive';
+let layout = 'modern'; // 'modern' or 'classic'
 let draft = null;
 let fromDetail = false; // did we open form from detail?
 let wsInterval = null;
@@ -931,7 +977,7 @@ let syncTimer = null;
 
 // ── STORAGE KEYS ──
 const CUSTOM_KEY='wc_custom_v9', SUBCOL_KEY='wc_subcols_v10', WISH_KEY='wc_wish_v1';
-const PHOTO_KEY='wc_photos_v9', THEME_KEY='wc_theme_v2', MODE_KEY='wc_mode_v2';
+const PHOTO_KEY='wc_photos_v9', THEME_KEY='wc_theme_v2', MODE_KEY='wc_mode_v2', LAYOUT_KEY='wc_layout_v1';
 const PIN_KEY='wc_pin', SESSION_KEY='wc_unlocked';
 const DEFAULT_PIN='1973';
 const r2Cache = {};
@@ -1024,18 +1070,18 @@ function showToast(msg,dur=3000){
 
 // ── THEME / MODE ──
 function applyTheme(){
-  document.documentElement.setAttribute('data-theme',theme);
+  document.documentElement.setAttribute('data-theme','archive'); // always archive palette
   document.documentElement.setAttribute('data-mode',dark?'dark':'light');
   document.getElementById('modeToggle').textContent=dark?'Light':'Dark';
-  // Update tools subtitle
-  const tn=theme==='archive'?'Archive':'Classic';
-  document.getElementById('toolsSubtitle').textContent=`Theme · ${tn}`;
-  // Update theme card active state
+  document.getElementById('toolsSubtitle').textContent=`Layout · ${layout==='modern'?'Modern':'Classic'}`;
+  // Update layout cards
   document.querySelectorAll('.theme-card').forEach(c=>{
-    c.classList.toggle('active',c.dataset.themeVal===theme);
+    c.classList.toggle('active',c.dataset.layoutVal===layout);
   });
-  localStorage.setItem(THEME_KEY,theme);
+  localStorage.setItem(THEME_KEY,'archive');
   localStorage.setItem(MODE_KEY,dark?'dark':'light');
+  localStorage.setItem(LAYOUT_KEY,layout);
+  renderList();
 }
 
 // ── NAVIGATION ──
@@ -1089,7 +1135,9 @@ function renderList(){
   document.getElementById('listCount').textContent=`${total} ${label} · ${watches.length} shown`;
 
   const list=document.getElementById('watchList');
+
   if(watches.length===0){
+    list.className='';
     list.innerHTML=`
       <div class="empty-state">
         <div class="empty-icon"><div class="empty-icon-bar"></div></div>
@@ -1099,38 +1147,77 @@ function renderList(){
     return;
   }
 
-  list.innerHTML='';
-  watches.forEach(w=>{
-    const row=document.createElement('div');
-    row.className='watch-row';
-    row.innerHTML=`
-      <div class="watch-row-photo" id="thumb-${w.id}">
-        <span class="watch-row-photo-label t-photo-placeholder">PHOTO</span>
-      </div>
-      <div class="watch-row-text">
-        <div class="t-brand">${w.brand||''}</div>
-        <div class="t-row-model">${composeModel(w)}</div>
-        <div class="t-ref">${composeRef(w)}</div>
-        <div class="t-row-spec">${composeSpecLine(w)}</div>
-      </div>`;
-    row.addEventListener('click',()=>openDetail(w));
-    list.appendChild(row);
-    // Async photo load
-    const pk=photoKey(w);
-    const imgs=getPhotos(pk);
-    if(imgs.length){
-      resolvePhotoRef(imgs[0]).then(src=>{
-        if(!src) return;
-        const cell=document.getElementById('thumb-'+w.id);
-        if(!cell) return;
-        const img=document.createElement('img');
-        img.src=src;
-        const label=cell.querySelector('.watch-row-photo-label');
-        if(label) label.style.display='none';
-        cell.appendChild(img);
-      });
-    }
-  });
+  if(layout === 'classic'){
+    // ── GRID LAYOUT ──
+    list.className = 'watch-grid';
+    list.innerHTML = '';
+    watches.forEach(w=>{
+      const card=document.createElement('div');
+      card.className='watch-card';
+      card.innerHTML=`
+        <div class="watch-card-nophoto" id="card-nophoto-${w.id}">
+          <span class="t-photo-placeholder">PHOTO</span>
+        </div>
+        <div class="watch-card-overlay"></div>
+        <div class="watch-card-text">
+          <div class="watch-card-brand">${w.brand||''}</div>
+          <div class="watch-card-model">${composeModel(w)}</div>
+          <div class="watch-card-ref">${w.ref?'REF. '+w.ref:''}</div>
+        </div>`;
+      card.addEventListener('click',()=>openDetail(w));
+      list.appendChild(card);
+      // Async photo
+      const pk=photoKey(w);
+      const imgs=getPhotos(pk);
+      if(imgs.length){
+        resolvePhotoRef(imgs[0]).then(src=>{
+          if(!src) return;
+          const nophoto=document.getElementById('card-nophoto-'+w.id);
+          if(!nophoto) return;
+          const img=document.createElement('img');
+          img.className='watch-card-photo';
+          img.src=src;
+          card.insertBefore(img, card.firstChild);
+          nophoto.style.display='none';
+        });
+      }
+    });
+  } else {
+    // ── ROW LAYOUT ──
+    list.className = 'watch-list';
+    list.innerHTML = '';
+    watches.forEach(w=>{
+      const row=document.createElement('div');
+      row.className='watch-row';
+      row.innerHTML=`
+        <div class="watch-row-photo" id="thumb-${w.id}">
+          <span class="watch-row-photo-label t-photo-placeholder">PHOTO</span>
+        </div>
+        <div class="watch-row-text">
+          <div class="t-brand">${w.brand||''}</div>
+          <div class="t-row-model">${composeModel(w)}</div>
+          <div class="t-ref">${composeRef(w)}</div>
+          <div class="t-row-spec">${composeSpecLine(w)}</div>
+        </div>`;
+      row.addEventListener('click',()=>openDetail(w));
+      list.appendChild(row);
+      // Async photo
+      const pk=photoKey(w);
+      const imgs=getPhotos(pk);
+      if(imgs.length){
+        resolvePhotoRef(imgs[0]).then(src=>{
+          if(!src) return;
+          const cell=document.getElementById('thumb-'+w.id);
+          if(!cell) return;
+          const img=document.createElement('img');
+          img.src=src;
+          const label=cell.querySelector('.watch-row-photo-label');
+          if(label) label.style.display='none';
+          cell.appendChild(img);
+        });
+      }
+    });
+  }
 }
 
 // ── CHIPS ──
@@ -1486,11 +1573,12 @@ function renderInsights(){
 // ── TOOLS ──
 function renderTools(){
   document.querySelectorAll('.theme-card').forEach(c=>{
-    c.classList.toggle('active',c.dataset.themeVal===theme);
+    c.classList.toggle('active', c.dataset.layoutVal===layout);
   });
   const sold=soldW();
   const pastLabel=document.getElementById('toolPastLabel');
   if(pastLabel) pastLabel.textContent=sold.length?`${sold.length} piece${sold.length!==1?'s':''} · Former watches`:'Watches you\'ve moved on from';
+  document.getElementById('toolsSubtitle').textContent=`Layout · ${layout==='modern'?'Modern':'Classic'}`;
 }
 
 // ── WATCH SETTER ──
@@ -1788,10 +1876,18 @@ function doImport(file){
 // Mode toggle
 document.getElementById('modeToggle').addEventListener('click',()=>{ dark=!dark; applyTheme(); });
 
-// Theme cards
+// Layout cards
 document.querySelectorAll('.theme-card').forEach(c=>{
-  c.addEventListener('click',()=>{ theme=c.dataset.themeVal; applyTheme(); renderTools(); });
+  c.addEventListener('click',()=>{
+    layout = c.dataset.layoutVal;
+    applyTheme();
+    renderTools();
+  });
 });
+
+// Mode buttons in tools
+document.getElementById('toolsLightBtn').addEventListener('click',()=>{ dark=false; applyTheme(); });
+document.getElementById('toolsDarkBtn').addEventListener('click',()=>{ dark=true; applyTheme(); });
 
 // Nav — reliable on iPhone regardless of scroll position
 // Use touchend+preventDefault to bypass Safari's scroll-then-tap behavior
@@ -2338,8 +2434,9 @@ document.getElementById('tool-passport').addEventListener('click', generatePassp
 // ── INIT ──
 (async function(){
   // Load persisted theme/mode
-  theme=localStorage.getItem(THEME_KEY)||'archive';
-  dark=localStorage.getItem(MODE_KEY)==='dark';
+  theme = localStorage.getItem(THEME_KEY)||'archive';
+  dark = localStorage.getItem(MODE_KEY)==='dark';
+  layout = localStorage.getItem(LAYOUT_KEY)||'modern';
   applyTheme();
 
   // Load local data first for instant render
