@@ -755,9 +755,9 @@ body{background:var(--bg);color:var(--fg)}
 
 <!-- LIGHTBOX -->
 <div id="lightbox" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.95);flex-direction:column;align-items:center;justify-content:center;touch-action:none">
-  <button id="lbClose" style="position:absolute;top:20px;right:20px;color:#fff;font-size:24px;opacity:.6;border:none;background:none;cursor:pointer;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center">✕</button>
+  <button id="lbClose" style="position:absolute;top:20px;right:20px;width:44px;height:44px;border-radius:22px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;font-family:'IBM Plex Mono',monospace;letter-spacing:0">✕</button>
   <img id="lbImg" src="" alt="" style="max-width:100%;max-height:85vh;object-fit:contain">
-  <div id="lbCounter" style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;color:rgba(255,255,255,.4)"></div>
+  <div id="lbCounter" style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;color:rgba(255,255,255,.5);background:rgba(0,0,0,.4);padding:4px 12px;border-radius:12px"></div>
 </div>
 
 <!-- SEARCH OVERLAY (removed - search bar is in header) -->
@@ -1183,24 +1183,14 @@ async function renderDetailPhotos(){
     return;
   }
 
-  // Resolve ALL photo URLs first before building slides
-  const srcs = await Promise.all(detailPhotos.map(ref => resolvePhotoRef(ref)));
-
-  // Build slides with resolved URLs
-  srcs.forEach((src, i)=>{
+  // Build slide shells first so layout is correct
+  detailPhotos.forEach((ref, i)=>{
     const slide = document.createElement('div');
     slide.className = 'hero-slide';
-    if(src){
-      const img = document.createElement('img');
-      img.src = src;
-      img.alt = '';
-      slide.appendChild(img);
-    } else {
-      slide.innerHTML = '<span class="t-photo-placeholder">PHOTO</span>';
-    }
+    slide.dataset.ref = ref;
+    slide.dataset.loaded = 'false';
+    slide.innerHTML = '<span class="t-photo-placeholder" style="opacity:.2">···</span>';
     inner.appendChild(slide);
-
-    // Dot indicators (mobile)
     if(detailPhotos.length > 1){
       const dot = document.createElement('div');
       dot.className = 'photo-dot' + (i === 0 ? ' active' : '');
@@ -1208,19 +1198,27 @@ async function renderDetailPhotos(){
     }
   });
 
+  // Position slides before loading photos
   updateSwipePosition(false);
+
+  // Load only the first slide immediately
+  await loadSlide(0);
 
   // Desktop thumbnail strip
   if(isDesktop && desktopThumbs){
     desktopThumbs.style.display = 'flex';
     desktopThumbs.innerHTML = '';
+    const srcs = await Promise.all(detailPhotos.map(ref => resolvePhotoRef(ref)));
     srcs.forEach((src, i)=>{
       const wrap = document.createElement('div');
       wrap.className = 'd-thumb-wrap';
       const img = document.createElement('img');
       img.className = 'd-thumb' + (i === 0 ? ' active' : '');
       if(src) img.src = src;
-      img.addEventListener('click', ()=>{ detailPhotoIdx = i; updateSwipePosition(true); updateDesktopThumbs(); });
+      img.addEventListener('click', ()=>{
+        detailPhotoIdx = i;
+        loadSlide(i).then(()=>{ updateSwipePosition(true); updateDesktopThumbs(); });
+      });
       wrap.appendChild(img);
       if(i === 0){
         const star = document.createElement('div');
@@ -1230,16 +1228,35 @@ async function renderDetailPhotos(){
       }
       desktopThumbs.appendChild(wrap);
     });
-    // + add button
     const addBtn = document.createElement('div');
     addBtn.className = 'd-thumb-add';
     addBtn.textContent = '+';
-    addBtn.title = 'Add photo';
     addBtn.addEventListener('click', ()=>{ if(selectedId){ openForm(findWatch(selectedId)); } });
     desktopThumbs.appendChild(addBtn);
   } else if(desktopThumbs){
     desktopThumbs.style.display = 'none';
   }
+}
+
+async function loadSlide(idx){
+  const inner = document.getElementById('heroSwipeInner');
+  if(!inner) return;
+  const slides = inner.querySelectorAll('.hero-slide');
+  const slide = slides[idx];
+  if(!slide || slide.dataset.loaded === 'true') return;
+  const ref = slide.dataset.ref;
+  if(!ref) return;
+  const src = await resolvePhotoRef(ref);
+  slide.innerHTML = '';
+  if(src){
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = '';
+    slide.appendChild(img);
+  } else {
+    slide.innerHTML = '<span class="t-photo-placeholder">PHOTO</span>';
+  }
+  slide.dataset.loaded = 'true';
 }
 
 function updateSwipePosition(animate){
@@ -1249,6 +1266,10 @@ function updateSwipePosition(animate){
   inner.style.transform = `translateX(-${detailPhotoIdx * 100}%)`;
   // Update dots
   document.querySelectorAll('.photo-dot').forEach((d,i)=>d.classList.toggle('active', i===detailPhotoIdx));
+  // Lazy load the newly active slide
+  loadSlide(detailPhotoIdx);
+  // Pre-load next slide too
+  loadSlide(detailPhotoIdx + 1);
 }
 
 function updateDesktopThumbs(){
