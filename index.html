@@ -1014,13 +1014,16 @@ async function resolvePhotoRef(ref){
 function active(){ return customWatches.filter(w=>!w.sold); }
 function soldW(){ return customWatches.filter(w=>w.sold); }
 
-function saveCustom(arr){
-  // Sort alphabetically by brand, then model
-  arr.sort((a,b)=>{
+function sortWatches(arr){
+  return arr.sort((a,b)=>{
     const ba=(a.brand||'').toLowerCase(), bb=(b.brand||'').toLowerCase();
     if(ba!==bb) return ba.localeCompare(bb);
     return (composeModel(a)||'').toLowerCase().localeCompare((composeModel(b)||'').toLowerCase());
   });
+}
+
+function saveCustom(arr){
+  sortWatches(arr);
   customWatches=arr;
   try{localStorage.setItem(CUSTOM_KEY,JSON.stringify(arr));}catch(e){}
   scheduleSave();
@@ -1041,7 +1044,7 @@ async function cloudLoad(){
     const res=await fetch(WORKER_URL+'/collection',{headers:{'X-Auth-Token':AUTH_TOKEN}});
     if(!res.ok) return false;
     const data=await res.json();
-    if(data.customWatches) customWatches=data.customWatches;
+    if(data.customWatches) customWatches=sortWatches(data.customWatches);
     if(data.subCols){ subCols=data.subCols; localStorage.setItem(SUBCOL_KEY,JSON.stringify(subCols)); }
     else {
       // Legacy migration
@@ -1799,7 +1802,7 @@ function doImport(file){
   reader.onload=e=>{
     try{
       const data=JSON.parse(e.target.result);
-      if(data.customWatches) customWatches=data.customWatches;
+      if(data.customWatches) customWatches=sortWatches(data.customWatches);
       if(data.subCols) subCols=data.subCols;
       if(data.wishWatches) wishWatches=data.wishWatches;
       if(data.photos) photos=data.photos;
@@ -2422,7 +2425,7 @@ document.getElementById('tool-passport').addEventListener('click', generatePassp
   applyTheme();
 
   // Load local data first for instant render
-  try{ customWatches=JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]'); }catch(e){}
+  try{ customWatches=sortWatches(JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]')); }catch(e){}
   try{ subCols=JSON.parse(localStorage.getItem(SUBCOL_KEY)||'[]'); }catch(e){}
   try{ wishWatches=JSON.parse(localStorage.getItem(WISH_KEY)||'[]'); }catch(e){}
   photos=loadPhotos();
