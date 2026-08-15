@@ -16,8 +16,8 @@
 <style>
 /* ── RESET ── */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{height:100%;font-size:16px}
-body{height:100%;font-family:'Archivo',sans-serif;font-weight:400;transition:background .25s,color .25s;overflow-x:hidden}
+html{height:100%;font-size:16px;overflow:hidden}
+body{height:100%;font-family:'Archivo',sans-serif;font-weight:400;transition:background .25s,color .25s;overflow:hidden;position:fixed;width:100%;top:0;left:0;right:0;bottom:0}
 input,textarea,select,button{font-family:inherit;font-size:inherit;-webkit-appearance:none;border-radius:0}
 button{cursor:pointer;background:none;border:none}
 
@@ -70,20 +70,21 @@ body{background:var(--bg);color:var(--fg)}
 .t-helper{font-family:'Archivo',sans-serif;font-size:12px;line-height:1.5;opacity:.6}
 
 /* ── LAYOUT ── */
-#app{max-width:430px;margin:0 auto;min-height:100vh;position:relative}
-.screen{display:none;flex-direction:column;min-height:100vh;padding-bottom:110px}
+#app{max-width:430px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.screen{display:none;flex-direction:column;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:20px}
 .screen.active{display:flex}
 
 /* ── BOTTOM NAV ── */
 #bottomNav{
-  position:fixed;bottom:0;left:0;right:0;z-index:500;
+  flex:none;
   background:var(--navBg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
   border-top:1px solid var(--line);
+  z-index:500;
 }
 #bottomNav .nav-inner{
   max-width:430px;margin:0 auto;
-  padding:10px 16px calc(24px + env(safe-area-inset-bottom));
-  display:grid;grid-template-columns:repeat(5,1fr);gap:4px;
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  display:grid;grid-template-columns:repeat(4,1fr);gap:4px;
   align-items:center;
 }
 .nav-btn{
@@ -429,19 +430,21 @@ body{background:var(--bg);color:var(--fg)}
 
 /* ── DESKTOP RESPONSIVE ── */
 @media (min-width:769px){
-  body{overflow:auto}
-  #app{max-width:none;min-height:100vh;padding-left:220px}
+  body{position:static;overflow:hidden;height:100%}
+  html{overflow:hidden}
+  #app{max-width:none;height:100vh;flex-direction:row;overflow:hidden}
   #bottomNav{
-    position:fixed;left:0;top:0;bottom:0;width:220px;
+    width:220px;flex:none;order:-1;
     border-top:none;border-right:1px solid var(--line);
-    background:var(--navBg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-    display:flex;flex-direction:column;justify-content:flex-start;
-    padding:40px 0 0;z-index:500;
+    flex-direction:column;justify-content:flex-start;
+    padding:40px 0 0;height:100%;
+    display:flex;
   }
   #bottomNav .nav-inner{
     display:flex;flex-direction:column;gap:4px;padding:0 16px;
     grid-template-columns:none;
   }
+  .screen{flex:1;overflow-y:auto;height:100%;padding-bottom:40px}
   .nav-btn{
     flex-direction:row;justify-content:flex-start;gap:14px;
     padding:12px 14px;opacity:.45;border-radius:0;width:100%;
@@ -457,32 +460,27 @@ body{background:var(--bg);color:var(--fg)}
   }
   .nav-btn-add::after{content:'Add piece'}
   .nav-btn-add svg{flex:none}
-  .screen{padding-bottom:0;max-width:none}
   #screen-list .list-header{padding:40px 40px 20px}
   #screen-list .search-wrap{padding:0 40px 16px}
   #screen-list .chips-wrap{padding:0 40px 16px}
   .watch-list{background:none;gap:0}
   .watch-row{padding:20px 40px;border-bottom:1px solid var(--line)}
-  /* Detail two-column */
   #screen-detail{flex-direction:row;align-items:flex-start}
-  #detail-left{width:380px;flex:none;position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--tile)}
+  #detail-left{width:380px;flex:none;position:sticky;top:0;height:100%;overflow-y:auto;background:var(--tile)}
   #detail-right{flex:1;min-width:0;padding:40px;overflow-y:auto}
   #screen-detail .detail-hero{height:320px}
   .detail-hero-back{top:20px;left:20px}
-  /* Thumbnail strip on desktop */
   #desktopThumbs{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;background:var(--tile);scrollbar-width:none}
   #desktopThumbs::-webkit-scrollbar{display:none}
   .d-thumb{width:56px;height:56px;object-fit:cover;cursor:pointer;border:1.5px solid transparent;opacity:.55;transition:all .2s;flex:none;background:var(--bg)}
   .d-thumb.active{border-color:var(--accent);opacity:1}
   .d-thumb-add{width:56px;height:56px;flex:none;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--fg);font-size:1.3rem;opacity:.4;transition:all .2s}
   .d-thumb-add:hover{opacity:.8;border-color:var(--accent);color:var(--accent)}
-  /* Form desktop */
   #screen-form .form-header{padding:40px 40px 24px}
   .photo-well{margin:0 40px}
   .form-fields{padding:20px 40px 0}
   .form-actions{padding:24px 40px 0}
   .photo-upload-btns{margin:10px 40px 0 !important}
-  /* Insights/tools desktop */
   #screen-insights .insights-header{padding:40px 40px 20px}
   .stat-row{padding:0 40px 24px}
   .insights-section{padding:20px 40px 0}
@@ -491,8 +489,8 @@ body{background:var(--bg);color:var(--fg)}
   .tool-list{padding:0 40px}
   .tools-actions{padding:20px 40px 0}
   .section-pad{padding:0 40px}
-  /* Hide dot indicators on desktop */
   #photoDots{display:none}
+  .watch-grid{grid-template-columns:repeat(4,1fr)}
 }
 
 /* ── PHOTO SWIPE (mobile) ── */
@@ -1016,7 +1014,17 @@ async function resolvePhotoRef(ref){
 function active(){ return customWatches.filter(w=>!w.sold); }
 function soldW(){ return customWatches.filter(w=>w.sold); }
 
-function saveCustom(arr){ customWatches=arr; try{localStorage.setItem(CUSTOM_KEY,JSON.stringify(arr));}catch(e){} scheduleSave(); }
+function saveCustom(arr){
+  // Sort alphabetically by brand, then model
+  arr.sort((a,b)=>{
+    const ba=(a.brand||'').toLowerCase(), bb=(b.brand||'').toLowerCase();
+    if(ba!==bb) return ba.localeCompare(bb);
+    return (composeModel(a)||'').toLowerCase().localeCompare((composeModel(b)||'').toLowerCase());
+  });
+  customWatches=arr;
+  try{localStorage.setItem(CUSTOM_KEY,JSON.stringify(arr));}catch(e){}
+  scheduleSave();
+}
 function saveSubCols(){ try{localStorage.setItem(SUBCOL_KEY,JSON.stringify(subCols));}catch(e){} scheduleSave(); }
 function saveWish(arr){ wishWatches=arr; try{localStorage.setItem(WISH_KEY,JSON.stringify(arr));}catch(e){} scheduleSave(); }
 function loadPhotos(){ try{return JSON.parse(localStorage.getItem(PHOTO_KEY)||'{}')}catch{return{}} }
@@ -1090,7 +1098,9 @@ function navigate(view){
   document.getElementById('screen-'+view).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));
   currentView=view;
-  window.scrollTo(0,0);
+  // Scroll active screen to top
+  const screen = document.getElementById('screen-'+view);
+  if(screen) screen.scrollTop = 0;
   if(view==='list'){ renderList(); buildChips(); }
   if(view==='insights') renderInsights();
   if(view==='tools') renderTools();
@@ -1889,25 +1899,9 @@ document.querySelectorAll('.theme-card').forEach(c=>{
 document.getElementById('toolsLightBtn').addEventListener('click',()=>{ dark=false; applyTheme(); });
 document.getElementById('toolsDarkBtn').addEventListener('click',()=>{ dark=true; applyTheme(); });
 
-// Nav — reliable on iPhone regardless of scroll position
-// Use touchend+preventDefault to bypass Safari's scroll-then-tap behavior
+// Nav — simple click works reliably now that nav is in fixed shell (not affected by Safari scroll)
 document.querySelectorAll('[data-nav]').forEach(btn=>{
-  let touchMoved = false;
-
-  btn.addEventListener('touchstart', ()=>{ touchMoved = false; }, {passive:true});
-  btn.addEventListener('touchmove', ()=>{ touchMoved = true; }, {passive:true});
-
-  btn.addEventListener('touchend', e=>{
-    if(touchMoved) return; // finger dragged, not a tap
-    e.preventDefault();
-    const v = btn.dataset.nav;
-    if(v==='add'){ openForm(null); return; }
-    navigate(v);
-  }, {passive:false});
-
-  // Desktop fallback
-  btn.addEventListener('click', e=>{
-    if(e.isTrusted && 'ontouchstart' in window) return; // handled by touchend on touch devices
+  btn.addEventListener('click', ()=>{
     const v = btn.dataset.nav;
     if(v==='add'){ openForm(null); return; }
     navigate(v);
@@ -1915,21 +1909,9 @@ document.querySelectorAll('[data-nav]').forEach(btn=>{
 });
 
 // Detail back
-['detailBack','detailClose'].forEach(id=>{
-  const btn=document.getElementById(id);
-  let touched=false;
-  btn.addEventListener('touchend',e=>{
-    e.preventDefault();
-    touched=true;
-    navigate('list');
-  },{passive:false});
-  btn.addEventListener('click',()=>{ if(touched){touched=false;return;} navigate('list'); });
-});
-document.getElementById('detailEdit').addEventListener('touchend',e=>{
-  e.preventDefault();
-  const w=findWatch(selectedId); if(w) openForm(w);
-},{passive:false});
-document.getElementById('detailEdit').addEventListener('click',()=>{ const w=findWatch(selectedId); if(w) openForm(w); });
+document.getElementById('detailBack').addEventListener('click', ()=>navigate('list'));
+document.getElementById('detailClose').addEventListener('click', ()=>navigate('list'));
+document.getElementById('detailEdit').addEventListener('click', ()=>{ const w=findWatch(selectedId); if(w) openForm(w); });
 
 // Form
 document.getElementById('formCancel').addEventListener('click',()=>{ if(fromDetail&&selectedId){ const w=findWatch(selectedId); if(w){openDetail(w);return;} } navigate('list'); });
