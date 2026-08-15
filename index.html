@@ -246,21 +246,37 @@ body{background:var(--bg);color:var(--fg)}
 }
 
 /* ── SCREEN 4: INSIGHTS ── */
-#screen-insights .insights-header{padding:28px 24px 18px;display:flex;flex-direction:column;gap:9px}
-.stat-row{display:flex;flex-wrap:wrap;gap:24px;padding:0 24px 20px}
-.stat-cell{min-width:96px;display:flex;flex-direction:column;gap:5px}
-.insights-section{padding:18px 24px 0;border-top:1px solid var(--line)}
-.brand-bar-row{display:flex;align-items:center;gap:12px;padding:8px 0}
-.brand-bar-name{font-family:'Bodoni Moda',serif;font-size:16px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.brand-bar-count{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;opacity:1;flex:none;color:var(--accent)}
-.brand-bar-track{height:3px;background:var(--line);margin-top:4px;position:relative}
-.brand-bar-fill{position:absolute;left:0;top:0;height:100%;background:var(--accent);border-radius:0}
-.movement-chips{display:flex;flex-wrap:wrap;gap:8px;padding-top:12px}
-.movement-chip{
-  padding:7px 12px;border:1px solid var(--line);
-  font-family:'IBM Plex Mono',monospace;font-size:10px;opacity:.75;
-  text-transform:uppercase;letter-spacing:.08em;
-}
+#screen-insights .insights-header{padding:28px 24px 14px;display:flex;flex-direction:column;gap:6px}
+.insights-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 24px 20px}
+.insights-stat-card{background:var(--tile);padding:16px 14px;display:flex;flex-direction:column;gap:4px}
+.insights-stat-card.featured{border:1px solid var(--accent)}
+.insights-stat-num{font-family:'Bodoni Moda',serif;font-size:28px;font-weight:400;line-height:1;color:var(--fg)}
+.insights-stat-card.featured .insights-stat-num{color:var(--accent)}
+.insights-stat-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;opacity:.5}
+.insights-stat-delta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#4a8a4a;margin-top:2px}
+.insights-strip{display:flex;gap:8px;overflow-x:auto;padding:0 24px 20px;scrollbar-width:none}
+.insights-strip::-webkit-scrollbar{display:none}
+.insights-pill{flex:none;border:1px solid var(--line);padding:8px 14px;display:flex;flex-direction:column;gap:3px}
+.insights-pill-val{font-family:'Bodoni Moda',serif;font-size:14px;color:var(--fg)}
+.insights-pill-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;opacity:.45}
+.insights-section{padding:18px 24px 0}
+.brand-bar-row{display:flex;align-items:baseline;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
+.brand-bar-row:last-child{border-bottom:none}
+.brand-bar-name{font-family:'Bodoni Moda',serif;font-size:18px;color:var(--fg)}
+.brand-bar-right{display:flex;align-items:center;gap:12px}
+.brand-bar-track{width:60px;height:2px;background:var(--line)}
+.brand-bar-fill{height:100%;background:var(--accent)}
+.brand-bar-count{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);font-weight:500;min-width:16px;text-align:right}
+.dna-row{display:flex;align-items:center;gap:12px;padding:8px 0}
+.dna-pct{font-family:'Bodoni Moda',serif;font-size:28px;line-height:1;color:var(--fg);min-width:64px}
+.dna-track{flex:1;height:2px;background:var(--line)}
+.dna-fill{height:100%;background:var(--accent)}
+.dna-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.6;min-width:70px;text-align:right}
+.value-story-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line)}
+.value-story-row:last-child{border-bottom:none}
+.value-story-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;opacity:.5}
+.value-story-num{font-family:'Bodoni Moda',serif;font-size:20px;color:var(--fg)}
+.value-story-delta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4a8a4a}
 
 /* ── SCREEN 5: TOOLS ── */
 #screen-tools .tools-header{padding:28px 24px 18px;display:flex;flex-direction:column;gap:9px}
@@ -604,6 +620,7 @@ body{background:var(--bg);color:var(--fg)}
       <div class="detail-title-block">
         <div class="t-brand-detail" id="detailBrand"></div>
         <div class="t-detail" id="detailModel"></div>
+        <div style="font-family:'Bodoni Moda',serif;font-size:18px;font-weight:400;opacity:.6;margin-top:2px" id="detailSeries"></div>
         <div class="t-ref" id="detailRef"></div>
       </div>
       <div class="spec-table" id="specTable"></div>
@@ -661,22 +678,28 @@ body{background:var(--bg);color:var(--fg)}
     <div class="form-fields">
       <div class="form-field"><div class="field-label">Brand</div><input class="field-input" id="f-brand" placeholder="Omega" type="text"></div>
       <div class="form-field"><div class="field-label">Series</div><input class="field-input" id="f-series" placeholder="Speedmaster" type="text"></div>
-      <div class="form-field"><div class="field-label">Model</div><input class="field-input" id="f-model" placeholder="Professional" type="text"></div>
+      <div class="form-field"><div class="field-label">Model</div><input class="field-input" id="f-model" placeholder="Professional Moonwatch" type="text"></div>
       <div class="form-field"><div class="field-label">Reference</div><input class="field-input" id="f-ref" placeholder="310.30.42" type="text"></div>
       <div class="form-field"><div class="field-label">Year</div><input class="field-input" id="f-year" placeholder="2021" type="text" inputmode="numeric"></div>
       <div class="form-field"><div class="field-label">Movement</div><input class="field-input" id="f-movement" placeholder="Automatic" type="text"></div>
+      <div class="form-field"><div class="field-label">Complications</div><input class="field-input" id="f-complications" placeholder="Chronograph, Date" type="text"></div>
       <div class="form-field"><div class="field-label">Case material</div><input class="field-input" id="f-casemat" placeholder="Stainless Steel" type="text"></div>
+      <div class="form-field"><div class="field-label">Case size (mm)</div><input class="field-input" id="f-size" placeholder="42" type="text" inputmode="numeric"></div>
+      <div class="form-field"><div class="field-label">Finish</div><input class="field-input" id="f-finish" placeholder="Brushed / Polished" type="text"></div>
       <div class="form-field"><div class="field-label">Dial</div><input class="field-input" id="f-dial" placeholder="Black" type="text"></div>
-      <div class="form-field"><div class="field-label">Strap</div><input class="field-input" id="f-strap" placeholder="Oyster bracelet" type="text"></div>
-      <div class="form-field"><div class="field-label">Case size (mm)</div><input class="field-input" id="f-size" placeholder="41" type="text" inputmode="numeric"></div>
+      <div class="form-field"><div class="field-label">Strap / bracelet</div><input class="field-input" id="f-strap" placeholder="Oyster bracelet" type="text"></div>
       <div class="form-field"><div class="field-label">Water resistance (m)</div><input class="field-input" id="f-wr" placeholder="300" type="text" inputmode="numeric"></div>
       <div class="form-field"><div class="field-label">Power reserve (h)</div><input class="field-input" id="f-pr" placeholder="70" type="text" inputmode="numeric"></div>
       <div class="form-field"><div class="field-label">Origin</div><input class="field-input" id="f-origin" placeholder="Switzerland" type="text"></div>
       <div class="form-field"><div class="field-label">Serial</div><input class="field-input" id="f-serial" placeholder="" type="text"></div>
-      <div class="form-field"><div class="field-label">Condition</div><input class="field-input" id="f-grade" placeholder="" type="text"></div>
-      <div class="form-field"><div class="field-label">Source / dealer</div><input class="field-input" id="f-source" placeholder="" type="text"></div>
+      <div class="form-field"><div class="field-label">Condition</div><input class="field-input" id="f-grade" placeholder="Mint / Unworn" type="text"></div>
+      <div class="form-field"><div class="field-label">Source</div><input class="field-input" id="f-source" placeholder="Authorized Dealer" type="text"></div>
+      <div class="form-field"><div class="field-label">Dealer</div><input class="field-input" id="f-dealer" placeholder="" type="text"></div>
+      <div class="form-field"><div class="field-label">Date acquired</div><input class="field-input" id="f-acquired" placeholder="2024-03-15" type="text"></div>
+      <div class="form-field"><div class="field-label">Service due</div><input class="field-input" id="f-serviceNext" placeholder="2029" type="text"></div>
       <div class="form-field"><div class="field-label">Paid</div><input class="field-input" id="f-paid" placeholder="9150" type="text" inputmode="numeric"></div>
       <div class="form-field"><div class="field-label">Market value</div><input class="field-input" id="f-price" placeholder="" type="text" inputmode="numeric"></div>
+      <div class="form-field"><div class="field-label">Value estimate (AI)</div><input class="field-input" id="f-valueEstimate" placeholder="" type="text"></div>
       <div class="form-field"><div class="field-label">Box</div>
         <select class="field-input" id="f-box" style="font-family:'Bodoni Moda',serif;font-size:20px">
           <option value="">—</option><option value="yes">Yes</option><option value="no">No</option>
@@ -687,7 +710,7 @@ body{background:var(--bg);color:var(--fg)}
           <option value="">—</option><option value="yes">Yes</option><option value="no">No</option>
         </select>
       </div>
-      <div class="form-field"><div class="field-label">Notes / Story</div><textarea class="field-textarea" id="f-notes" rows="3"></textarea></div>
+      <div class="form-field"><div class="field-label">Notes / Story</div><textarea class="field-textarea" id="f-notes" rows="4"></textarea></div>
     </div>
     <div class="form-actions">
       <button class="btn-primary-pill" id="formSave">Save to collection</button>
@@ -703,18 +726,29 @@ body{background:var(--bg);color:var(--fg)}
   <!-- ── SCREEN 4: INSIGHTS ── -->
   <div id="screen-insights" class="screen">
     <div class="insights-header">
+      <div class="t-subtitle" id="insightsEyebrow">Personal Horology Archive</div>
       <div class="t-screen">Insights</div>
-      <div class="t-subtitle" id="insightsSubtitle">Your archive at a glance</div>
     </div>
-    <div class="stat-row" id="statRow"></div>
+    <!-- Stat grid -->
+    <div class="insights-stat-grid" id="insightsStatGrid"></div>
+    <!-- Quick facts strip -->
+    <div class="insights-strip" id="insightsStrip"></div>
+    <!-- Brands -->
     <div class="insights-section">
-      <div class="t-section-label" style="margin-bottom:12px">By brand</div>
+      <div class="t-section-label" style="margin-bottom:14px">Brands</div>
       <div id="brandBars"></div>
     </div>
-    <div class="insights-section" style="margin-bottom:24px">
-      <div class="t-section-label" style="margin-bottom:12px">Movement mix</div>
-      <div class="movement-chips" id="movementChips"></div>
+    <!-- Movement DNA -->
+    <div class="insights-section">
+      <div class="t-section-label" style="margin-bottom:14px">Movement DNA</div>
+      <div id="movementDNA"></div>
     </div>
+    <!-- Value story -->
+    <div id="valueStory" style="display:none;margin:18px 24px 0;border:1px solid var(--line);padding:20px">
+      <div class="t-section-label" style="margin-bottom:14px">Value story</div>
+      <div id="valueStoryRows"></div>
+    </div>
+    <div style="height:24px"></div>
   </div>
 
   <!-- ── SCREEN 5: TOOLS ── -->
@@ -1257,11 +1291,18 @@ let detailPhotos = [];
 let detailPhotoIdx = 0;
 let swipeStartX = 0, swipeStartY = 0, swiping = false;
 
-function buildDetailPhotos(w){
+async function buildDetailPhotos(w){
   const pk = photoKey(w);
   const refs = getPhotos(pk);
   detailPhotos = refs;
   detailPhotoIdx = 0;
+
+  // Pre-resolve ALL photos into cache before rendering
+  // This ensures subsequent slides have their src ready
+  if(refs.length > 1){
+    refs.forEach(ref => resolvePhotoRef(ref)); // fire all fetches in parallel, don't await
+  }
+
   renderDetailPhotos();
 }
 
@@ -1346,17 +1387,20 @@ async function loadSlide(idx){
   if(!slide || slide.dataset.loaded === 'true') return;
   const ref = slide.dataset.ref;
   if(!ref) return;
+
+  slide.dataset.loaded = 'true'; // mark early to prevent double-load
   const src = await resolvePhotoRef(ref);
   slide.innerHTML = '';
   if(src){
     const img = document.createElement('img');
     img.src = src;
     img.alt = '';
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain';
     slide.appendChild(img);
   } else {
-    slide.innerHTML = '<span class="t-photo-placeholder">PHOTO</span>';
+    slide.dataset.loaded = 'false'; // allow retry
+    slide.innerHTML = '<span class="t-photo-placeholder">···</span>';
   }
-  slide.dataset.loaded = 'true';
 }
 
 function updateSwipePosition(animate){
@@ -1446,27 +1490,46 @@ function renderLightboxSlide(){
 function openDetail(w){
   selectedId = w.id;
   document.getElementById('detailBrand').textContent = w.brand||'';
-  document.getElementById('detailModel').textContent = composeModel(w);
+  // Model = model field only, Series shown separately below
+  document.getElementById('detailModel').textContent = (w.model||w.series||'').trim();
+  const seriesEl = document.getElementById('detailSeries');
+  if(seriesEl) seriesEl.textContent = (w.series && w.model && w.series!==w.model) ? w.series : '';
   document.getElementById('detailRef').textContent = [w.ref?`REF. ${w.ref}`:'', w.year].filter(Boolean).join(' · ');
 
   const specDefs=[
-    ['Movement',w.movement],
-    ['Case',w.casemat&&w.size?`${w.casemat} · ${w.size}mm`:w.casemat||(w.size?w.size+'mm':'')],
-    ['Dial',w.dial],['Strap',w.strap],
-    ['Power reserve',w.pr?w.pr+' h':''],
-    ['Water resistance',w.wr?w.wr+' m':''],
-    ['Origin',w.origin],['Year',w.year],
-    ['Serial',w.serial],['Condition',w.grade],
-    ['Box & papers',[w.box==='yes'?'Box':null,w.papers==='yes'?'Papers':null].filter(Boolean).join(' · ')],
-    ['Source',w.source],
-    ['Paid',fmtPrice(w.paid)],['Market',fmtPrice(w.price)],
+    ['Movement', w.movement],
+    ['Case material', w.casemat],
+    ['Case size', w.size ? w.size+'mm' : ''],
+    ['Dial', w.dial],
+    ['Strap / bracelet', w.strap],
+    ['Finish', w.finish],
+    ['Complications', w.complications],
+    ['Power reserve', w.pr ? w.pr+' h' : ''],
+    ['Water resistance', w.wr ? w.wr+' m' : ''],
+    ['Origin', w.origin],
+    ['Year', w.year],
+    ['Serial', w.serial],
+    ['Condition', w.grade],
+    ['Box & papers', [w.box==='yes'?'Box':null, w.papers==='yes'?'Papers':null].filter(Boolean).join(' · ')],
+    ['Source', w.source],
+    ['Dealer', w.dealer],
+    ['Acquired', w.acquired],
+    ['Service due', w.serviceNext],
+    ['Paid', fmtPrice(w.paid)],
+    ['Market value', fmtPrice(w.price)],
+    ['Value estimate', w.valueEstimate],
   ];
   document.getElementById('specTable').innerHTML = specDefs.filter(([,v])=>v)
     .map(([l,v])=>`<div class="spec-row"><div class="t-spec-label spec-row-label">${l}</div><div class="t-spec-val spec-row-val">${v}</div></div>`).join('');
 
+  // Notes/Story — always show section if notes exist
   const storyEl = document.getElementById('detailStory');
-  if(w.notes){ document.getElementById('detailStoryText').textContent=w.notes; storyEl.style.display=''; }
-  else storyEl.style.display='none';
+  if(w.notes){
+    document.getElementById('detailStoryText').textContent = w.notes;
+    storyEl.style.display = '';
+  } else {
+    storyEl.style.display = 'none';
+  }
 
   buildDetailPhotos(w);
   navigate('detail');
@@ -1480,7 +1543,7 @@ function findWatch(id){
 }
 
 // ── ADD/EDIT FORM ──
-const FORM_FIELDS=['brand','series','model','ref','year','movement','casemat','dial','strap','size','wr','pr','origin','serial','grade','source','paid','price','box','papers','notes'];
+const FORM_FIELDS=['brand','series','model','ref','year','movement','complications','casemat','dial','strap','size','wr','pr','origin','serial','grade','source','dealer','acquired','serviceNext','paid','price','valueEstimate','box','papers','finish','notes'];
 
 function openForm(watch){
   fromDetail=!!watch;
@@ -1544,46 +1607,94 @@ function removeDraft(){
 
 // ── INSIGHTS ──
 function renderInsights(){
-  const watches=active();
-  const brands=[...new Set(watches.map(w=>w.brand).filter(Boolean))].length;
-  const totalPaid=watches.reduce((s,w)=>s+(Number(w.paid)||0),0);
-  const totalMarket=watches.reduce((s,w)=>s+(Number(w.price)||0),0);
-  const oldest=watches.map(w=>w.year).filter(Boolean).sort()[0]||'—';
+  const watches = active();
+  const brands = [...new Set(watches.map(w=>w.brand).filter(Boolean))].length;
+  const totalPaid = watches.reduce((s,w)=>s+(Number(w.paid)||0),0);
+  const totalMarket = watches.reduce((s,w)=>s+(Number(w.price)||0),0);
+  const years = watches.map(w=>w.year).filter(Boolean).sort();
+  const oldest = years[0]||'—';
+  const newest = years[years.length-1]||'—';
+  const avgPaid = watches.length ? Math.round(totalPaid/watches.length) : 0;
+  const sizes = watches.map(w=>Number(w.size)).filter(Boolean);
+  const avgSize = sizes.length ? Math.round(sizes.reduce((a,b)=>a+b,0)/sizes.length) : 0;
 
-  document.getElementById('statRow').innerHTML=`
-    <div class="stat-cell"><div class="t-stat-num">${watches.length}</div><div class="t-spec-label">Pieces</div></div>
-    <div class="stat-cell"><div class="t-stat-num">${brands}</div><div class="t-spec-label">Brands</div></div>
-    <div class="stat-cell"><div class="t-stat-num">$${Math.round(totalPaid/1000)}k</div><div class="t-spec-label">Total paid</div></div>
-    ${totalMarket>0?`<div class="stat-cell"><div class="t-stat-num">$${Math.round(totalMarket/1000)}k</div><div class="t-spec-label">Est. market</div></div>`:''}
-    <div class="stat-cell"><div class="t-stat-num">${oldest}</div><div class="t-spec-label">Oldest</div></div>
-  `;
-  document.getElementById('insightsSubtitle').textContent=`${watches.length} piece${watches.length!==1?'s':''} · ${brands} brand${brands!==1?'s':''}`;
+  document.getElementById('insightsEyebrow').textContent = `${watches.length} piece${watches.length!==1?'s':''} · ${brands} brand${brands!==1?'s':''}`;
 
-  // Brand bars
-  const brandMap={};
+  const appreciation = totalPaid && totalMarket ? Math.round((totalMarket-totalPaid)/totalPaid*100) : 0;
+  document.getElementById('insightsStatGrid').innerHTML = `
+    <div class="insights-stat-card featured">
+      <div class="insights-stat-num">${watches.length}</div>
+      <div class="insights-stat-label">Pieces</div>
+    </div>
+    <div class="insights-stat-card">
+      <div class="insights-stat-num">${brands}</div>
+      <div class="insights-stat-label">Brands</div>
+    </div>
+    <div class="insights-stat-card">
+      <div class="insights-stat-num">${totalPaid?'$'+Math.round(totalPaid/1000)+'k':'—'}</div>
+      <div class="insights-stat-label">Total paid</div>
+    </div>
+    <div class="insights-stat-card">
+      <div class="insights-stat-num">${totalMarket?'$'+Math.round(totalMarket/1000)+'k':'—'}</div>
+      <div class="insights-stat-label">Est. market</div>
+      ${appreciation>0?`<div class="insights-stat-delta">+${appreciation}% appreciation</div>`:''}
+    </div>`;
+
+  const movMap = {};
+  watches.forEach(w=>{ if(w.movement) movMap[w.movement]=(movMap[w.movement]||0)+1; });
+  const topMov = Object.entries(movMap).sort((a,b)=>b[1]-a[1])[0];
+  const pills = [
+    oldest!=='—' ? {val:oldest, label:'Oldest piece'} : null,
+    newest!=='—' && newest!==oldest ? {val:newest, label:'Newest piece'} : null,
+    avgPaid ? {val:'$'+Math.round(avgPaid/1000*10)/10+'k', label:'Avg. paid'} : null,
+    avgSize ? {val:avgSize+'mm', label:'Avg. case size'} : null,
+    topMov ? {val:topMov[0], label:'Top movement'} : null,
+  ].filter(Boolean);
+  document.getElementById('insightsStrip').innerHTML = pills.map(p=>
+    `<div class="insights-pill"><div class="insights-pill-val">${p.val}</div><div class="insights-pill-label">${p.label}</div></div>`
+  ).join('');
+
+  const brandMap = {};
   watches.forEach(w=>{ if(w.brand) brandMap[w.brand]=(brandMap[w.brand]||0)+1; });
-  const sorted=Object.entries(brandMap).sort((a,b)=>b[1]-a[1]); // all brands
-  const max=sorted[0]?.[1]||1;
-  document.getElementById('brandBars').innerHTML=sorted.map(([name,count])=>`
+  const sorted = Object.entries(brandMap).sort((a,b)=>b[1]-a[1]);
+  const maxCount = sorted[0]?.[1]||1;
+  document.getElementById('brandBars').innerHTML = sorted.map(([name,count])=>`
     <div class="brand-bar-row">
-      <div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <div class="brand-bar-name">${name}</div>
-          <div class="brand-bar-count">${count}</div>
-        </div>
-        <div class="brand-bar-track"><div class="brand-bar-fill" style="width:${(count/max*100).toFixed(1)}%"></div></div>
+      <div class="brand-bar-name">${name}</div>
+      <div class="brand-bar-right">
+        <div class="brand-bar-track"><div class="brand-bar-fill" style="width:${Math.round(count/maxCount*100)}%"></div></div>
+        <div class="brand-bar-count">${count}</div>
       </div>
     </div>`).join('');
 
-  // Movement chips
-  const movMap={};
-  watches.forEach(w=>{ if(w.movement) movMap[w.movement]=(movMap[w.movement]||0)+1; });
-  document.getElementById('movementChips').innerHTML=Object.entries(movMap)
-    .sort((a,b)=>b[1]-a[1])
-    .map(([m,n])=>`<div class="movement-chip">${m.toUpperCase()} ${n}</div>`).join('');
+  const total = Object.values(movMap).reduce((a,b)=>a+b,0)||1;
+  const movSorted = Object.entries(movMap).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('movementDNA').innerHTML = movSorted.map(([m,n])=>`
+    <div class="dna-row">
+      <div class="dna-pct">${Math.round(n/total*100)}%</div>
+      <div class="dna-track"><div class="dna-fill" style="width:${Math.round(n/total*100)}%"></div></div>
+      <div class="dna-label">${m.toUpperCase()}</div>
+    </div>`).join('');
+
+  const vsEl = document.getElementById('valueStory');
+  if(totalPaid && totalMarket){
+    vsEl.style.display = '';
+    const gain = totalMarket - totalPaid;
+    document.getElementById('valueStoryRows').innerHTML = `
+      <div class="value-story-row"><div class="value-story-label">Total paid</div><div class="value-story-num">$${totalPaid.toLocaleString()}</div></div>
+      <div class="value-story-row"><div class="value-story-label">Est. market</div><div class="value-story-num">$${totalMarket.toLocaleString()}</div></div>
+      <div class="value-story-row">
+        <div class="value-story-label">Appreciation</div>
+        <div style="display:flex;align-items:baseline;gap:10px">
+          <div class="value-story-num">$${Math.abs(gain).toLocaleString()}</div>
+          <div class="value-story-delta">${gain>=0?'+':'−'}${Math.abs(appreciation)}%</div>
+        </div>
+      </div>`;
+  } else {
+    vsEl.style.display = 'none';
+  }
 }
 
-// ── TOOLS ──
 function renderTools(){
   document.querySelectorAll('.theme-card').forEach(c=>{
     c.classList.toggle('active', c.dataset.layoutVal===layout);
