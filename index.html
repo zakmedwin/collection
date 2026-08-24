@@ -2281,6 +2281,11 @@ function openPastCollection(){
     sold.forEach(w=>{
       const row=document.createElement('div');
       row.className='watch-row';
+      row.style.cursor='pointer';
+      const soldLine = [
+        w.soldAmt ? `Sold · ${fmtPrice(w.soldAmt)}` : 'Sold',
+        w.soldDate ? w.soldDate : ''
+      ].filter(Boolean).join(' · ');
       row.innerHTML=`
         <div class="watch-row-photo" id="past-thumb-${w.id}">
           <span class="watch-row-photo-label t-photo-placeholder">PHOTO</span>
@@ -2289,8 +2294,14 @@ function openPastCollection(){
           <div class="t-brand">${w.brand||''}</div>
           <div class="t-row-model">${composeModel(w)}</div>
           <div class="t-ref">${composeRef(w)}</div>
-          ${w.soldAmt?`<div class="t-row-spec" style="color:var(--accent)">Sold · ${fmtPrice(w.soldAmt)}</div>`:''}
+          <div class="t-row-spec" style="color:var(--accent)">${soldLine}</div>
         </div>`;
+      // Tap to open detail
+      row.addEventListener('click',()=>{
+        document.getElementById('pastOverlay').classList.remove('open');
+        document.body.style.overflow='';
+        openDetail(w);
+      });
       // Async photo
       const pk=photoKey(w);
       const imgs=getPhotos(pk);
@@ -2455,14 +2466,15 @@ document.getElementById('formMove').addEventListener('click', openMoveWatch);
 // ── MARK SOLD / ACTIVE ──
 document.getElementById('formMarkSold').addEventListener('click',()=>{
   if(!draft) return;
-  const amt=prompt('Sale price (optional):');
-  const idx=customWatches.findIndex(w=>w.id===draft.id);
+  const amt = prompt('Sale price (optional):');
+  const soldDate = prompt('Date sold (optional, e.g. 2024-08-15):') || new Date().toISOString().slice(0,10);
+  const idx = customWatches.findIndex(w=>w.id===draft.id);
   if(idx>=0){
-    customWatches[idx].sold=true;
-    customWatches[idx].soldDate=new Date().toISOString().slice(0,10);
-    if(amt) customWatches[idx].soldAmt=Number(amt.replace(/[^0-9.]/g,''));
+    customWatches[idx].sold = true;
+    customWatches[idx].soldDate = soldDate;
+    if(amt) customWatches[idx].soldAmt = Number(amt.replace(/[^0-9.]/g,''));
   }
-  subCols.forEach(s=>{ const wi=s.watches.findIndex(w=>w.id===draft.id); if(wi>=0){ s.watches[wi].sold=true; } });
+  subCols.forEach(s=>{ const wi=s.watches.findIndex(w=>w.id===draft.id); if(wi>=0){ s.watches[wi].sold=true; s.watches[wi].soldDate=soldDate; } });
   saveCustom(customWatches); saveSubCols();
   navigate('list');
   showToast('Moved to past collection ✓');
