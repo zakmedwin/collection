@@ -24,24 +24,24 @@ button{cursor:pointer;background:none;border:none}
 /* ── DESIGN TOKENS ── */
 /* archive · light (default) */
 :root,[data-theme="archive"][data-mode="light"]{
-  --bg:#F4F1EC;--fg:#1B1917;--tile:#E9E5DD;
-  --line:rgba(27,25,23,.14);--accent:#8A6A2F;
-  --navBg:rgba(244,241,236,.93);
+  --bg:#F7F7F8;--fg:#1A1A22;--tile:#EAEAEE;
+  --line:rgba(26,26,34,.10);--accent:#2C5282;
+  --navBg:rgba(247,247,248,.93);
 }
 [data-theme="archive"][data-mode="dark"]{
-  --bg:#14171C;--fg:#EDEBE7;--tile:#1E232B;
-  --line:rgba(237,235,231,.14);--accent:#C9A15A;
-  --navBg:rgba(20,23,28,.93);
+  --bg:#0E0E18;--fg:#E8E8F0;--tile:#16162A;
+  --line:rgba(232,232,240,.12);--accent:#5A80B8;
+  --navBg:rgba(14,14,24,.93);
 }
 [data-theme="classic"][data-mode="light"]{
-  --bg:#F6F1E8;--fg:#241A15;--tile:#EBE2D3;
-  --line:rgba(36,26,21,.16);--accent:#9A7A23;
-  --navBg:rgba(246,241,232,.93);
+  --bg:#F7F7F8;--fg:#1A1A22;--tile:#EAEAEE;
+  --line:rgba(26,26,34,.10);--accent:#2C5282;
+  --navBg:rgba(247,247,248,.93);
 }
 [data-theme="classic"][data-mode="dark"]{
-  --bg:#1C1512;--fg:#F0E6DA;--tile:#2A1F19;
-  --line:rgba(240,230,218,.16);--accent:#C9A227;
-  --navBg:rgba(28,21,18,.93);
+  --bg:#0E0E18;--fg:#E8E8F0;--tile:#16162A;
+  --line:rgba(232,232,240,.12);--accent:#5A80B8;
+  --navBg:rgba(14,14,24,.93);
 }
 body{background:var(--bg);color:var(--fg)}
 
@@ -1734,9 +1734,9 @@ function drawAnalogClock(now){
 
   // Detect current colors from CSS vars
   const style = getComputedStyle(document.documentElement);
-  const fg = style.getPropertyValue('--fg').trim() || '#1B1917';
-  const bg = style.getPropertyValue('--bg').trim() || '#F4F1EC';
-  const accent = style.getPropertyValue('--accent').trim() || '#8A6A2F';
+  const fg = style.getPropertyValue('--fg').trim() || '#1A1A22';
+  const bg = style.getPropertyValue('--bg').trim() || '#F7F7F8';
+  const accent = style.getPropertyValue('--accent').trim() || '#2C5282';
   const line = style.getPropertyValue('--line').trim() || 'rgba(27,25,23,.14)';
 
   ctx.clearRect(0,0,W,H);
@@ -2499,11 +2499,11 @@ async function generatePassport(){
   let html=`<!DOCTYPE html><html><head><meta charset="utf-8">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=IBM+Plex+Mono:wght@400&display=swap');
-    body{font-family:'Bodoni Moda',serif;max-width:800px;margin:0 auto;padding:48px;color:#1B1917;background:#F4F1EC}
+    body{font-family:'Bodoni Moda',serif;max-width:800px;margin:0 auto;padding:48px;color:#1A1A22;background:#F7F7F8}
     h1{font-size:48px;font-weight:400;margin:0 0 4px}
     .sub{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.5;margin-bottom:48px}
     .watch{border-top:1px solid rgba(27,25,23,.15);padding:28px 0;display:grid;grid-template-columns:1fr 2fr;gap:32px;page-break-inside:avoid}
-    .brand{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#8A6A2F;margin-bottom:6px}
+    .brand{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#2C5282;margin-bottom:6px}
     .model{font-size:28px;margin-bottom:4px}
     .ref{font-family:'IBM Plex Mono',monospace;font-size:10px;opacity:.5;margin-bottom:16px}
     .specs{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px}
