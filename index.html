@@ -714,6 +714,8 @@ body{background:var(--bg);color:var(--fg)}
           <option value="">—</option><option value="yes">Yes</option><option value="no">No</option>
         </select>
       </div>
+      <div class="form-field" id="f-soldDate-wrap" style="display:none"><div class="field-label">Date sold</div><input class="field-input" id="f-soldDate" placeholder="2024-08-15" type="text"></div>
+      <div class="form-field" id="f-soldAmt-wrap" style="display:none"><div class="field-label">Sale price</div><input class="field-input" id="f-soldAmt" placeholder="" type="text" inputmode="numeric"></div>
       <div class="form-field"><div class="field-label">Notes / Story</div><textarea class="field-textarea" id="f-notes" rows="4"></textarea></div>
     </div>
     <div class="form-actions">
@@ -1547,7 +1549,7 @@ function findWatch(id){
 }
 
 // ── ADD/EDIT FORM ──
-const FORM_FIELDS=['brand','series','model','ref','year','movement','complications','casemat','dial','strap','size','wr','pr','origin','serial','grade','source','dealer','acquired','serviceNext','paid','price','valueEstimate','box','papers','finish','notes'];
+const FORM_FIELDS=['brand','series','model','ref','year','movement','complications','casemat','dial','strap','size','wr','pr','origin','serial','grade','source','dealer','acquired','serviceNext','paid','price','valueEstimate','box','papers','finish','notes','soldDate','soldAmt'];
 
 function openForm(watch){
   fromDetail=!!watch;
@@ -1557,6 +1559,8 @@ function openForm(watch){
   document.getElementById('formMarkSold').style.display=watch&&!watch.sold?'':'none';
   document.getElementById('formMarkActive').style.display=watch&&watch.sold?'':'none';
   document.getElementById('formMove').style.display=watch?'':'none';
+  document.getElementById('f-soldDate-wrap').style.display=watch&&watch.sold?'':'none';
+  document.getElementById('f-soldAmt-wrap').style.display=watch&&watch.sold?'':'none';
   FORM_FIELDS.forEach(f=>{
     const el=document.getElementById('f-'+f);
     if(el) el.value=draft[f]||'';
@@ -2466,18 +2470,17 @@ document.getElementById('formMove').addEventListener('click', openMoveWatch);
 // ── MARK SOLD / ACTIVE ──
 document.getElementById('formMarkSold').addEventListener('click',()=>{
   if(!draft) return;
-  const amt = prompt('Sale price (optional):');
-  const soldDate = prompt('Date sold (optional, e.g. 2024-08-15):') || new Date().toISOString().slice(0,10);
   const idx = customWatches.findIndex(w=>w.id===draft.id);
   if(idx>=0){
     customWatches[idx].sold = true;
-    customWatches[idx].soldDate = soldDate;
-    if(amt) customWatches[idx].soldAmt = Number(amt.replace(/[^0-9.]/g,''));
+    if(!customWatches[idx].soldDate) customWatches[idx].soldDate = new Date().toISOString().slice(0,10);
   }
-  subCols.forEach(s=>{ const wi=s.watches.findIndex(w=>w.id===draft.id); if(wi>=0){ s.watches[wi].sold=true; s.watches[wi].soldDate=soldDate; } });
+  subCols.forEach(s=>{ const wi=s.watches.findIndex(w=>w.id===draft.id); if(wi>=0){ s.watches[wi].sold=true; } });
   saveCustom(customWatches); saveSubCols();
-  navigate('list');
-  showToast('Moved to past collection ✓');
+  // Re-open form so sold fields are visible
+  const w = findWatch(draft.id);
+  if(w) openForm(w);
+  showToast('Marked as sold — edit date and price below');
 });
 
 document.getElementById('formMarkActive').addEventListener('click',()=>{
