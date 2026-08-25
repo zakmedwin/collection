@@ -438,11 +438,11 @@ body{background:var(--bg);color:var(--fg)}
   position:absolute;bottom:0;left:0;right:0;
   padding:14px 12px 12px;display:flex;flex-direction:column;gap:3px;
 }
-.watch-card-brand{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
-.watch-card-model{font-family:'Bodoni Moda',serif;font-size:15px;line-height:1.15;color:#fff}
+.watch-card-brand{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#fff;opacity:.9;margin-bottom:2px}
+.watch-card-model{font-family:'Bodoni Moda',serif;font-size:17px;line-height:1.15;color:#fff}
 .watch-card-ref{font-family:'IBM Plex Mono',monospace;font-size:8px;color:rgba(255,255,255,.5)}
 .watch-card-nophoto{
-  position:absolute;inset:0;background:var(--tile);display:flex;align-items:center;justify-content:center;
+  position:absolute;inset:0;background:#F7F7F8;display:flex;align-items:center;justify-content:center;
 }
 @media(min-width:769px){
   .watch-grid{grid-template-columns:repeat(4,1fr)}
@@ -1394,37 +1394,38 @@ async function loadSlide(idx){
   const ref = slide.dataset.ref;
   if(!ref) return;
 
-  slide.dataset.loaded = 'true'; // mark early to prevent double-load
+  slide.dataset.loaded = 'pending'; // prevent double-load but allow retry if src fails
   const src = await resolvePhotoRef(ref);
-  slide.innerHTML = '';
+
   if(src){
+    slide.innerHTML = '';
     const img = document.createElement('img');
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block';
     img.src = src;
-    img.alt = '';
-    img.style.cssText = 'width:100%;height:100%;object-fit:contain';
     slide.appendChild(img);
+    slide.dataset.loaded = 'true';
   } else {
     slide.dataset.loaded = 'false'; // allow retry
-    slide.innerHTML = '<span class="t-photo-placeholder">···</span>';
+    slide.innerHTML = '<span class="t-photo-placeholder" style="opacity:.3">···</span>';
   }
 }
 
-function updateSwipePosition(animate){
+async function updateSwipePosition(animate){
   const inner = document.getElementById('heroSwipeInner');
   if(!inner) return;
+  // Load current slide first, then animate
+  await loadSlide(detailPhotoIdx);
   inner.style.transition = animate ? 'transform .3s ease' : 'none';
   inner.style.transform = `translateX(-${detailPhotoIdx * 100}%)`;
-  // Update dots
   document.querySelectorAll('.photo-dot').forEach((d,i)=>d.classList.toggle('active', i===detailPhotoIdx));
-  // Lazy load the newly active slide
-  loadSlide(detailPhotoIdx);
-  // Pre-load next slide too
+  // Pre-load adjacent slides
   loadSlide(detailPhotoIdx + 1);
+  loadSlide(detailPhotoIdx - 1);
 }
 
-function updateDesktopThumbs(){
+async function updateDesktopThumbs(){
   document.querySelectorAll('.d-thumb').forEach((t,i)=>t.classList.toggle('active', i===detailPhotoIdx));
-  updateSwipePosition(true);
+  await updateSwipePosition(true);
 }
 
 // Swipe handlers
