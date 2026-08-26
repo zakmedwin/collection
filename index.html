@@ -1330,14 +1330,24 @@ async function renderDetailPhotos(){
     return;
   }
 
-  // Build slide shells first so layout is correct
-  detailPhotos.forEach((ref, i)=>{
+  // Resolve ALL photos in parallel — same approach that works for thumbnails
+  const srcs = await Promise.all(detailPhotos.map(ref => resolvePhotoRef(ref)));
+
+  // Build slides with resolved src values
+  srcs.forEach((src, i)=>{
     const slide = document.createElement('div');
     slide.className = 'hero-slide';
-    slide.dataset.ref = ref;
-    slide.dataset.loaded = 'false';
-    slide.innerHTML = '<span class="t-photo-placeholder" style="opacity:.2">···</span>';
+    if(src){
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = '';
+      img.style.cssText = 'width:100%;height:100%;object-fit:contain;display:block';
+      slide.appendChild(img);
+    } else {
+      slide.innerHTML = '<span class="t-photo-placeholder">PHOTO</span>';
+    }
     inner.appendChild(slide);
+
     if(detailPhotos.length > 1){
       const dot = document.createElement('div');
       dot.className = 'photo-dot' + (i === 0 ? ' active' : '');
@@ -1345,17 +1355,13 @@ async function renderDetailPhotos(){
     }
   });
 
-  // Position slides before loading photos
+  // Position after all slides are built
   updateSwipePosition(false);
-
-  // Load only the first slide immediately
-  await loadSlide(0);
 
   // Desktop thumbnail strip
   if(isDesktop && desktopThumbs){
     desktopThumbs.style.display = 'flex';
     desktopThumbs.innerHTML = '';
-    const srcs = await Promise.all(detailPhotos.map(ref => resolvePhotoRef(ref)));
     srcs.forEach((src, i)=>{
       const wrap = document.createElement('div');
       wrap.className = 'd-thumb-wrap';
@@ -1364,7 +1370,8 @@ async function renderDetailPhotos(){
       if(src) img.src = src;
       img.addEventListener('click', ()=>{
         detailPhotoIdx = i;
-        loadSlide(i).then(()=>{ updateSwipePosition(true); updateDesktopThumbs(); });
+        updateSwipePosition(true);
+        updateDesktopThumbs();
       });
       wrap.appendChild(img);
       if(i === 0){
@@ -1410,17 +1417,17 @@ async function loadSlide(idx){
   }
 }
 
-async function updateSwipePosition(animate){
+function updateSwipePosition(animate){
   const inner = document.getElementById('heroSwipeInner');
   if(!inner) return;
-  // Load current slide first, then animate
-  await loadSlide(detailPhotoIdx);
   inner.style.transition = animate ? 'transform .3s ease' : 'none';
   inner.style.transform = `translateX(-${detailPhotoIdx * 100}%)`;
   document.querySelectorAll('.photo-dot').forEach((d,i)=>d.classList.toggle('active', i===detailPhotoIdx));
-  // Pre-load adjacent slides
-  loadSlide(detailPhotoIdx + 1);
-  loadSlide(detailPhotoIdx - 1);
+}
+
+function updateDesktopThumbs(){
+  document.querySelectorAll('.d-thumb').forEach((t,i)=>t.classList.toggle('active', i===detailPhotoIdx));
+  updateSwipePosition(true);
 }
 
 async function updateDesktopThumbs(){
