@@ -609,7 +609,10 @@ body{background:var(--bg);color:var(--fg)}
         <div class="t-screen">The Collection</div>
         <div class="t-subtitle" id="listCount">— pieces</div>
       </div>
-      <button class="mode-toggle" id="modeToggle">Dark</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="mode-toggle" id="headerSetterBtn" title="Watch setter">◷</button>
+        <button class="mode-toggle" id="modeToggle">Dark</button>
+      </div>
     </div>
     <!-- Watch of the Day -->
     <div id="wotdBanner" style="display:none;margin:0 24px 16px;padding:14px;border:1px solid var(--line);cursor:pointer;position:relative" onclick="openWOTD()">
@@ -843,10 +846,6 @@ body{background:var(--bg);color:var(--fg)}
     </div>
     <!-- Tool list -->
     <div class="tool-list">
-      <div class="tool-item" id="tool-setter">
-        <div class="t-tool-name">Watch setter</div>
-        <div class="t-helper">Reference time with hacking seconds, for setting to the second</div>
-      </div>
       <div class="tool-item" id="tool-backup">
         <div class="t-tool-name">Import / export</div>
         <div class="t-helper">Back up and restore your archive as JSON</div>
@@ -2422,7 +2421,7 @@ document.getElementById('formExport').addEventListener('click',doExport);
 document.getElementById('searchInput').addEventListener('input',e=>{ query=e.target.value; renderList(); });
 
 // Watch setter
-document.getElementById('tool-setter').addEventListener('click',openWatchSetter);
+document.getElementById('headerSetterBtn').addEventListener('click',openWatchSetter);
 document.getElementById('wsClose').addEventListener('click',closeWatchSetter);
 document.getElementById('wsMuteBtn').addEventListener('click',toggleMute);
 
