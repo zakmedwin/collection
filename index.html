@@ -407,6 +407,13 @@ body{background:var(--bg);color:var(--fg)}
   background:var(--tile);border:1px solid var(--line);color:var(--fg);
   border-radius:4px;
 }
+.ws-moon-today{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;padding:9px 14px;cursor:pointer;
+  background:none;border:1px solid var(--accent);color:var(--accent);
+  border-radius:4px;transition:opacity .15s;
+}
+.ws-moon-today:active{opacity:.6}
 .ws-moon-info{
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
   opacity:.4;margin-top:10px;text-align:center;
@@ -959,6 +966,7 @@ body{background:var(--bg);color:var(--fg)}
       <div class="ws-moon-date-row">
         <label for="wsMoonDate">Date</label>
         <input type="date" id="wsMoonDate">
+        <button type="button" class="ws-moon-today" id="wsMoonToday">Today</button>
       </div>
       <div class="ws-moon-info" id="wsMoonInfo">—</div>
     </div>
@@ -2185,6 +2193,12 @@ function initMoonSetter(){
   if(!wsMoonInited){
     wsMoonInited = true;
     input.addEventListener('change', updateMoonSetter);
+    const todayBtn = document.getElementById('wsMoonToday');
+    if(todayBtn) todayBtn.addEventListener('click', ()=>{
+      const t = new Date();
+      input.value = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+      updateMoonSetter();
+    });
     // Year dropdown: current year + next 20
     const startYr = today.getFullYear();
     for(let y=startYr; y<=startYr+20; y++){
