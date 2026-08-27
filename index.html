@@ -354,70 +354,84 @@ body{background:var(--bg);color:var(--fg)}
 /* ── WATCH SETTER ── */
 .ws-overlay-body{
   display:flex;flex-direction:column;align-items:center;
-  padding:40px 24px 40px;flex:1;
+  padding:28px 24px 48px;flex:1;
 }
 .ws-eyebrow{
   font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.24em;
-  text-transform:uppercase;opacity:.4;margin-bottom:32px;text-align:center;
+  text-transform:uppercase;opacity:.4;
 }
-.ws-clock-face{
-  display:flex;flex-direction:column;align-items:center;
-  border:1px solid var(--line);padding:36px 48px 32px;
-  margin-bottom:32px;position:relative;width:100%;max-width:340px;
-}
-.ws-clock-face::before{
-  content:'';position:absolute;top:6px;left:6px;right:6px;bottom:6px;
-  border:1px solid var(--line);opacity:.4;pointer-events:none;
+.ws-digital{
+  display:flex;flex-direction:column;align-items:center;margin-top:20px;
 }
 .ws-day-of-week{
   font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.22em;
-  text-transform:uppercase;opacity:.4;margin-bottom:16px;
+  text-transform:uppercase;opacity:.4;margin-bottom:8px;
 }
 .ws-time{
-  font-family:'Bodoni Moda',serif;font-size:64px;font-weight:400;
+  font-family:'Bodoni Moda',serif;font-size:52px;font-weight:400;
   letter-spacing:-.01em;line-height:1;color:var(--fg);
   font-variant-numeric:tabular-nums;
 }
-.ws-time-sub{
-  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;
-  text-transform:uppercase;opacity:.35;margin-top:14px;
-}
+.ws-time .ws-ampm{font-size:20px;opacity:.5;margin-left:6px}
 .ws-date-full{
-  font-family:'Bodoni Moda',serif;font-size:16px;font-weight:400;
-  opacity:.7;margin-top:6px;letter-spacing:.01em;
+  font-family:'Bodoni Moda',serif;font-size:15px;font-weight:400;
+  opacity:.7;margin-top:8px;letter-spacing:.01em;
 }
-.ws-meta{
-  display:flex;flex-direction:column;align-items:center;gap:10px;
-  margin-bottom:32px;width:100%;max-width:340px;
-}
+.ws-leap{margin-top:10px}
 .ws-leap-badge{
   font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.18em;
   text-transform:uppercase;color:var(--accent);
-  border:1px solid var(--accent);padding:5px 12px;opacity:.8;
+  border:1px solid var(--accent);padding:4px 10px;opacity:.8;
 }
 .ws-instruction{
-  font-family:'Archivo',sans-serif;font-size:12px;line-height:1.6;
-  opacity:.45;text-align:center;max-width:260px;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;opacity:.35;text-align:center;margin-top:18px;
 }
-/* Moonphase placeholder */
-.ws-moonphase-slot{
-  width:100%;max-width:340px;border:1px dashed var(--line);
-  padding:24px;display:flex;flex-direction:column;align-items:center;gap:10px;
-  opacity:.4;cursor:default;
+.ws-moon-section{
+  width:100%;max-width:360px;margin-top:36px;
+  display:flex;flex-direction:column;align-items:center;
 }
-.ws-moonphase-slot-icon{
-  width:48px;height:48px;border-radius:50%;border:1px solid var(--line);
-  display:flex;align-items:center;justify-content:center;font-size:20px;
+.ws-moon-phase-label{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;opacity:.7;margin-top:12px;text-align:center;
 }
-.ws-moonphase-slot-label{
-  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;
-  text-transform:uppercase;
+.ws-moon-date-row{
+  display:flex;align-items:center;gap:10px;margin-top:12px;
 }
-.ws-moonphase-slot-sub{
-  font-family:'Archivo',sans-serif;font-size:11px;text-align:center;line-height:1.5;
+.ws-moon-date-row label{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;opacity:.5;
 }
-
-.ws-hint{font-family:'Archivo',sans-serif;font-size:12px;opacity:.5;text-align:center;margin-top:16px}
+.ws-moon-date-row input{
+  font-family:'Archivo',sans-serif;font-size:14px;padding:8px 12px;
+  background:var(--tile);border:1px solid var(--line);color:var(--fg);
+  border-radius:4px;
+}
+.ws-moon-info{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
+  opacity:.4;margin-top:10px;text-align:center;
+}
+.ws-fm-section{
+  width:100%;max-width:360px;margin-top:36px;
+}
+.ws-fm-header{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;
+}
+.ws-fm-year{
+  font-family:'IBM Plex Mono',monospace;font-size:13px;padding:6px 10px;
+  background:var(--tile);border:1px solid var(--line);color:var(--fg);
+  border-radius:4px;cursor:pointer;
+}
+.ws-fm-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;
+}
+.ws-fm-item{
+  font-family:'Bodoni Moda',serif;font-size:14px;padding:5px 0;
+  border-bottom:1px solid var(--line);display:flex;justify-content:space-between;
+}
+.ws-fm-item .fm-month{opacity:.6}
+.ws-fm-item.fm-past{opacity:.35}
+.ws-fm-item.fm-next{color:var(--accent)}
 
 /* ── CLASSIC GRID LAYOUT ── */
 .watch-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
@@ -924,30 +938,38 @@ body{background:var(--bg);color:var(--fg)}
   </div>
   <div class="ws-overlay-body">
 
-    <div class="ws-eyebrow">Reference time · Device clock</div>
+    <!-- Analog clock hero -->
+    <canvas id="wsAnalog" style="display:block;margin:0 auto"></canvas>
 
-    <!-- Clock face -->
-    <div class="ws-clock-face">
+    <!-- Digital time below -->
+    <div class="ws-digital">
       <div class="ws-day-of-week" id="wsDayOfWeek">—</div>
-      <canvas id="wsAnalog" width="220" height="220" style="display:block;margin:0 auto 16px"></canvas>
-      <div class="ws-time" id="wsTime">00:00:00</div>
+      <div class="ws-time" id="wsTime">—</div>
       <div class="ws-date-full" id="wsDateFull">—</div>
-      <div class="ws-time-sub">Hacking seconds · Advance crown to set</div>
+      <div class="ws-leap" id="wsLeap"></div>
     </div>
 
-    <!-- Meta -->
-    <div class="ws-meta">
-      <div class="ws-leap" id="wsLeap" style="min-height:0"></div>
-      <div class="ws-instruction">
-        Pull the crown to the hacking position and wait for the second hand to reach 12. Push the crown in when the seconds display reaches :00.
+    <div class="ws-instruction">Pull crown · sync at :00 · push in</div>
+
+    <!-- Bosom moonphase -->
+    <div class="ws-moon-section">
+      <div class="ws-eyebrow" style="text-align:center;margin-bottom:10px">Moonphase</div>
+      <canvas id="wsMoon" style="display:block;margin:0 auto"></canvas>
+      <div class="ws-moon-phase-label" id="wsMoonPhase">—</div>
+      <div class="ws-moon-date-row">
+        <label for="wsMoonDate">Date</label>
+        <input type="date" id="wsMoonDate">
       </div>
+      <div class="ws-moon-info" id="wsMoonInfo">—</div>
     </div>
 
-    <!-- Moonphase placeholder -->
-    <div class="ws-moonphase-slot">
-      <div class="ws-moonphase-slot-icon">☽</div>
-      <div class="ws-moonphase-slot-label">Moonphase setter</div>
-      <div class="ws-moonphase-slot-sub">Coming soon — set your bosom moonphase complication to the correct lunar position</div>
+    <!-- Full moon calendar -->
+    <div class="ws-fm-section">
+      <div class="ws-fm-header">
+        <div class="ws-eyebrow">Full moon calendar</div>
+        <select id="wsFmYear" class="ws-fm-year"></select>
+      </div>
+      <div class="ws-fm-grid" id="wsFmGrid"></div>
     </div>
 
   </div>
@@ -1732,6 +1754,7 @@ function renderTools(){
 function openWatchSetter(){
   document.getElementById('wsOverlay').classList.add('open');
   document.body.style.overflow='hidden';
+  initMoonSetter();
   tickWS();
   wsInterval=setInterval(tickWS,1000);
 }
@@ -1740,143 +1763,100 @@ function closeWatchSetter(){
   document.body.style.overflow='';
   if(wsInterval){ clearInterval(wsInterval); wsInterval=null; }
 }
+
+// ── ANALOG CLOCK (retina-scaled) ──
 function drawAnalogClock(now){
   const canvas = document.getElementById('wsAnalog');
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
+  const cssSize = Math.min(300, window.innerWidth - 80);
+  const dpr = window.devicePixelRatio || 1;
+  if(canvas.width !== cssSize*dpr){
+    canvas.width = cssSize*dpr;
+    canvas.height = cssSize*dpr;
+    canvas.style.width = cssSize+'px';
+    canvas.style.height = cssSize+'px';
+  }
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W = cssSize, H = cssSize;
   const cx = W/2, cy = H/2, r = W/2 - 8;
 
-  // Detect current colors from CSS vars
   const style = getComputedStyle(document.documentElement);
   const fg = style.getPropertyValue('--fg').trim() || '#1A1A22';
   const bg = style.getPropertyValue('--bg').trim() || '#F7F7F8';
   const accent = style.getPropertyValue('--accent').trim() || '#2C5282';
-  const line = style.getPropertyValue('--line').trim() || 'rgba(27,25,23,.14)';
 
   ctx.clearRect(0,0,W,H);
 
-  // Dial face
-  ctx.beginPath();
-  ctx.arc(cx,cy,r,0,Math.PI*2);
-  ctx.fillStyle = bg;
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.fillStyle = bg; ctx.fill();
 
-  // Outer ring
-  ctx.beginPath();
-  ctx.arc(cx,cy,r,0,Math.PI*2);
-  ctx.strokeStyle = fg;
-  ctx.lineWidth = 1.5;
-  ctx.globalAlpha = 0.25;
-  ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle = fg; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.25; ctx.stroke();
   ctx.globalAlpha = 1;
 
-  // Inner ring
-  ctx.beginPath();
-  ctx.arc(cx,cy,r-6,0,Math.PI*2);
-  ctx.strokeStyle = fg;
-  ctx.lineWidth = 0.5;
-  ctx.globalAlpha = 0.12;
-  ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,r-7,0,Math.PI*2);
+  ctx.strokeStyle = fg; ctx.lineWidth = 0.5; ctx.globalAlpha = 0.12; ctx.stroke();
   ctx.globalAlpha = 1;
 
-  // Hour markers
   for(let i=0; i<12; i++){
     const angle = (i/12)*Math.PI*2 - Math.PI/2;
     const isMajor = i%3===0;
-    const outer = r - 8;
-    const inner = isMajor ? r - 20 : r - 14;
-    const x1 = cx + outer*Math.cos(angle);
-    const y1 = cy + outer*Math.sin(angle);
-    const x2 = cx + inner*Math.cos(angle);
-    const y2 = cy + inner*Math.sin(angle);
+    const outer = r - 10;
+    const inner = isMajor ? r - 26 : r - 18;
     ctx.beginPath();
-    ctx.moveTo(x1,y1);
-    ctx.lineTo(x2,y2);
+    ctx.moveTo(cx+outer*Math.cos(angle), cy+outer*Math.sin(angle));
+    ctx.lineTo(cx+inner*Math.cos(angle), cy+inner*Math.sin(angle));
     ctx.strokeStyle = fg;
-    ctx.lineWidth = isMajor ? 1.5 : 0.8;
+    ctx.lineWidth = isMajor ? 2 : 1;
     ctx.globalAlpha = isMajor ? 0.7 : 0.35;
     ctx.stroke();
     ctx.globalAlpha = 1;
   }
 
-  // Minute markers
   for(let i=0; i<60; i++){
-    if(i%5===0) continue; // already drawn as hour markers
+    if(i%5===0) continue;
     const angle = (i/60)*Math.PI*2 - Math.PI/2;
-    const outer = r - 8;
-    const inner = r - 12;
     ctx.beginPath();
-    ctx.moveTo(cx+outer*Math.cos(angle), cy+outer*Math.sin(angle));
-    ctx.lineTo(cx+inner*Math.cos(angle), cy+inner*Math.sin(angle));
-    ctx.strokeStyle = fg;
-    ctx.lineWidth = 0.5;
-    ctx.globalAlpha = 0.2;
-    ctx.stroke();
+    ctx.moveTo(cx+(r-10)*Math.cos(angle), cy+(r-10)*Math.sin(angle));
+    ctx.lineTo(cx+(r-14)*Math.cos(angle), cy+(r-14)*Math.sin(angle));
+    ctx.strokeStyle = fg; ctx.lineWidth = 0.6; ctx.globalAlpha = 0.2; ctx.stroke();
     ctx.globalAlpha = 1;
   }
 
-  // Brand text
-  ctx.font = `400 9px 'IBM Plex Mono', monospace`;
-  ctx.fillStyle = fg;
-  ctx.globalAlpha = 0.3;
-  ctx.textAlign = 'center';
-  ctx.letterSpacing = '0.2em';
-  ctx.fillText('THE COLLECTION', cx, cy - 28);
+  ctx.font = `400 10px 'IBM Plex Mono', monospace`;
+  ctx.fillStyle = fg; ctx.globalAlpha = 0.3; ctx.textAlign = 'center';
+  ctx.fillText('THE COLLECTION', cx, cy - r*0.32);
   ctx.globalAlpha = 1;
 
   const h = now.getHours() % 12;
   const m = now.getMinutes();
   const s = now.getSeconds();
+  const ms = now.getMilliseconds();
 
-  // Hour hand
-  const hourAngle = ((h + m/60)/12)*Math.PI*2 - Math.PI/2;
-  drawHand(ctx, cx, cy, hourAngle, r*0.52, 3, fg, 0.9);
+  const hourAngle = ((h + m/60 + s/3600)/12)*Math.PI*2 - Math.PI/2;
+  drawHand(ctx, cx, cy, hourAngle, r*0.5, 4, fg, 0.9);
 
-  // Minute hand
   const minAngle = ((m + s/60)/60)*Math.PI*2 - Math.PI/2;
-  drawHand(ctx, cx, cy, minAngle, r*0.75, 2, fg, 0.9);
+  drawHand(ctx, cx, cy, minAngle, r*0.74, 3, fg, 0.9);
 
-  // Second hand
   const secAngle = (s/60)*Math.PI*2 - Math.PI/2;
-  // Counterweight tail
   ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  const tailLen = r * 0.2;
-  ctx.lineTo(cx + tailLen*Math.cos(secAngle+Math.PI), cy + tailLen*Math.sin(secAngle+Math.PI));
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 1.2;
-  ctx.globalAlpha = 0.9;
-  ctx.stroke();
-  ctx.globalAlpha = 1;
-  // Second hand main
-  ctx.beginPath();
-  ctx.moveTo(cx, cy);
-  ctx.lineTo(cx + r*0.82*Math.cos(secAngle), cy + r*0.82*Math.sin(secAngle));
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = 1.2;
-  ctx.globalAlpha = 0.9;
-  ctx.stroke();
+  ctx.moveTo(cx + r*0.2*Math.cos(secAngle+Math.PI), cy + r*0.2*Math.sin(secAngle+Math.PI));
+  ctx.lineTo(cx + r*0.8*Math.cos(secAngle), cy + r*0.8*Math.sin(secAngle));
+  ctx.strokeStyle = accent; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.9; ctx.stroke();
   ctx.globalAlpha = 1;
 
-  // Center cap
-  ctx.beginPath();
-  ctx.arc(cx, cy, 4, 0, Math.PI*2);
-  ctx.fillStyle = accent;
-  ctx.globalAlpha = 0.9;
-  ctx.fill();
-  ctx.globalAlpha = 1;
-  ctx.beginPath();
-  ctx.arc(cx, cy, 2, 0, Math.PI*2);
-  ctx.fillStyle = bg;
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI*2);
+  ctx.fillStyle = accent; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, 2.2, 0, Math.PI*2);
+  ctx.fillStyle = bg; ctx.fill();
 }
 
 function drawHand(ctx, cx, cy, angle, length, width, color, alpha){
-  // Tapered hand — wider at base, pointed at tip
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.rotate(angle);
+  ctx.rotate(angle + Math.PI/2);
   ctx.beginPath();
   ctx.moveTo(-width*0.6, 0);
   ctx.lineTo(0, -length);
@@ -1892,33 +1872,324 @@ function drawHand(ctx, cx, cy, angle, length, width, color, alpha){
 
 function tickWS(){
   const now=new Date();
-  const h=String(now.getHours()).padStart(2,'0');
+  let h=now.getHours();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12; if(h === 0) h = 12;
   const m=String(now.getMinutes()).padStart(2,'0');
   const s=String(now.getSeconds()).padStart(2,'0');
-  document.getElementById('wsTime').textContent=`${h}:${m}:${s}`;
+  document.getElementById('wsTime').innerHTML=`${h}:${m}:${s}<span class="ws-ampm">${ampm}</span>`;
 
   const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const dow=days[now.getDay()];
-  const dateStr=`${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
-
   const dowEl=document.getElementById('wsDayOfWeek');
-  if(dowEl) dowEl.textContent=dow;
+  if(dowEl) dowEl.textContent=days[now.getDay()];
   const dateEl=document.getElementById('wsDateFull');
-  if(dateEl) dateEl.textContent=dateStr;
+  if(dateEl) dateEl.textContent=`${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
 
   const yr=now.getFullYear();
   const isLeap=(yr%4===0&&yr%100!==0)||(yr%400===0);
   const leapEl=document.getElementById('wsLeap');
-  if(leapEl){
-    if(isLeap){
-      leapEl.innerHTML=`<div class="ws-leap-badge">${yr} · Leap year</div>`;
-    } else {
-      leapEl.innerHTML='';
-    }
-  }
+  if(leapEl) leapEl.innerHTML = isLeap ? `<div class="ws-leap-badge">${yr} · Leap year</div>` : '';
 
   drawAnalogClock(now);
+}
+
+// ── MEEUS LUNAR EPHEMERIS ──
+const SYNODIC=29.530588853;
+
+function fullMoonJDE(k){
+  k = k + 0.5;
+  const T = k / 1236.85;
+  const rad = Math.PI/180;
+  let JDE = 2451550.09766 + 29.530588861*k + 0.00015437*T*T - 0.000000150*T*T*T + 0.00000000073*T*T*T*T;
+  const E = 1 - 0.002516*T - 0.0000074*T*T;
+  const M = ((2.5534 + 29.10535670*k - 0.0000014*T*T - 0.00000011*T*T*T) % 360)*rad;
+  const Mp = ((201.5643 + 385.81693528*k + 0.0107582*T*T + 0.00001238*T*T*T - 0.000000058*T*T*T*T) % 360)*rad;
+  const F = ((160.7108 + 390.67050284*k - 0.0016118*T*T - 0.00000227*T*T*T + 0.000000011*T*T*T*T) % 360)*rad;
+  const Om = ((124.7746 - 1.56375588*k + 0.0020672*T*T + 0.00000215*T*T*T) % 360)*rad;
+  const sin=Math.sin;
+  let corr = -0.40614*sin(Mp) + 0.17302*E*sin(M) + 0.01614*sin(2*Mp)
+    + 0.01043*sin(2*F) + 0.00734*E*sin(Mp-M) - 0.00515*E*sin(Mp+M)
+    + 0.00209*E*E*sin(2*M) - 0.00111*sin(Mp-2*F) - 0.00057*sin(Mp+2*F)
+    + 0.00056*E*sin(2*Mp+M) - 0.00042*sin(3*Mp) + 0.00042*E*sin(M+2*F)
+    + 0.00038*E*sin(M-2*F) - 0.00024*E*sin(2*Mp-M) - 0.00017*sin(Om)
+    - 0.00007*sin(Mp+2*M) + 0.00004*sin(2*Mp-2*F) + 0.00004*sin(3*M)
+    + 0.00003*sin(Mp+M-2*F) + 0.00003*sin(2*Mp+2*F) - 0.00003*sin(Mp+M+2*F)
+    + 0.00003*sin(Mp-M+2*F) - 0.00002*sin(Mp-M-2*F) - 0.00002*sin(3*Mp+M)
+    + 0.00002*sin(4*Mp);
+  let A = 0.000325*sin((299.77+0.107408*k-0.009173*T*T)*rad)
+    + 0.000165*sin((251.88+0.016321*k)*rad)
+    + 0.000164*sin((251.83+26.651886*k)*rad)
+    + 0.000126*sin((349.42+36.412478*k)*rad)
+    + 0.000110*sin((84.66+18.206239*k)*rad)
+    + 0.000062*sin((141.74+53.303771*k)*rad)
+    + 0.000060*sin((207.14+2.453732*k)*rad)
+    + 0.000056*sin((154.84+7.306860*k)*rad)
+    + 0.000047*sin((34.52+27.261239*k)*rad)
+    + 0.000042*sin((207.19+0.121824*k)*rad)
+    + 0.000040*sin((291.34+1.844379*k)*rad)
+    + 0.000037*sin((161.72+24.198154*k)*rad)
+    + 0.000035*sin((239.56+25.513099*k)*rad)
+    + 0.000023*sin((331.55+3.592518*k)*rad);
+  return JDE + corr + A;
+}
+
+function jdeToDate(jde){
+  // JD -> ms since epoch: JD 2440587.5 = Unix epoch
+  return new Date((jde - 2440587.5) * 86400000);
+}
+
+function fullMoonsForYear(year){
+  const out=[];
+  const kStart = Math.floor((year - 2000) * 12.3685) - 2;
+  for(let k=kStart; k<kStart+17; k++){
+    const d = jdeToDate(fullMoonJDE(k));
+    if(d.getFullYear() === year) out.push(d);
+  }
+  return out;
+}
+
+// Lunar age via nearest full moons (Meeus-accurate everywhere)
+function lunarU(date){
+  const ts = date.getTime();
+  const yr = date.getFullYear();
+  // Gather fulls surrounding this date
+  let fulls=[];
+  for(const y of [yr-1, yr, yr+1]) fulls = fulls.concat(fullMoonsForYear(y));
+  fulls.sort((a,b)=>a-b);
+  for(let i=0;i<fulls.length-1;i++){
+    if(ts >= fulls[i].getTime() && ts < fulls[i+1].getTime()){
+      const L = fulls[i+1].getTime() - fulls[i].getTime();
+      const d = ts - fulls[i].getTime();
+      let u = 0.5 + d/L;
+      if(u >= 1) u -= 1;
+      return u;
+    }
+  }
+  return 0;
+}
+
+// ── BOSOM MOONPHASE ──
+function drawBosomMoon(u){
+  const canvas = document.getElementById('wsMoon');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const cssW = Math.min(320, window.innerWidth - 64);
+  const cssH = Math.round(cssW * 200/320);
+  const dpr = window.devicePixelRatio || 1;
+  if(canvas.width !== cssW*dpr){
+    canvas.width = cssW*dpr; canvas.height = cssH*dpr;
+    canvas.style.width = cssW+'px'; canvas.style.height = cssH+'px';
+  }
+  ctx.setTransform(dpr*cssW/320, 0, 0, dpr*cssW/320, 0, 0);
+  const W=320, H=200;
+  const cx=W/2, cy=112;
+
+  const isDark = document.documentElement.getAttribute('data-mode') === 'dark';
+  const C = {
+    fg: isDark?'#E8E8F0':'#1A1A22',
+    tile: isDark?'#16162A':'#EAEAEE',
+    gold:'#C9A84C', goldHi:'#FFE9A8', goldDark:'#8A6A28', goldMid:'#B89440',
+    sky:'#141838', skyDeep:'#0C0F28',
+  };
+
+  const APT_W=216, APT_TOP=40, BUMP_R=54, MOON_R=28;
+  const ELL_A=85, ELL_B=52;
+  const bumpY=cy+28, bumpLX=cx-54, bumpRX=cx+54;
+  const aptL=cx-APT_W/2, aptR=cx+APT_W/2, aptB=bumpY;
+  const carrierCY=126;
+
+  function aperturePath(){
+    ctx.beginPath();
+    ctx.moveTo(aptL,aptB);
+    ctx.lineTo(aptL,APT_TOP+32);
+    ctx.quadraticCurveTo(aptL,APT_TOP,aptL+32,APT_TOP);
+    ctx.lineTo(aptR-32,APT_TOP);
+    ctx.quadraticCurveTo(aptR,APT_TOP,aptR,APT_TOP+32);
+    ctx.lineTo(aptR,aptB);
+    ctx.arc(bumpRX,bumpY,BUMP_R,0,Math.PI,true);
+    ctx.arc(bumpLX,bumpY,BUMP_R,0,Math.PI,true);
+    ctx.closePath();
+  }
+
+  function star6(x,y,r,alpha){
+    ctx.save();
+    ctx.globalAlpha=alpha;
+    ctx.strokeStyle='rgba(255,240,200,0.9)';
+    ctx.lineWidth=0.7;
+    for(let i=0;i<3;i++){
+      const a=(i/3)*Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(x-r*Math.cos(a),y-r*Math.sin(a));
+      ctx.lineTo(x+r*Math.cos(a),y+r*Math.sin(a));
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function moonDisc(mx,my,r){
+    const g=ctx.createRadialGradient(mx-r*0.2,my-r*0.2,r*0.1,mx,my,r);
+    g.addColorStop(0,C.goldHi); g.addColorStop(0.55,C.gold);
+    g.addColorStop(0.85,C.goldMid); g.addColorStop(1,C.goldDark);
+    ctx.beginPath(); ctx.arc(mx,my,r,0,Math.PI*2);
+    ctx.fillStyle=g; ctx.fill();
+    ctx.beginPath(); ctx.arc(mx,my,r-1,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,235,180,0.5)'; ctx.lineWidth=1; ctx.stroke();
+    const craters=[
+      [mx+r*0.25,my-r*0.3,r*0.17],[mx-r*0.32,my+r*0.12,r*0.11],
+      [mx+r*0.1,my+r*0.35,r*0.14],[mx-r*0.15,my-r*0.42,r*0.08],
+      [mx+r*0.48,my+r*0.1,r*0.09],[mx-r*0.45,my-r*0.15,r*0.06],
+    ];
+    craters.forEach(([x,y,cr])=>{
+      ctx.beginPath();ctx.arc(x,y,cr,0,Math.PI*2);ctx.fillStyle='rgba(0,0,0,0.07)';ctx.fill();
+      ctx.beginPath();ctx.arc(x,y,cr,0,Math.PI*2);ctx.strokeStyle='rgba(90,64,16,0.25)';ctx.lineWidth=0.6;ctx.stroke();
+      ctx.beginPath();ctx.arc(x+cr*0.15,y+cr*0.15,cr*0.7,Math.PI*0.1,Math.PI*0.9);ctx.strokeStyle='rgba(90,64,16,0.15)';ctx.lineWidth=0.5;ctx.stroke();
+    });
+  }
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=C.tile;
+  ctx.fillRect(0,0,W,H);
+
+  ctx.save();
+  ctx.strokeStyle=C.fg;
+  ctx.globalAlpha=0.045;
+  ctx.lineWidth=0.7;
+  for(let r=12;r<W;r+=7){
+    ctx.beginPath();ctx.arc(cx,H+30,r,Math.PI,Math.PI*2);ctx.stroke();
+  }
+  ctx.restore();
+
+  ctx.save();
+  aperturePath();
+  ctx.clip();
+
+  const sky=ctx.createLinearGradient(0,APT_TOP,0,aptB);
+  sky.addColorStop(0,C.skyDeep); sky.addColorStop(1,C.sky);
+  ctx.fillStyle=sky;
+  ctx.fillRect(0,0,W,H);
+
+  const dots=[[36,58],[76,48],[126,64],[176,50],[226,58],[268,66],[52,88],[100,78],[156,94],[206,82],[250,92],[66,112],[136,118],[190,108],[240,116],[86,60],[116,98],[166,72],[216,102],[256,50],[46,72],[146,54],[196,64],[280,80],[110,120]];
+  ctx.fillStyle='rgba(255,245,215,0.7)';
+  dots.forEach(([sx,sy])=>{ctx.beginPath();ctx.arc(sx,sy,0.9,0,Math.PI*2);ctx.fill();});
+  ctx.fillStyle='rgba(255,245,215,0.35)';
+  [[42,100],[90,102],[142,80],[198,92],[244,72],[108,58],[170,112],[262,102],[58,52],[228,44]].forEach(([sx,sy])=>{ctx.beginPath();ctx.arc(sx,sy,0.6,0,Math.PI*2);ctx.fill();});
+
+  star6(70,66,4,0.8);star6(180,56,3.5,0.7);star6(248,84,4,0.75);star6(120,102,3,0.6);star6(214,116,3.2,0.65);
+
+  const alpha=u*Math.PI;
+  const mx=cx - ELL_A*Math.cos(alpha);
+  const my=carrierCY - ELL_B*Math.sin(alpha);
+  moonDisc(mx,my,MOON_R);
+  const m2x=cx + ELL_A*Math.cos(alpha);
+  const m2y=carrierCY + ELL_B*Math.sin(alpha);
+  moonDisc(m2x,m2y,MOON_R);
+
+  ctx.restore();
+
+  const beads=[];
+  for(let x=aptL+34;x<=aptR-34;x+=9) beads.push([x,APT_TOP]);
+  beads.push([aptL+16,APT_TOP+6],[aptL+6,APT_TOP+16],[aptL+1,APT_TOP+30]);
+  beads.push([aptR-16,APT_TOP+6],[aptR-6,APT_TOP+16],[aptR-1,APT_TOP+30]);
+  for(let y=APT_TOP+40;y<=aptB-8;y+=9){beads.push([aptL,y]);beads.push([aptR,y]);}
+  for(let a=0;a<=Math.PI;a+=Math.PI/16){
+    beads.push([bumpLX-BUMP_R*Math.cos(a),bumpY-BUMP_R*Math.sin(a)]);
+    beads.push([bumpRX-BUMP_R*Math.cos(a),bumpY-BUMP_R*Math.sin(a)]);
+  }
+  beads.forEach(([bx,by])=>{
+    const bg=ctx.createRadialGradient(bx-0.5,by-0.5,0.2,bx,by,2);
+    bg.addColorStop(0,C.goldHi); bg.addColorStop(1,C.goldDark);
+    ctx.beginPath();ctx.arc(bx,by,1.8,0,Math.PI*2);ctx.fillStyle=bg;ctx.fill();
+  });
+
+  ctx.save();
+  aperturePath();
+  ctx.strokeStyle=C.goldMid;
+  ctx.lineWidth=0.8;
+  ctx.globalAlpha=0.6;
+  ctx.stroke();
+  ctx.restore();
+
+  ctx.strokeStyle=C.fg;
+  ctx.globalAlpha=0.18;ctx.lineWidth=1;
+  ctx.strokeRect(2.5,2.5,W-5,H-5);
+  ctx.globalAlpha=0.09;
+  ctx.strokeRect(6.5,6.5,W-13,H-13);
+  ctx.globalAlpha=1;
+  ctx.fillStyle=C.goldMid;
+  ctx.globalAlpha=0.7;
+  [[10,10],[W-10,10],[10,H-10],[W-10,H-10]].forEach(([px,py])=>{
+    ctx.beginPath();ctx.arc(px,py,1.5,0,Math.PI*2);ctx.fill();
+  });
+  ctx.globalAlpha=1;
+}
+
+function moonPhaseLabel(u){
+  if(u<0.04||u>0.96) return 'New moon';
+  if(u<0.21) return 'Waxing crescent';
+  if(u<0.29) return 'First quarter';
+  if(u<0.46) return 'Waxing gibbous';
+  if(u<0.54) return 'Full moon';
+  if(u<0.71) return 'Waning gibbous';
+  if(u<0.79) return 'Last quarter';
+  return 'Waning crescent';
+}
+
+function updateMoonSetter(){
+  const input = document.getElementById('wsMoonDate');
+  if(!input || !input.value) return;
+  const parts = input.value.split('-').map(Number);
+  const d = new Date(parts[0], parts[1]-1, parts[2], 12, 0, 0);
+  const u = lunarU(d);
+  drawBosomMoon(u);
+  const lbl = document.getElementById('wsMoonPhase');
+  if(lbl) lbl.textContent = moonPhaseLabel(u);
+  const info = document.getElementById('wsMoonInfo');
+  if(info) info.textContent = `Lunar day ${(u*SYNODIC).toFixed(1)} of ${SYNODIC.toFixed(1)}`;
+}
+
+function renderFullMoonCalendar(){
+  const yearSel = document.getElementById('wsFmYear');
+  const grid = document.getElementById('wsFmGrid');
+  if(!yearSel || !grid) return;
+  const year = parseInt(yearSel.value);
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now = new Date();
+  const fulls = fullMoonsForYear(year);
+  let nextFound = false;
+  grid.innerHTML = fulls.map(d=>{
+    const past = d < now;
+    let cls = past ? 'fm-past' : '';
+    if(!past && !nextFound && year === now.getFullYear()){ cls = 'fm-next'; nextFound = true; }
+    return `<div class="ws-fm-item ${cls}"><span class="fm-month">${months[d.getMonth()]}</span><span>${d.getDate()}</span></div>`;
+  }).join('');
+}
+
+let wsMoonInited = false;
+function initMoonSetter(){
+  const input = document.getElementById('wsMoonDate');
+  const yearSel = document.getElementById('wsFmYear');
+  if(!input || !yearSel) return;
+
+  const today = new Date();
+  input.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  if(!wsMoonInited){
+    wsMoonInited = true;
+    input.addEventListener('change', updateMoonSetter);
+    // Year dropdown: current year + next 20
+    const startYr = today.getFullYear();
+    for(let y=startYr; y<=startYr+20; y++){
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      yearSel.appendChild(opt);
+    }
+    yearSel.value = startYr;
+    yearSel.addEventListener('change', renderFullMoonCalendar);
+  }
+
+  updateMoonSetter();
+  renderFullMoonCalendar();
 }
 
 // ── EXPORT ──
