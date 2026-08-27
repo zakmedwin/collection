@@ -383,10 +383,20 @@ body{background:var(--bg);color:var(--fg)}
   text-transform:uppercase;color:var(--accent);
   border:1px solid var(--accent);padding:4px 10px;opacity:.8;
 }
+.ws-instruction-row{
+  display:flex;align-items:center;gap:14px;margin-top:18px;
+}
 .ws-instruction{
   font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;
-  text-transform:uppercase;opacity:.35;text-align:center;margin-top:18px;
+  text-transform:uppercase;opacity:.35;text-align:center;
 }
+.ws-mute-btn{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;
+  text-transform:uppercase;padding:6px 12px;cursor:pointer;
+  background:none;border:1px solid var(--line);color:var(--fg);
+  border-radius:4px;opacity:.6;transition:opacity .15s;
+}
+.ws-mute-btn:active{opacity:.4}
 .ws-moon-section{
   width:100%;max-width:360px;margin-top:36px;
   display:flex;flex-direction:column;align-items:center;
@@ -956,7 +966,10 @@ body{background:var(--bg);color:var(--fg)}
       <div class="ws-leap" id="wsLeap"></div>
     </div>
 
-    <div class="ws-instruction">Pull crown · sync at :00 · push in</div>
+    <div class="ws-instruction-row">
+      <div class="ws-instruction">Pull crown · sync at :00 · push in</div>
+      <button type="button" class="ws-mute-btn" id="wsMuteBtn">Mute</button>
+    </div>
 
     <!-- Bosom moonphase -->
     <div class="ws-moon-section">
@@ -1041,6 +1054,9 @@ let layout = 'modern'; // 'modern' or 'classic'
 let draft = null;
 let fromDetail = false; // did we open form from detail?
 let wsInterval = null;
+let wsMuted = localStorage.getItem('wsMuted') === '1';
+let wsAudioCtx = null;
+let wsWakeLock = null;
 let syncTimer = null;
 
 // ── STORAGE KEYS ──
@@ -1763,6 +1779,8 @@ function openWatchSetter(){
   document.getElementById('wsOverlay').classList.add('open');
   document.body.style.overflow='hidden';
   initMoonSetter();
+  updateMuteButton();
+  requestWakeLock();
   tickWS();
   wsInterval=setInterval(tickWS,1000);
 }
@@ -1770,6 +1788,52 @@ function closeWatchSetter(){
   document.getElementById('wsOverlay').classList.remove('open');
   document.body.style.overflow='';
   if(wsInterval){ clearInterval(wsInterval); wsInterval=null; }
+  releaseWakeLock();
+}
+
+// ── SCREEN WAKE LOCK ──
+async function requestWakeLock(){
+  try{
+    if('wakeLock' in navigator){
+      wsWakeLock = await navigator.wakeLock.request('screen');
+    }
+  }catch(e){ /* wake lock unavailable — not critical */ }
+}
+function releaseWakeLock(){
+  if(wsWakeLock){ wsWakeLock.release().catch(()=>{}); wsWakeLock = null; }
+}
+document.addEventListener('visibilitychange', ()=>{
+  // Re-acquire wake lock if user returns while setter is open
+  if(document.visibilityState === 'visible' && document.getElementById('wsOverlay')?.classList.contains('open')){
+    requestWakeLock();
+  }
+});
+
+// ── SYNC CHIME ──
+function playPip(freq, durMs){
+  if(wsMuted) return;
+  try{
+    if(!wsAudioCtx) wsAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(wsAudioCtx.state === 'suspended') wsAudioCtx.resume();
+    const osc = wsAudioCtx.createOscillator();
+    const gain = wsAudioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.15, wsAudioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, wsAudioCtx.currentTime + durMs/1000);
+    osc.connect(gain).connect(wsAudioCtx.destination);
+    osc.start();
+    osc.stop(wsAudioCtx.currentTime + durMs/1000);
+  }catch(e){ /* audio unavailable */ }
+}
+function toggleMute(){
+  wsMuted = !wsMuted;
+  localStorage.setItem('wsMuted', wsMuted ? '1' : '0');
+  updateMuteButton();
+}
+function updateMuteButton(){
+  const btn = document.getElementById('wsMuteBtn');
+  if(btn) btn.textContent = wsMuted ? 'Unmute' : 'Mute';
 }
 
 // ── ANALOG CLOCK (retina-scaled) ──
@@ -1884,8 +1948,13 @@ function tickWS(){
   const ampm = h >= 12 ? 'PM' : 'AM';
   h = h % 12; if(h === 0) h = 12;
   const m=String(now.getMinutes()).padStart(2,'0');
-  const s=String(now.getSeconds()).padStart(2,'0');
+  const sec=now.getSeconds();
+  const s=String(sec).padStart(2,'0');
   document.getElementById('wsTime').innerHTML=`${h}:${m}:${s}<span class="ws-ampm">${ampm}</span>`;
+
+  // Sync pips: short tone at :55-:59, long high tone at :00
+  if(sec >= 55) playPip(880, 80);
+  else if(sec === 0) playPip(1320, 400);
 
   const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -2355,6 +2424,7 @@ document.getElementById('searchInput').addEventListener('input',e=>{ query=e.tar
 // Watch setter
 document.getElementById('tool-setter').addEventListener('click',openWatchSetter);
 document.getElementById('wsClose').addEventListener('click',closeWatchSetter);
+document.getElementById('wsMuteBtn').addEventListener('click',toggleMute);
 
 // Change PIN
 document.getElementById('tool-pin').addEventListener('click',()=>{
