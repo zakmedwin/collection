@@ -2140,7 +2140,15 @@ function updateMoonSetter(){
   if(!input || !input.value) return;
   const parts = input.value.split('-').map(Number);
   const d = new Date(parts[0], parts[1]-1, parts[2], 12, 0, 0);
-  const u = lunarU(d);
+  let u = lunarU(d);
+  // If the selected calendar date IS a full moon day, snap to dead center
+  const fulls = fullMoonsForYear(parts[0]);
+  for(const fm of fulls){
+    if(fm.getFullYear()===parts[0] && fm.getMonth()===parts[1]-1 && fm.getDate()===parts[2]){
+      u = 0.5;
+      break;
+    }
+  }
   drawBosomMoon(u);
   const lbl = document.getElementById('wsMoonPhase');
   if(lbl) lbl.textContent = moonPhaseLabel(u);
