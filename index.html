@@ -68,34 +68,41 @@ body{background:var(--bg);color:var(--fg)}
 .screen{display:none;flex-direction:column;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:20px}
 .screen.active{display:flex}
 
-/* ── BOTTOM NAV ── */
+/* ── BOTTOM NAV — SWISS ── */
 #bottomNav{
   flex:none;
-  background:var(--navBg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-  border-top:1px solid var(--line);
+  background:var(--bg);
+  border-top:2px solid var(--line-strong);
   z-index:500;
 }
 #bottomNav .nav-inner{
   max-width:430px;margin:0 auto;
-  padding:10px 16px calc(10px + env(safe-area-inset-bottom));
-  display:grid;grid-template-columns:repeat(4,1fr);gap:4px;
+  padding:0 0 env(safe-area-inset-bottom);
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
   align-items:center;
 }
 .nav-btn{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:6px;min-height:44px;opacity:.45;transition:opacity .2s;border:none;background:none;
-  color:var(--fg);touch-action:manipulation;user-select:none;-webkit-user-select:none;
+  gap:4px;min-height:52px;padding:8px 0;
+  border:none;background:none;border-right:1px solid var(--line);
+  color:var(--muted);cursor:pointer;transition:background .12s,color .12s;
+  touch-action:manipulation;user-select:none;-webkit-user-select:none;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
 }
-.nav-btn.active{opacity:1}
-.nav-btn svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.nav-btn:last-child{border-right:none}
+.nav-btn.active{background:var(--fg);color:var(--bg)}
+.nav-btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
 .nav-btn-add{
-  width:44px;height:44px;border-radius:22px;
-  background:var(--accent);color:var(--bg);
+  width:36px;height:36px;
+  background:var(--accent);color:var(--accent-fg);
   display:flex;align-items:center;justify-content:center;
-  border:none;cursor:pointer;justify-self:center;opacity:1 !important;
+  border:none;cursor:pointer;justify-self:center;
+  border-radius:0;
   touch-action:manipulation;user-select:none;-webkit-user-select:none;
 }
-.nav-btn-add svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.6;fill:none}
+.nav-btn-add:hover{opacity:.85}
+.nav-btn-add svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
 
 /* ── SCREEN 1: COLLECTION LIST — SWISS MODERNIST ── */
 #screen-list .list-header{
@@ -153,22 +160,28 @@ body{background:var(--bg);color:var(--fg)}
 .sw-tab.on .n{color:var(--accent);margin-left:6px;font-weight:700}
 .sw-tab .n{color:var(--muted-2);margin-left:6px;font-weight:400}
 
-.search-wrap{padding:6px 24px 14px}
+.search-wrap{padding:0;border-bottom:1px solid var(--line)}
 #searchInput{
-  width:100%;height:44px;background:transparent;border:none;
-  border-bottom:1px solid var(--line);
-  font-family:'Inter','Helvetica Neue',sans-serif;font-size:14px;color:var(--fg);
-  padding:0 0 0 2px;outline:none;
+  width:100%;height:40px;background:transparent;border:none;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;color:var(--fg);
+  padding:0 20px;outline:none;letter-spacing:.04em;text-transform:uppercase;
 }
-#searchInput::placeholder{opacity:.35}
-.chips-wrap{padding:0 24px 16px;display:flex;flex-wrap:wrap;gap:8px}
+#searchInput::placeholder{opacity:.35;text-transform:uppercase;letter-spacing:.08em}
+.chips-wrap{
+  display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  border-bottom:1px solid var(--line);scrollbar-width:none;
+}
+.chips-wrap::-webkit-scrollbar{display:none}
 .chip{
-  min-height:34px;padding:8px 14px;border-radius:18px;
-  border:1px solid var(--line);background:transparent;color:var(--fg);
-  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
-  cursor:pointer;transition:all .2s;display:flex;align-items:center;
+  min-height:36px;padding:0 14px;border-radius:0;
+  border:none;border-right:1px solid var(--line);background:transparent;color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;
+  cursor:pointer;transition:background .12s,color .12s;display:flex;align-items:center;gap:6px;
 }
-.chip.active{border-color:var(--fg);background:var(--fg);color:var(--bg)}
+.chip .n{font-weight:400;color:var(--muted-2)}
+.chip.active{background:var(--fg);color:var(--bg)}
+.chip.active .n{color:var(--accent)}
 /* Watch rows — Swiss list */
 .watch-list{display:flex;flex-direction:column;gap:0;background:transparent}
 .watch-row{
@@ -223,58 +236,120 @@ body{background:var(--bg);color:var(--fg)}
 }
 .detail-hero-back svg{width:20px;height:20px;stroke:var(--fg);stroke-width:1.5;fill:none}
 .detail-hero-label{padding-bottom:20px;position:relative;z-index:1}
-.detail-title-block{padding:26px 24px 0;display:flex;flex-direction:column;gap:7px}
-/* Spec table */
-.spec-table{margin:20px 24px 0;border-top:1px solid var(--line)}
-.spec-row{
-  padding:12px 0;border-bottom:1px solid var(--line);
-  display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+
+/* Detail title block — Swiss */
+.detail-title-block{
+  padding:24px 20px 20px;border-bottom:1px solid var(--line);
+  display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;
 }
-.spec-row-label{flex:none}
-.spec-row-val{text-align:right}
-/* Story */
-.detail-story{padding:20px 24px 0}
-.detail-story-label{margin-bottom:8px}
-/* Detail actions */
-.detail-actions{padding:24px 24px 0;display:flex;gap:10px}
-.btn-primary{
-  flex:1;height:50px;border-radius:25px;
-  background:var(--accent);color:var(--bg);border:none;cursor:pointer;
-  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
-  display:flex;align-items:center;justify-content:center;
+.detail-title-l{display:flex;flex-direction:column;gap:4px;min-width:0}
+.t-brand-detail{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--fg);
 }
-.btn-secondary{
-  flex:1;height:50px;border-radius:25px;
-  background:transparent;color:var(--fg);border:1px solid var(--line);cursor:pointer;
-  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
-  display:flex;align-items:center;justify-content:center;
+.t-detail{
+  font-family:'Inter','Helvetica Neue',sans-serif;font-size:32px;font-weight:500;
+  line-height:.95;letter-spacing:-.025em;color:var(--fg);
+}
+.detail-title-idx{
+  font-family:'Inter','Helvetica Neue',sans-serif;font-size:36px;font-weight:700;
+  line-height:.8;letter-spacing:-.04em;color:var(--accent);text-align:right;
+}
+.detail-title-idx .of{
+  display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.06em;color:var(--muted);margin-top:6px;text-transform:uppercase;
 }
 
-/* ── SCREEN 3: ADD/EDIT FORM ── */
+/* Swiss spec grid — 3 column */
+.spec-table{
+  margin:0;padding:0;
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--line);
+  border-bottom:1px solid var(--line);
+}
+.spec-row{
+  padding:14px 12px;background:var(--bg);min-height:80px;
+  display:flex;flex-direction:column;justify-content:space-between;gap:6px;
+  border:none;
+}
+.spec-row-label{
+  font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+}
+.spec-row-val{
+  font-family:'Inter','Helvetica Neue',sans-serif;font-size:18px;font-weight:500;
+  letter-spacing:-.015em;line-height:1;color:var(--fg);text-align:left;
+}
+.spec-row-val .unit{font-size:11px;font-weight:400;color:var(--muted);margin-left:4px;letter-spacing:.02em}
+
+/* Numbered section block */
+.detail-block{
+  padding:24px 20px;border-bottom:1px solid var(--line);
+  display:grid;grid-template-columns:40px 1fr;gap:14px;
+}
+.detail-block-num{
+  font-family:'Inter','Helvetica Neue',sans-serif;font-size:15px;font-weight:700;
+  letter-spacing:.02em;color:var(--accent);line-height:1;
+}
+.detail-block-content{min-width:0}
+.detail-block-head{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--fg);margin-bottom:10px;
+}
+
+/* Story */
+.detail-story{padding:0;margin:0}
+.detail-story-label{margin-bottom:8px}
+
+/* Detail actions */
+.detail-actions{padding:20px;display:flex;gap:8px;border-bottom:1px solid var(--line)}
+.btn-primary{
+  flex:1;height:44px;border-radius:0;
+  background:var(--fg);color:var(--bg);border:1px solid var(--fg);cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:center;transition:opacity .15s;
+}
+.btn-primary:hover{opacity:.85}
+.btn-secondary{
+  flex:1;height:44px;border-radius:0;
+  background:transparent;color:var(--fg);border:1px solid var(--fg);cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;
+}
+.btn-secondary:hover{background:var(--fg);color:var(--bg)}
+
+
+/* ── SCREEN 3: ADD/EDIT FORM — SWISS ── */
 #screen-form .form-header{
-  padding:28px 24px 20px;display:flex;justify-content:space-between;align-items:center;
+  padding:16px 20px 12px;
+  display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end;
+  border-bottom:2px solid var(--line-strong);
 }
 .form-cancel{
-  min-height:44px;display:flex;align-items:center;
-  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
-  opacity:.55;border:none;background:none;color:var(--fg);cursor:pointer;
+  min-height:32px;padding:0 12px;
+  border:1px solid var(--line-strong);border-radius:0;background:transparent;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--fg);cursor:pointer;transition:background .15s,color .15s;
 }
+.form-cancel:hover{background:var(--fg);color:var(--bg)}
 .photo-well{
-  margin:0 24px;height:140px;border:1px dashed var(--line);
+  margin:16px 20px;height:180px;border:1px solid var(--line);
   background:var(--tile);display:flex;align-items:center;justify-content:center;
   cursor:pointer;position:relative;overflow:hidden;
 }
 .photo-well img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.form-fields{padding:20px 24px 0;display:flex;flex-direction:column;gap:22px}
-.form-field{display:flex;flex-direction:column}
+.form-fields{padding:8px 20px 20px;display:flex;flex-direction:column;gap:0}
+.form-field{
+  display:flex;flex-direction:column;
+  padding:12px 0;border-bottom:1px solid var(--line);
+}
 .field-label{
-  font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.18em;
-  text-transform:uppercase;opacity:.5;margin-bottom:8px;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:6px;
 }
 .field-input{
-  background:transparent;border:none;border-bottom:1px solid var(--line);
-  min-height:44px;font-family:'Inter','Helvetica Neue',sans-serif;font-size:20px;color:var(--fg);
-  padding:8px 0;outline:none;width:100%;
+  background:transparent;border:none;
+  min-height:32px;font-family:'Inter','Helvetica Neue',sans-serif;font-size:16px;font-weight:400;color:var(--fg);
+  padding:0;outline:none;width:100%;letter-spacing:-.005em;
 }
 .field-input::placeholder{opacity:.3}
 .field-textarea{
@@ -297,50 +372,54 @@ body{background:var(--bg);color:var(--fg)}
 }
 
 /* ── SCREEN 4: INSIGHTS ── */
-#screen-insights .insights-header{padding:28px 24px 14px;display:flex;flex-direction:column;gap:6px}
-.insights-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 24px 20px}
+#screen-insights .insights-header{padding:16px 20px 12px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end;border-bottom:2px solid var(--line-strong)}
+.insights-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;padding:0;background:var(--line);border-bottom:1px solid var(--line)}
 @media(min-width:769px){
-  .insights-stat-grid{grid-template-columns:repeat(4,1fr) !important;padding:0 40px 20px}
+  .insights-stat-grid{grid-template-columns:repeat(4,1fr) !important}
   .insights-strip{padding:0 40px 20px}
 }
-.insights-stat-card{background:var(--tile);padding:16px 14px;display:flex;flex-direction:column;gap:4px}
-.insights-stat-card.featured{border:1px solid var(--accent)}
-.insights-stat-num{font-family:'Inter','Helvetica Neue',sans-serif;font-size:28px;font-weight:400;line-height:1;color:var(--fg)}
-.insights-stat-card.featured .insights-stat-num{color:var(--accent)}
-.insights-stat-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;opacity:.5}
-.insights-stat-delta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#4a8a4a;margin-top:2px}
-.insights-strip{display:flex;gap:8px;overflow-x:auto;padding:0 24px 20px;scrollbar-width:none;min-height:60px;align-items:stretch}
+.insights-stat-card{background:var(--bg);padding:18px 14px;display:flex;flex-direction:column;gap:6px;min-height:96px;justify-content:space-between}
+.insights-stat-card.featured{background:var(--fg);color:var(--bg)}
+.insights-stat-num{font-family:'Inter','Helvetica Neue',sans-serif;font-size:32px;font-weight:700;line-height:1;letter-spacing:-.03em;color:inherit}
+.insights-stat-card.featured .insights-stat-num{color:var(--bg)}
+.insights-stat-label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);opacity:1}
+.insights-stat-card.featured .insights-stat-label{color:rgba(240,240,238,.7)}
+.insights-stat-delta{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;color:var(--accent);margin-top:2px;letter-spacing:.02em}
+.insights-stat-card.featured .insights-stat-delta{color:var(--accent-fg);opacity:.9}
+.insights-strip{display:flex;gap:0;overflow-x:auto;padding:0;scrollbar-width:none;border-bottom:1px solid var(--line)}
 .insights-strip::-webkit-scrollbar{display:none}
-.insights-pill{flex:none;border:1px solid var(--line);padding:8px 14px;display:flex;flex-direction:column;gap:3px}
-.insights-pill-val{font-family:'Inter','Helvetica Neue',sans-serif;font-size:14px;color:var(--fg)}
-.insights-pill-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;opacity:.45}
-.insights-section{padding:18px 24px 0}
+.insights-pill{flex:none;border:none;border-right:1px solid var(--line);padding:10px 16px;display:flex;flex-direction:column;gap:3px;background:var(--bg)}
+.insights-pill-val{font-family:'Inter','Helvetica Neue',sans-serif;font-size:16px;font-weight:500;color:var(--fg);letter-spacing:-.01em}
+.insights-pill-label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.insights-section{padding:20px 20px}
 .brand-bar-row{display:flex;align-items:baseline;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
 .brand-bar-row:last-child{border-bottom:none}
-.brand-bar-name{font-family:'Inter','Helvetica Neue',sans-serif;font-size:18px;color:var(--fg)}
+.brand-bar-name{font-family:'Inter','Helvetica Neue',sans-serif;font-size:15px;font-weight:500;color:var(--fg);letter-spacing:-.01em}
 .brand-bar-right{display:flex;align-items:center;gap:12px}
 .brand-bar-track{width:60px;height:2px;background:var(--line)}
 .brand-bar-fill{height:100%;background:var(--accent)}
-.brand-bar-count{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);font-weight:500;min-width:16px;text-align:right}
+.brand-bar-count{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:var(--accent);min-width:16px;text-align:right}
 .dna-row{display:flex;align-items:center;gap:12px;padding:8px 0}
-.dna-pct{font-family:'Inter','Helvetica Neue',sans-serif;font-size:28px;line-height:1;color:var(--fg);min-width:64px}
+.dna-pct{font-family:'Inter','Helvetica Neue',sans-serif;font-size:24px;font-weight:700;line-height:1;color:var(--fg);min-width:56px;letter-spacing:-.025em}
 .dna-track{flex:1;height:2px;background:var(--line)}
 .dna-fill{height:100%;background:var(--accent)}
-.dna-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.6;min-width:70px;text-align:right}
-.value-story-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line)}
+.dna-label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);min-width:70px;text-align:right}
+.value-story-row{display:flex;justify-content:space-between;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line)}
 .value-story-row:last-child{border-bottom:none}
-.value-story-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;opacity:.5}
-.value-story-num{font-family:'Inter','Helvetica Neue',sans-serif;font-size:20px;color:var(--fg)}
-.value-story-delta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4a8a4a}
+.value-story-label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.value-story-num{font-family:'Inter','Helvetica Neue',sans-serif;font-size:18px;font-weight:500;color:var(--fg);letter-spacing:-.015em}
+.value-story-delta{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.02em}
+
 
 /* ── SCREEN 5: TOOLS ── */
-#screen-tools .tools-header{padding:28px 24px 18px;display:flex;flex-direction:column;gap:9px}
-.theme-cards{display:flex;flex-direction:column;gap:12px;padding:12px 24px 0}
+#screen-tools .tools-header{padding:16px 20px 12px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end;border-bottom:2px solid var(--line-strong)}
+.theme-cards{display:flex;flex-direction:column;gap:0;padding:0}
 .theme-card{
-  padding:14px;border:1px solid var(--line);
-  display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .2s;
+  padding:14px 20px;border:none;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:14px;cursor:pointer;transition:background .12s;
 }
-.theme-card.active{border-color:var(--fg)}
+.theme-card:hover{background:var(--tile)}
+.theme-card.active{background:var(--tile);border-left:3px solid var(--accent);padding-left:17px}
 .theme-swatches{display:flex;gap:2px;flex:none}
 .theme-swatch-light{width:22px;height:34px}
 .theme-swatch-dark{width:22px;height:34px}
@@ -348,12 +427,13 @@ body{background:var(--bg);color:var(--fg)}
 .theme-card-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .theme-card-dot{width:9px;height:9px;border-radius:50%;background:var(--accent);opacity:0;flex:none}
 .theme-card.active .theme-card-dot{opacity:1}
-.tool-list{padding:0 24px;border-top:1px solid var(--line);margin-top:18px}
+.tool-list{padding:0;border-top:1px solid var(--line);margin-top:0}
 .tool-item{
-  padding:16px 0;border-bottom:1px solid var(--line);
-  display:flex;flex-direction:column;gap:4px;cursor:pointer;
+  padding:14px 20px;border-bottom:1px solid var(--line);
+  display:flex;flex-direction:column;gap:4px;cursor:pointer;transition:background .12s;
 }
-.tools-actions{padding:20px 24px 0;display:flex;flex-direction:column;gap:10px}
+.tool-item:hover{background:var(--tile)}
+.tools-actions{padding:20px;display:flex;flex-direction:column;gap:8px}
 
 /* ── TOOL OVERLAYS (Watch Setter, etc.) ── */
 .overlay{
@@ -714,10 +794,10 @@ body{background:var(--bg);color:var(--fg)}
       </div>
     </div>
     <!-- Watch of the Day -->
-    <div id="wotdBanner" style="display:none;margin:0 24px 16px;padding:14px;border:1px solid var(--line);cursor:pointer;position:relative" onclick="openWOTD()">
-      <div class="t-section-label" style="margin-bottom:6px">Watch of the day</div>
-      <div class="t-brand" id="wotdBrand"></div>
-      <div style="font-family:'Inter','Helvetica Neue',sans-serif;font-size:18px;line-height:1.2" id="wotdModel"></div>
+    <div id="wotdBanner" style="display:none;padding:14px 20px;border-bottom:1px solid var(--line);cursor:pointer;position:relative;background:var(--tile);display:none;" onclick="openWOTD()">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:6px">— Watch of the day</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:3px" id="wotdBrand"></div>
+      <div style="font-family:'Inter','Helvetica Neue',sans-serif;font-size:18px;font-weight:500;letter-spacing:-.015em;line-height:1.15" id="wotdModel"></div>
     </div>
     <div class="search-wrap">
       <input type="text" id="searchInput" placeholder="Search brand, model, reference" autocomplete="off" autocorrect="off" spellcheck="false">
@@ -755,29 +835,40 @@ body{background:var(--bg);color:var(--fg)}
     <!-- RIGHT column (desktop) / below hero (mobile) -->
     <div id="detail-right">
       <div class="detail-title-block">
-        <div class="t-brand-detail" id="detailBrand"></div>
-        <div class="t-detail" id="detailModel"></div>
-        <div style="font-family:'Inter','Helvetica Neue',sans-serif;font-size:18px;font-weight:400;opacity:.6;margin-top:2px" id="detailSeries"></div>
-        <div class="t-ref" id="detailRef"></div>
+        <div class="detail-title-l">
+          <div class="t-brand-detail" id="detailBrand"></div>
+          <div class="t-detail" id="detailModel"></div>
+          <div style="font-family:'Inter','Helvetica Neue',sans-serif;font-size:14px;font-weight:400;color:var(--muted);margin-top:2px;letter-spacing:.01em" id="detailSeries"></div>
+          <div class="t-ref" id="detailRef" style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.06em;color:var(--muted-2);margin-top:6px"></div>
+        </div>
+        <div class="detail-title-idx" id="detailIdx"></div>
       </div>
       <div class="spec-table" id="specTable"></div>
-      <div class="detail-story" id="detailStory" style="display:none">
-        <div class="t-section-label detail-story-label">The story</div>
-        <div class="t-body" id="detailStoryText"></div>
+      <div class="detail-story detail-block" id="detailStory" style="display:none">
+        <div class="detail-block-num">01</div>
+        <div class="detail-block-content">
+          <div class="detail-block-head">The story</div>
+          <div class="t-body" id="detailStoryText" style="font-family:'Inter','Helvetica Neue',sans-serif;font-size:13px;line-height:1.65;color:var(--fg)"></div>
+        </div>
       </div>
       <div class="detail-actions">
         <button class="btn-primary" id="detailEdit">Edit</button>
         <button class="btn-secondary" id="detailClose">Back</button>
       </div>
       <!-- AI Actions -->
-      <div style="padding:12px 24px 0;display:flex;flex-direction:column;gap:8px">
-        <div class="t-section-label" style="margin-bottom:4px">AI · Powered by Claude</div>
-        <button class="btn-outline-pill" id="aiStoryBtn" style="height:44px;font-size:10px">✦ Generate story</button>
-        <button class="btn-outline-pill" id="aiValueBtn" style="height:44px;font-size:10px">✦ Estimate value</button>
-        <button class="btn-outline-pill" id="aiAutofillBtn" style="height:44px;font-size:10px">✦ Autofill specs</button>
+      <div class="detail-block">
+        <div class="detail-block-num">02</div>
+        <div class="detail-block-content">
+          <div class="detail-block-head">AI · Powered by Claude</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="btn-secondary" id="aiStoryBtn" style="height:38px;justify-content:flex-start;padding:0 12px;font-size:9px">✦ Generate story</button>
+            <button class="btn-secondary" id="aiValueBtn" style="height:38px;justify-content:flex-start;padding:0 12px;font-size:9px">✦ Estimate value</button>
+            <button class="btn-secondary" id="aiAutofillBtn" style="height:38px;justify-content:flex-start;padding:0 12px;font-size:9px">✦ Autofill specs</button>
+          </div>
+        </div>
       </div>
-      <div id="aiResult" style="padding:16px 24px 0;display:none">
-        <div class="t-body" id="aiResultText" style="padding:14px;border:1px solid var(--line);line-height:1.7"></div>
+      <div id="aiResult" style="padding:16px 20px 0;display:none">
+        <div class="t-body" id="aiResultText" style="padding:14px;border:1px solid var(--line);line-height:1.7;font-family:'Inter','Helvetica Neue',sans-serif;font-size:13px"></div>
         <div style="display:flex;gap:8px;margin-top:10px">
           <button class="btn-primary" id="aiSaveBtn" style="height:40px;font-size:10px;flex:1">Save</button>
           <button class="btn-secondary" id="aiDismissBtn" style="height:40px;font-size:10px;flex:1">Dismiss</button>
@@ -1470,18 +1561,22 @@ function buildChips(){
   const wrap=document.getElementById('chipsWrap');
   wrap.innerHTML='';
 
-  const makeChip=(label, sub)=>{
+  const makeChip=(label, sub, count)=>{
     const c=document.createElement('button');
     c.className='chip'+(activeSub===sub?' active':'');
-    c.dataset.sub=sub; c.textContent=label;
+    c.dataset.sub=sub;
+    c.innerHTML=`${label}${count!=null?`<span class="n">${count}</span>`:''}`;
     c.addEventListener('touchend',e=>{ e.preventDefault(); activeSub=sub; buildChips(); renderList(); },{passive:false});
     c.addEventListener('click',()=>{ activeSub=sub; buildChips(); renderList(); });
     wrap.appendChild(c);
   };
 
-  makeChip('All','all');
-  subCols.forEach(s=> makeChip(s.name, s.id));
-  if(wishWatches.length>0) makeChip(`Wish List · ${wishWatches.length}`,'wish');
+  makeChip('All','all', active().length);
+  subCols.forEach(s=>{
+    const cnt = active().filter(w=>w.sub===s.id).length;
+    makeChip(s.name, s.id, cnt);
+  });
+  if(wishWatches.length>0) makeChip('Wish list','wish', wishWatches.length);
 }
 
 // ── DETAIL PHOTO SYSTEM ──
@@ -1702,38 +1797,52 @@ function renderLightboxSlide(){
 // ── OPEN DETAIL ──
 function openDetail(w){
   selectedId = w.id;
-  document.getElementById('detailBrand').textContent = w.brand||'';
+  // Compute this watch's index in the current filtered/sorted collection
+  const allActive = active();
+  const idxNum = allActive.findIndex(x=>x.id===w.id);
+  const idxEl = document.getElementById('detailIdx');
+  if(idxEl){
+    if(idxNum >= 0){
+      const idxStr = String(idxNum+1).padStart(3,'0');
+      const totalStr = String(allActive.length).padStart(3,'0');
+      idxEl.innerHTML = `${idxStr}<span class="of">of ${totalStr}</span>`;
+    } else {
+      idxEl.innerHTML = '';
+    }
+  }
+  document.getElementById('detailBrand').textContent = (w.brand||'') + (w.year ? ' · '+w.year : '');
   // Model = model field only, Series shown separately below
   document.getElementById('detailModel').textContent = (w.model||w.series||'').trim();
   const seriesEl = document.getElementById('detailSeries');
   if(seriesEl) seriesEl.textContent = (w.series && w.model && w.series!==w.model) ? w.series : '';
-  document.getElementById('detailRef').textContent = [w.ref?`REF. ${w.ref}`:'', w.year].filter(Boolean).join(' · ');
+  document.getElementById('detailRef').textContent = w.ref ? `REF. ${w.ref}` : '';
 
+  // Spec values with unit subscripts
   const specDefs=[
-    ['Movement', w.movement],
-    ['Case material', w.casemat],
-    ['Case size', w.size ? w.size+'mm' : ''],
-    ['Dial', w.dial],
-    ['Strap / bracelet', w.strap],
-    ['Finish', w.finish],
-    ['Complications', w.complications],
-    ['Power reserve', w.pr ? w.pr+' h' : ''],
-    ['Water resistance', w.wr ? w.wr+' m' : ''],
-    ['Origin', w.origin],
-    ['Year', w.year],
-    ['Serial', w.serial],
-    ['Condition', w.grade],
-    ['Box & papers', [w.box==='yes'?'Box':null, w.papers==='yes'?'Papers':null].filter(Boolean).join(' · ')],
-    ['Source', w.source],
-    ['Dealer', w.dealer],
-    ['Acquired', w.acquired],
-    ['Service due', w.serviceNext],
-    ['Paid', fmtPrice(w.paid)],
-    ['Market value', fmtPrice(w.price)],
-    ['Value estimate', w.valueEstimate],
+    ['Movement', w.movement, ''],
+    ['Case', w.casemat, ''],
+    ['Size', w.size, w.size?'mm':''],
+    ['Dial', w.dial, ''],
+    ['Strap', w.strap, ''],
+    ['Finish', w.finish, ''],
+    ['Complications', w.complications, ''],
+    ['Reserve', w.pr, w.pr?'h':''],
+    ['Water', w.wr, w.wr?'m':''],
+    ['Origin', w.origin, ''],
+    ['Year', w.year, ''],
+    ['Serial', w.serial, ''],
+    ['Condition', w.grade, ''],
+    ['Box/papers', [w.box==='yes'?'Box':null, w.papers==='yes'?'Papers':null].filter(Boolean).join(' · '), ''],
+    ['Source', w.source, ''],
+    ['Dealer', w.dealer, ''],
+    ['Acquired', w.acquired, ''],
+    ['Service due', w.serviceNext, ''],
+    ['Paid', fmtPrice(w.paid), ''],
+    ['Value', fmtPrice(w.price), ''],
+    ['Estimate', w.valueEstimate, ''],
   ];
-  document.getElementById('specTable').innerHTML = specDefs.filter(([,v])=>v)
-    .map(([l,v])=>`<div class="spec-row"><div class="t-spec-label spec-row-label">${l}</div><div class="t-spec-val spec-row-val">${v}</div></div>`).join('');
+  document.getElementById('specTable').innerHTML = specDefs.filter(([,v])=>v!==null && v!=='' && v!==undefined)
+    .map(([l,v,u])=>`<div class="spec-row"><div class="spec-row-label">${l}</div><div class="spec-row-val">${v}${u?`<span class="unit">${u}</span>`:''}</div></div>`).join('');
 
   // Notes/Story — always show section if notes exist
   const storyEl = document.getElementById('detailStory');
