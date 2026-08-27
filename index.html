@@ -1777,11 +1777,27 @@ function renderTools(){
 function openWatchSetter(){
   document.getElementById('wsOverlay').classList.add('open');
   document.body.style.overflow='hidden';
+  initAudio(); // must happen inside the tap gesture for iOS
   initMoonSetter();
   updateMuteButton();
   requestWakeLock();
   tickWS();
   wsInterval=setInterval(tickWS,1000);
+}
+
+// Create + unlock the audio context inside a user gesture (iOS requirement)
+function initAudio(){
+  try{
+    if(!wsAudioCtx) wsAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(wsAudioCtx.state === 'suspended') wsAudioCtx.resume();
+    // Play a silent blip to fully unlock the pipeline on iOS
+    const osc = wsAudioCtx.createOscillator();
+    const gain = wsAudioCtx.createGain();
+    gain.gain.value = 0.0001;
+    osc.connect(gain).connect(wsAudioCtx.destination);
+    osc.start();
+    osc.stop(wsAudioCtx.currentTime + 0.05);
+  }catch(e){ /* audio unavailable */ }
 }
 function closeWatchSetter(){
   document.getElementById('wsOverlay').classList.remove('open');
@@ -1810,9 +1826,8 @@ document.addEventListener('visibilitychange', ()=>{
 
 // ── SYNC CHIME ──
 function playPip(freq, durMs){
-  if(wsMuted) return;
+  if(wsMuted || !wsAudioCtx) return;
   try{
-    if(!wsAudioCtx) wsAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if(wsAudioCtx.state === 'suspended') wsAudioCtx.resume();
     const osc = wsAudioCtx.createOscillator();
     const gain = wsAudioCtx.createGain();
@@ -1828,6 +1843,7 @@ function playPip(freq, durMs){
 function toggleMute(){
   wsMuted = !wsMuted;
   localStorage.setItem('wsMuted', wsMuted ? '1' : '0');
+  if(!wsMuted) initAudio(); // unmute tap is a gesture — re-unlock audio
   updateMuteButton();
 }
 function updateMuteButton(){
