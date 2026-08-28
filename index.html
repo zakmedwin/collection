@@ -135,11 +135,12 @@ body{background:var(--bg);color:var(--fg)}
   font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;line-height:1.4;color:var(--fg);
 }
 .sw-jumbo-l .sub{display:block;font-weight:400;color:var(--muted);margin-top:4px;letter-spacing:.04em}
-.sw-viewtoggle{display:flex;padding-bottom:10px;border:1px solid var(--line-strong)}
+.sw-viewtoggle{display:flex;align-self:end;margin-bottom:10px;border:1px solid var(--line-strong)}
 .sw-vt{
-  padding:7px 11px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
   letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
   border-right:1px solid var(--line-strong);background:transparent;color:var(--fg);
+  display:flex;align-items:center;justify-content:center;line-height:1;
 }
 .sw-vt:last-child{border-right:none}
 .sw-vt.on{background:var(--fg);color:var(--bg)}
@@ -284,6 +285,42 @@ body{background:var(--bg);color:var(--fg)}
 }
 .spec-row-val .unit{font-size:11px;font-weight:400;color:var(--muted);margin-left:4px;letter-spacing:.02em}
 
+/* Wearing / Service blocks */
+.wearing-stats{
+  display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);
+  border:1px solid var(--line);margin-bottom:14px;
+}
+.wearing-stat{
+  background:var(--bg);padding:12px 12px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.wearing-stat-l{
+  font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+}
+.wearing-stat-v{
+  font-family:'Inter','Helvetica Neue',sans-serif;font-size:14px;font-weight:500;
+  color:var(--fg);letter-spacing:-.01em;
+}
+.wearing-stat-v.svc-overdue{color:#c05050}
+.wearing-stat-v.svc-due{color:var(--accent)}
+.wearing-actions{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+}
+.wearing-actions .btn-primary:disabled{
+  background:var(--tile);color:var(--muted);border-color:var(--line);cursor:default;opacity:1;
+}
+.svc-overdue{color:#c05050}
+.svc-due{color:var(--accent)}
+@media(min-width:769px){
+  .wearing-stats{grid-template-columns:repeat(4,1fr)}
+  .wearing-actions{grid-template-columns:auto auto;justify-content:start}
+  .wearing-actions .btn-primary,.wearing-actions .btn-secondary{padding:0 20px;flex:none}
+}
+/* Detail block num — colored variants for service urgency */
+.detail-block-num.svc-overdue{color:#c05050}
+.detail-block-num.svc-due{color:var(--accent)}
+
 /* Numbered section block */
 .detail-block{
   padding:24px 20px;border-bottom:1px solid var(--line);
@@ -394,6 +431,8 @@ body{background:var(--bg);color:var(--fg)}
 .insights-strip{display:flex;gap:0;overflow-x:auto;padding:0;scrollbar-width:none;border-bottom:1px solid var(--line)}
 .insights-strip::-webkit-scrollbar{display:none}
 .insights-pill{flex:none;border:none;border-right:1px solid var(--line);padding:10px 16px;display:flex;flex-direction:column;gap:3px;background:var(--bg)}
+.insights-pill.warn .insights-pill-val{color:#c05050}
+.insights-pill.warn .insights-pill-label{color:#c05050;opacity:.8}
 .insights-pill-val{font-family:'Inter','Helvetica Neue',sans-serif;font-size:16px;font-weight:500;color:var(--fg);letter-spacing:-.01em}
 .insights-pill-label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .insights-section{padding:20px 20px}
@@ -892,6 +931,10 @@ body{background:var(--bg);color:var(--fg)}
         <div class="detail-title-idx" id="detailIdx"></div>
       </div>
       <div class="spec-table" id="specTable"></div>
+      <!-- Wearing tracker block -->
+      <div class="detail-block" id="wearingBlock"></div>
+      <!-- Service tracking block (only rendered when data exists) -->
+      <div class="detail-block" id="serviceBlock" style="display:none"></div>
       <div class="detail-story detail-block" id="detailStory" style="display:none">
         <div class="detail-block-num">01</div>
         <div class="detail-block-content">
@@ -972,7 +1015,8 @@ body{background:var(--bg);color:var(--fg)}
       <div class="form-field"><div class="field-label">Source</div><input class="field-input" id="f-source" placeholder="Authorized Dealer" type="text"></div>
       <div class="form-field"><div class="field-label">Dealer</div><input class="field-input" id="f-dealer" placeholder="" type="text"></div>
       <div class="form-field"><div class="field-label">Date acquired</div><input class="field-input" id="f-acquired" placeholder="2024-03-15" type="text"></div>
-      <div class="form-field"><div class="field-label">Service due</div><input class="field-input" id="f-serviceNext" placeholder="2029" type="text"></div>
+      <div class="form-field"><div class="field-label">Last serviced</div><input class="field-input" id="f-serviceLast" placeholder="2022-05-20 (optional)" type="text"></div>
+      <div class="form-field"><div class="field-label">Service interval — years</div><input class="field-input" id="f-serviceInterval" placeholder="5 (optional)" type="text" inputmode="numeric"></div>
       <div class="form-field"><div class="field-label">Paid</div><input class="field-input" id="f-paid" placeholder="9150" type="text" inputmode="numeric"></div>
       <div class="form-field"><div class="field-label">Market value</div><input class="field-input" id="f-price" placeholder="" type="text" inputmode="numeric"></div>
       <div class="form-field"><div class="field-label">Value estimate (AI)</div><input class="field-input" id="f-valueEstimate" placeholder="" type="text"></div>
@@ -1106,7 +1150,7 @@ body{background:var(--bg);color:var(--fg)}
 
 <!-- LIGHTBOX -->
 <div id="lightbox" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.95);flex-direction:column;align-items:center;justify-content:center;touch-action:none">
-  <button id="lbClose" style="position:absolute;top:20px;right:20px;width:44px;height:44px;border-radius:22px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;font-family:'IBM Plex Mono',monospace;letter-spacing:0">✕</button>
+  <button id="lbClose" style="position:absolute;top:20px;right:20px;width:44px;height:44px;background:#0A0A0A;border:1px solid #fff;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:100;font-family:'IBM Plex Mono',monospace;letter-spacing:0;box-shadow:0 2px 12px rgba(0,0,0,0.6)">✕</button>
   <img id="lbImg" src="" alt="" style="max-width:100%;max-height:85vh;object-fit:contain">
   <div id="lbCounter" style="position:absolute;bottom:24px;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,.6);background:rgba(0,0,0,.5);padding:5px 10px;border:1px solid rgba(255,255,255,.2)"></div>
 </div>
@@ -1523,6 +1567,7 @@ function renderList(){
           <div class="watch-card-meta">${composeCardMeta(w)}</div>
         </div>`;
       card.addEventListener('click',()=>openDetail(w));
+      addLongPressWearLog(card, w);
       list.appendChild(card);
       // Async photo
       const pk=photoKey(w);
@@ -1562,6 +1607,7 @@ function renderList(){
         </div>
         ${status.label ? `<div class="watch-row-status ${status.cls}">${status.label}</div>` : '<div></div>'}`;
       row.addEventListener('click',()=>openDetail(w));
+      addLongPressWearLog(row, w);
       list.appendChild(row);
       // Async photo
       const pk=photoKey(w);
@@ -1597,6 +1643,178 @@ function getWatchStatus(w){
   if(diff < 365) return { label:diff+' d', cls:'' };
   const yrs = Math.floor(diff/365);
   return { label:yrs+' yr+', cls:'' };
+}
+
+// Service status — returns {label, cls, months} or null if service not tracked
+function getServiceStatus(w){
+  if(!w.serviceLast || !w.serviceInterval) return null;
+  const interval = parseFloat(w.serviceInterval);
+  if(!interval || interval <= 0) return null;
+  const last = new Date(w.serviceLast);
+  if(isNaN(last.getTime())) return null;
+  const next = new Date(last);
+  next.setFullYear(next.getFullYear() + Math.floor(interval));
+  next.setMonth(next.getMonth() + Math.round((interval % 1) * 12));
+  const now = new Date();
+  const dayMs = 86400000;
+  const daysToNext = Math.round((next.getTime() - now.getTime()) / dayMs);
+  const nextStr = next.toISOString().slice(0,10);
+  if(daysToNext < 0){
+    const daysLate = Math.abs(daysToNext);
+    if(daysLate < 30) return { label:'Overdue '+daysLate+' d', cls:'overdue', nextDate:nextStr };
+    if(daysLate < 365) return { label:'Overdue '+Math.round(daysLate/30)+' mo', cls:'overdue', nextDate:nextStr };
+    return { label:'Overdue '+Math.floor(daysLate/365)+' yr', cls:'overdue', nextDate:nextStr };
+  }
+  if(daysToNext < 90) return { label:'Due in '+daysToNext+' d', cls:'due', nextDate:nextStr };
+  if(daysToNext < 365) return { label:'Due in '+Math.round(daysToNext/30)+' mo', cls:'', nextDate:nextStr };
+  const yrsToNext = Math.floor(daysToNext/365);
+  const monthsRemain = Math.round((daysToNext % 365)/30);
+  return { label:'Due in '+yrsToNext+' yr'+(monthsRemain>0 ? ' '+monthsRemain+' mo':''), cls:'', nextDate:nextStr };
+}
+
+// Long-press on card/row to log wearing today
+function addLongPressWearLog(el, w){
+  let pressTimer = null;
+  let pressed = false;
+  const trigger = ()=>{
+    pressed = true;
+    if(navigator.vibrate) navigator.vibrate(30);
+    const status = getWatchStatus(w);
+    if(status.label === 'Today'){
+      showToast('Already logged today');
+    } else {
+      logWear(w.id, new Date());
+      showToast('Logged: '+(w.model||w.series||w.brand||'watch'));
+      renderList();
+    }
+  };
+  const start = ()=>{
+    pressed = false;
+    pressTimer = setTimeout(trigger, 550);
+  };
+  const cancel = ()=>{
+    if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; }
+  };
+  el.addEventListener('touchstart', start, {passive:true});
+  el.addEventListener('touchend', cancel, {passive:true});
+  el.addEventListener('touchmove', cancel, {passive:true});
+  el.addEventListener('touchcancel', cancel, {passive:true});
+  el.addEventListener('mousedown', start);
+  el.addEventListener('mouseup', cancel);
+  el.addEventListener('mouseleave', cancel);
+  // If long-press triggered, suppress the click that follows
+  el.addEventListener('click', e=>{
+    if(pressed){ e.stopImmediatePropagation(); e.preventDefault(); pressed = false; }
+  }, true);
+}
+
+// Wear log — record a wearing event
+function logWear(watchId, date){
+  const w = customWatches.find(x=>x.id===watchId);
+  if(!w) return;
+  if(!w.wearLog) w.wearLog = [];
+  const dateStr = (date instanceof Date ? date : new Date(date)).toISOString().slice(0,10);
+  // Avoid duplicates for same day
+  if(!w.wearLog.includes(dateStr)) w.wearLog.push(dateStr);
+  w.wearLog.sort();
+  w.lastWorn = w.wearLog[w.wearLog.length - 1];
+  saveCustom(customWatches);
+}
+function unlogWear(watchId, date){
+  const w = customWatches.find(x=>x.id===watchId);
+  if(!w || !w.wearLog) return;
+  const dateStr = (date instanceof Date ? date : new Date(date)).toISOString().slice(0,10);
+  w.wearLog = w.wearLog.filter(d => d !== dateStr);
+  w.lastWorn = w.wearLog.length ? w.wearLog[w.wearLog.length-1] : null;
+  saveCustom(customWatches);
+}
+
+// Format date for display: "Aug 27, 2026"
+function fmtWearDate(dateStr){
+  if(!dateStr) return '';
+  const d = new Date(dateStr);
+  if(isNaN(d.getTime())) return dateStr;
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+function renderWearingBlock(w){
+  const el = document.getElementById('wearingBlock');
+  if(!el) return;
+  const status = getWatchStatus(w);
+  const wearCount = (w.wearLog||[]).length;
+  const lastWornStr = w.lastWorn ? fmtWearDate(w.lastWorn) : 'Never worn';
+  const wornToday = status.label === 'Today';
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  el.innerHTML = `
+    <div class="detail-block-num">${wornToday?'●':'○'}</div>
+    <div class="detail-block-content">
+      <div class="detail-block-head">Wearing</div>
+      <div class="wearing-stats">
+        <div class="wearing-stat"><div class="wearing-stat-l">Last worn</div><div class="wearing-stat-v">${lastWornStr}</div></div>
+        <div class="wearing-stat"><div class="wearing-stat-l">Total wears</div><div class="wearing-stat-v">${wearCount}</div></div>
+      </div>
+      <div class="wearing-actions">
+        <button class="btn-primary" id="wearTodayBtn" ${wornToday?'disabled':''}>${wornToday?'✓ Worn today':'Wearing today'}</button>
+        <button class="btn-secondary" id="wearPickBtn">Log another day</button>
+      </div>
+      <input type="date" id="wearDatePicker" style="display:none" max="${todayStr}">
+    </div>`;
+
+  document.getElementById('wearTodayBtn').addEventListener('click',()=>{
+    if(wornToday) return;
+    logWear(w.id, new Date());
+    renderWearingBlock(w);
+    showToast('Logged for today');
+  });
+  const picker = document.getElementById('wearDatePicker');
+  document.getElementById('wearPickBtn').addEventListener('click',()=>{
+    picker.value = todayStr;
+    picker.click();
+    // Show the picker (mobile Safari trick)
+    try { picker.showPicker(); } catch(e){ picker.style.display='block'; picker.focus(); }
+  });
+  picker.addEventListener('change',()=>{
+    if(!picker.value) return;
+    logWear(w.id, picker.value);
+    picker.style.display='none';
+    renderWearingBlock(w);
+    showToast('Logged for '+fmtWearDate(picker.value));
+  });
+}
+
+function renderServiceBlock(w){
+  const el = document.getElementById('serviceBlock');
+  if(!el) return;
+  const svc = getServiceStatus(w);
+  if(!svc){
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = '';
+  const icon = svc.cls==='overdue' ? '!' : svc.cls==='due' ? '◐' : '○';
+  el.innerHTML = `
+    <div class="detail-block-num svc-${svc.cls}">${icon}</div>
+    <div class="detail-block-content">
+      <div class="detail-block-head">Service</div>
+      <div class="wearing-stats">
+        <div class="wearing-stat"><div class="wearing-stat-l">Last serviced</div><div class="wearing-stat-v">${fmtWearDate(w.serviceLast)}</div></div>
+        <div class="wearing-stat"><div class="wearing-stat-l">Interval</div><div class="wearing-stat-v">${w.serviceInterval} yr</div></div>
+        <div class="wearing-stat"><div class="wearing-stat-l">Next due</div><div class="wearing-stat-v">${fmtWearDate(svc.nextDate)}</div></div>
+        <div class="wearing-stat"><div class="wearing-stat-l">Status</div><div class="wearing-stat-v svc-${svc.cls}">${svc.label}</div></div>
+      </div>
+      <button class="btn-secondary" id="markServicedBtn" style="margin-top:14px">Mark serviced today</button>
+    </div>`;
+  document.getElementById('markServicedBtn').addEventListener('click',()=>{
+    const todayStr = new Date().toISOString().slice(0,10);
+    w.serviceLast = todayStr;
+    saveCustom(customWatches);
+    renderServiceBlock(w);
+    // Also refresh spec table
+    openDetail(w);
+    showToast('Service date updated');
+  });
 }
 
 // Compact card meta for grid: year · case · size
@@ -1866,6 +2084,7 @@ function openDetail(w){
   document.getElementById('detailRef').textContent = w.ref ? `REF. ${w.ref}` : '';
 
   // Spec values with unit subscripts
+  const svcStatus = getServiceStatus(w);
   const specDefs=[
     ['Movement', w.movement, ''],
     ['Case', w.casemat, ''],
@@ -1884,13 +2103,18 @@ function openDetail(w){
     ['Source', w.source, ''],
     ['Dealer', w.dealer, ''],
     ['Acquired', w.acquired, ''],
-    ['Service due', w.serviceNext, ''],
+    ['Last serviced', w.serviceLast, ''],
+    ['Next service', svcStatus ? svcStatus.nextDate : '', ''],
     ['Paid', fmtPrice(w.paid), ''],
     ['Value', fmtPrice(w.price), ''],
     ['Estimate', w.valueEstimate, ''],
   ];
   document.getElementById('specTable').innerHTML = specDefs.filter(([,v])=>v!==null && v!=='' && v!==undefined)
     .map(([l,v,u])=>`<div class="spec-row"><div class="spec-row-label">${l}</div><div class="spec-row-val">${v}${u?`<span class="unit">${u}</span>`:''}</div></div>`).join('');
+
+  // Render wearing + service blocks
+  renderWearingBlock(w);
+  renderServiceBlock(w);
 
   // Notes/Story — always show section if notes exist
   const storyEl = document.getElementById('detailStory');
@@ -1913,7 +2137,7 @@ function findWatch(id){
 }
 
 // ── ADD/EDIT FORM ──
-const FORM_FIELDS=['brand','series','model','ref','year','movement','complications','casemat','dial','strap','size','wr','pr','origin','serial','grade','source','dealer','acquired','serviceNext','paid','price','valueEstimate','box','papers','finish','notes','soldDate','soldAmt'];
+const FORM_FIELDS=['brand','series','model','ref','year','movement','complications','casemat','dial','strap','size','wr','pr','origin','serial','grade','source','dealer','acquired','serviceLast','serviceInterval','paid','price','valueEstimate','box','papers','finish','notes','soldDate','soldAmt'];
 
 function openForm(watch){
   fromDetail=!!watch;
@@ -2015,7 +2239,33 @@ function renderInsights(){
   const movMap = {};
   watches.forEach(w=>{ if(w.movement) movMap[w.movement]=(movMap[w.movement]||0)+1; });
   const topMov = Object.entries(movMap).sort((a,b)=>b[1]-a[1])[0];
+
+  // Wearing insights
+  const wornWatches = watches.filter(w=>w.lastWorn);
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0,10);
+  const wornToday = wornWatches.filter(w=>w.lastWorn===todayStr).length;
+  const wornThisWeek = wornWatches.filter(w=>{
+    const d = new Date(w.lastWorn);
+    return (now - d) < 7*86400000;
+  }).length;
+  const neverWorn = watches.length - wornWatches.length;
+  const totalWears = watches.reduce((s,w)=>s+(w.wearLog?.length||0),0);
+  const mostWorn = watches.map(w=>({w,c:w.wearLog?.length||0})).sort((a,b)=>b.c-a.c)[0];
+
+  // Service insights
+  const withService = watches.map(w=>({w,svc:getServiceStatus(w)})).filter(x=>x.svc);
+  const overdue = withService.filter(x=>x.svc.cls==='overdue').length;
+  const dueSoon = withService.filter(x=>x.svc.cls==='due').length;
+
   const pills = [
+    wornToday ? {val:wornToday, label:'Worn today'} : null,
+    wornThisWeek ? {val:wornThisWeek, label:'Worn this week'} : null,
+    neverWorn ? {val:neverWorn, label:'Never worn'} : null,
+    totalWears ? {val:totalWears, label:'Total wears'} : null,
+    mostWorn && mostWorn.c ? {val:mostWorn.c+'×', label:'Most worn · '+(mostWorn.w.brand||'—')} : null,
+    overdue ? {val:overdue, label:'Service overdue', warn:true} : null,
+    dueSoon ? {val:dueSoon, label:'Service due', warn:true} : null,
     oldest!=='—' ? {val:oldest, label:'Oldest piece'} : null,
     newest!=='—' && newest!==oldest ? {val:newest, label:'Newest piece'} : null,
     avgPaid ? {val:'$'+Math.round(avgPaid/1000*10)/10+'k', label:'Avg. paid'} : null,
@@ -2023,7 +2273,7 @@ function renderInsights(){
     topMov ? {val:topMov[0], label:'Top movement'} : null,
   ].filter(Boolean);
   document.getElementById('insightsStrip').innerHTML = pills.map(p=>
-    `<div class="insights-pill"><div class="insights-pill-val">${p.val}</div><div class="insights-pill-label">${p.label}</div></div>`
+    `<div class="insights-pill${p.warn?' warn':''}"><div class="insights-pill-val">${p.val}</div><div class="insights-pill-label">${p.label}</div></div>`
   ).join('');
 
   const brandMap = {};
