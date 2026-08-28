@@ -186,29 +186,32 @@ body{background:var(--bg);color:var(--fg)}
 /* Watch rows — Swiss list */
 .watch-list{display:flex;flex-direction:column;gap:0;background:transparent}
 .watch-row{
-  padding:14px 20px;background:var(--bg);
-  display:grid;grid-template-columns:36px 60px 1fr auto;gap:14px;align-items:center;
+  padding:18px 20px;background:var(--bg);
+  display:grid;grid-template-columns:44px 92px 1fr auto;gap:18px;align-items:center;
   border-bottom:1px solid var(--line);cursor:pointer;
   transition:background .12s;
 }
 .watch-row:hover{background:var(--tile)}
 .watch-row:active{opacity:.85}
 .watch-row-idx{
-  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;
+  font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;
   color:var(--muted-2);letter-spacing:.02em;
   font-variant-numeric:tabular-nums;text-align:right;
 }
 .watch-row-photo{
-  width:60px;height:74px;flex:none;background:var(--tile);
+  width:92px;height:112px;flex:none;background:var(--tile);
   border:1px solid var(--line);position:relative;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
 }
 .watch-row-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.watch-row-photo-label{position:relative;z-index:1;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.16em;color:var(--muted-2);text-transform:uppercase}
-.watch-row-text{min-width:0;display:flex;flex-direction:column;gap:3px}
+.watch-row-photo-label{position:relative;z-index:1;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;color:var(--muted-2);text-transform:uppercase}
+.watch-row-text{min-width:0;display:flex;flex-direction:column;gap:5px}
+.watch-row-text .t-brand{font-size:11px;letter-spacing:.14em}
+.watch-row-text .t-row-model{font-size:20px;font-weight:500;letter-spacing:-.015em;line-height:1.15;color:var(--fg)}
+.watch-row-text .t-row-spec{font-size:13px;color:var(--muted);letter-spacing:.01em}
 .watch-row-status{
-  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-  padding:4px 8px;border:1px solid var(--line-strong);line-height:1;white-space:nowrap;color:var(--fg);
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:6px 10px;border:1px solid var(--line-strong);line-height:1;white-space:nowrap;color:var(--fg);
 }
 .watch-row-status.hero{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 .watch-row-status.sold{background:var(--tile);border-color:var(--line);color:var(--muted)}
@@ -585,24 +588,50 @@ body{background:var(--bg);color:var(--fg)}
 }
 
 #pinLock{
-  position:fixed;inset:0;z-index:9999;background:#0b0b09;
+  position:fixed;inset:0;z-index:9999;background:var(--bg);color:var(--fg);
   display:none;flex-direction:column;align-items:center;justify-content:center;
-  gap:0;touch-action:manipulation;
+  gap:0;touch-action:manipulation;padding:20px;
 }
-.pin-title{font-family:'Inter','Helvetica Neue',sans-serif;font-size:28px;color:#f0ebe0;margin-bottom:4px}
-.pin-subtitle{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(240,235,224,.45);margin-bottom:40px}
-.pin-dots{display:flex;gap:14px;margin-bottom:40px}
-.pin-dot{width:12px;height:12px;border-radius:6px;border:1px solid rgba(240,235,224,.35);background:transparent;transition:background .15s}
-.pin-dot.filled{background:rgba(184,145,58,.8);border-color:rgba(184,145,58,.8)}
-.pin-grid{display:grid;grid-template-columns:repeat(3,72px);gap:12px;margin-bottom:16px}
+.pin-brand-mark{
+  font-family:'Inter','Helvetica Neue',sans-serif;font-size:12px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.04em;line-height:1;margin-bottom:4px;color:var(--fg);
+}
+.pin-brand-sub{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:48px;
+}
+.pin-rule{width:60px;height:2px;background:var(--fg);margin-bottom:20px}
+.pin-title{
+  font-family:'Inter','Helvetica Neue',sans-serif;font-size:24px;font-weight:500;
+  letter-spacing:-.02em;color:var(--fg);margin-bottom:6px;
+}
+.pin-subtitle{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin-bottom:36px;
+}
+.pin-dots{display:flex;gap:10px;margin-bottom:40px}
+.pin-dot{
+  width:14px;height:14px;border-radius:0;
+  border:1px solid var(--line-strong);background:transparent;transition:background .15s;
+}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent)}
+.pin-grid{display:grid;grid-template-columns:repeat(3,64px);gap:1px;margin-bottom:16px;background:var(--line-strong);padding:1px}
 .pin-key{
-  width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.2);color:#fff;
-  font-family:'Inter','Helvetica Neue',sans-serif;font-size:1.4rem;font-weight:300;cursor:pointer;
+  width:64px;height:64px;border-radius:0;background:var(--bg);
+  border:none;color:var(--fg);
+  font-family:'Inter','Helvetica Neue',sans-serif;font-size:22px;font-weight:500;
+  letter-spacing:-.01em;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:background .1s;
+  touch-action:manipulation;user-select:none;-webkit-user-select:none;
+  transition:background .12s,color .12s;
 }
-.pin-error{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#c05050;height:16px;text-align:center;margin-top:4px}
+.pin-key:hover{background:var(--tile)}
+.pin-key:active{background:var(--fg);color:var(--bg)}
+.pin-error{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:#c05050;
+  height:16px;text-align:center;margin-top:12px;
+}
 
 /* ── TOAST ── */
 #toast{
@@ -850,7 +879,9 @@ body{background:var(--bg);color:var(--fg)}
   #screen-list .chips-wrap{padding:0}
   #searchInput{padding:0 32px}
   .chip{padding:0 18px}
-  .watch-row{padding:16px 32px}
+  .watch-row{padding:20px 32px;grid-template-columns:52px 108px 1fr auto;gap:24px}
+  .watch-row-photo{width:108px;height:132px}
+  .watch-row-text .t-row-model{font-size:22px}
 
   #screen-detail{flex-direction:row;align-items:flex-start}
   #detail-left{width:420px;flex:none;position:sticky;top:0;height:100%;overflow-y:auto;background:var(--tile);border-right:1px solid var(--line)}
@@ -922,8 +953,11 @@ body{background:var(--bg);color:var(--fg)}
 
 <!-- PIN LOCK -->
 <div id="pinLock" tabindex="-1">
-  <div class="pin-title">The Collection</div>
-  <div class="pin-subtitle">Personal Horology Archive</div>
+  <div class="pin-brand-mark">THE COLLECTION</div>
+  <div class="pin-brand-sub">Personal Archive · Vol. IX</div>
+  <div class="pin-rule"></div>
+  <div class="pin-title">Enter passcode</div>
+  <div class="pin-subtitle">— 4 digits</div>
   <div class="pin-dots">
     <div class="pin-dot" id="pd0"></div>
     <div class="pin-dot" id="pd1"></div>
