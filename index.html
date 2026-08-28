@@ -862,15 +862,22 @@ body{background:var(--bg);color:var(--fg)}
   .nav-btn .t-nav-label{display:block}
   .nav-btn svg{width:16px;height:16px}
   .nav-btn-add{
-    width:calc(100% - 40px);margin:16px 20px 8px;height:40px;
-    border-radius:0;justify-content:center;gap:10px;padding:0;
+    order:-1;
+    width:calc(100% - 24px);margin:20px 12px 16px;height:36px;
+    border-radius:0;justify-content:center;gap:8px;padding:0;
     background:var(--accent);color:var(--accent-fg);
     font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
-    letter-spacing:.12em;text-transform:uppercase;
+    letter-spacing:.14em;text-transform:uppercase;
+    position:relative;
   }
-  .nav-btn-add:hover{opacity:.85}
+  .nav-btn-add::before{
+    content:'';position:absolute;left:-12px;right:-12px;bottom:-16px;height:1px;
+    background:var(--line);
+  }
+  .nav-btn-add:hover{opacity:.88}
   .nav-btn-add::after{content:'Add piece'}
-  .nav-btn-add svg{flex:none;width:14px;height:14px}
+  .nav-btn-add svg{flex:none;width:12px;height:12px;stroke-width:2.2}
+  .nav-btn:first-of-type{margin-top:16px}
 
   #screen-list .list-header{padding:20px 32px 14px}
   .sw-jumbo{padding:32px 32px 26px}
