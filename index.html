@@ -3399,7 +3399,7 @@ function initWatchOfTheDay(){
   const watches = active();
   if(!watches.length) return;
   // Pick deterministically by day
-  const dayIdx = Math.floor(Date.now() / 86400000);
+  const _d = new Date(); const dayIdx = Math.floor((_d.getTime() - _d.getTimezoneOffset()*60000) / 86400000);
   const w = watches[dayIdx % watches.length];
   document.getElementById('wotdBrand').textContent = w.brand||'';
   document.getElementById('wotdModel').textContent = composeModel(w);
@@ -3417,7 +3417,7 @@ let coverTimer = null;
 function showCoverPage(){
   const watches = active();
   if(!watches.length) return; // no watches, skip cover
-  const dayIdx = Math.floor(Date.now() / 86400000);
+  const _d = new Date(); const dayIdx = Math.floor((_d.getTime() - _d.getTimezoneOffset()*60000) / 86400000);
   const w = watches[dayIdx % watches.length];
   const cover = document.getElementById('coverPage');
   const hero = document.getElementById('coverHero');
