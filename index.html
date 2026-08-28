@@ -26,14 +26,14 @@ button{cursor:pointer;background:none;border:none}
 :root,[data-theme="archive"][data-mode="light"],[data-theme="classic"][data-mode="light"]{
   --bg:#F0F0EE;--fg:#0A0A0A;--tile:#E8E8E5;
   --line:rgba(10,10,10,.14);--line-strong:rgba(10,10,10,.85);--line-hair:rgba(10,10,10,.10);
-  --accent:#1E3A6F;--accent-strong:#1E3A6F;--accent-fg:#F0F0EE;
+  --accent:#0F2A6E;--accent-strong:#0F2A6E;--accent-fg:#F0F0EE;
   --muted:rgba(10,10,10,.55);--muted-2:rgba(10,10,10,.4);
   --navBg:rgba(240,240,238,.93);
 }
 [data-theme="archive"][data-mode="dark"],[data-theme="classic"][data-mode="dark"]{
   --bg:#0E0E18;--fg:#E8E8F0;--tile:#16162A;
   --line:rgba(232,232,240,.14);--line-strong:rgba(232,232,240,.85);--line-hair:rgba(232,232,240,.10);
-  --accent:#6B8FCC;--accent-strong:#6B8FCC;--accent-fg:#0E0E18;
+  --accent:#8AAEE8;--accent-strong:#8AAEE8;--accent-fg:#0E0E18;
   --muted:rgba(232,232,240,.55);--muted-2:rgba(232,232,240,.4);
   --navBg:rgba(14,14,24,.93);
 }
@@ -48,8 +48,8 @@ body{background:var(--bg);color:var(--fg)}
 .t-input-val{font-family:'Inter','Helvetica Neue',sans-serif;font-size:16px;font-weight:400}
 .t-tool-name{font-family:'Inter','Helvetica Neue',sans-serif;font-size:19px;font-weight:400}
 .t-theme-name{font-family:'Inter','Helvetica Neue',sans-serif;font-size:18px;font-weight:400}
-.t-brand{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.20em;text-transform:uppercase;color:var(--accent)}
-.t-brand-detail{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+.t-brand{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.20em;text-transform:uppercase;color:var(--accent)}
+.t-brand-detail{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
 .t-ref{font-family:'IBM Plex Mono',monospace;font-size:10px;opacity:.5}
 .t-subtitle{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.20em;text-transform:uppercase;opacity:.55}
 .t-spec-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;opacity:.5}
@@ -182,7 +182,7 @@ body{background:var(--bg);color:var(--fg)}
 }
 .chip .n{font-weight:400;color:var(--muted-2)}
 .chip.active{background:var(--fg);color:var(--bg)}
-.chip.active .n{color:var(--accent)}
+.chip.active .n{color:var(--accent);font-weight:700}
 /* Watch rows — Swiss list */
 .watch-list{display:flex;flex-direction:column;gap:0;background:transparent}
 .watch-row{
@@ -259,7 +259,7 @@ body{background:var(--bg);color:var(--fg)}
   line-height:.95;letter-spacing:-.025em;color:var(--fg);
 }
 .detail-title-idx{
-  font-family:'Inter','Helvetica Neue',sans-serif;font-size:36px;font-weight:700;
+  font-family:'Inter','Helvetica Neue',sans-serif;font-size:36px;font-weight:800;
   line-height:.8;letter-spacing:-.04em;color:var(--accent);text-align:right;
 }
 .detail-title-idx .of{
