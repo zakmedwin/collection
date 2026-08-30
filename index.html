@@ -1686,7 +1686,25 @@ function sortWatches(arr){
   });
 }
 
+function normalizeWearLogs(arr){
+  // Ensure every wearLog entry is a local YYYY-MM-DD string, deduped and sorted.
+  // Handles legacy entries stored as full ISO strings, Date-serialized, or duplicates
+  // caused by earlier UTC-vs-local inconsistencies.
+  arr.forEach(w => {
+    if(!w.wearLog || !w.wearLog.length) return;
+    const cleaned = [];
+    w.wearLog.forEach(d => {
+      const s = toLocalDateStr(d);
+      if(s && !cleaned.includes(s)) cleaned.push(s);
+    });
+    cleaned.sort();
+    w.wearLog = cleaned;
+    w.lastWorn = cleaned.length ? cleaned[cleaned.length - 1] : null;
+  });
+}
+
 function saveCustom(arr){
+  normalizeWearLogs(arr);
   sortWatches(arr);
   customWatches=arr;
   try{localStorage.setItem(CUSTOM_KEY,JSON.stringify(arr));}catch(e){}
@@ -1708,7 +1726,7 @@ async function cloudLoad(){
     const res=await fetch(WORKER_URL+'/collection',{headers:{'X-Auth-Token':AUTH_TOKEN}});
     if(!res.ok) return false;
     const data=await res.json();
-    if(data.customWatches) customWatches=sortWatches(data.customWatches);
+    if(data.customWatches){ customWatches=sortWatches(data.customWatches); normalizeWearLogs(customWatches); }
     if(data.subCols){ subCols=data.subCols; localStorage.setItem(SUBCOL_KEY,JSON.stringify(subCols)); }
     else {
       // Legacy migration
@@ -1938,20 +1956,44 @@ function renderList(){
 }
 
 // Status: "Today" if wornDate is today; otherwise days-since-worn; "Sold" if sold
+// ── DATE HELPERS (local timezone, not UTC) ──
+// Wear dates are stored as YYYY-MM-DD strings representing LOCAL calendar days.
+// Never use `.toISOString().slice(0,10)` for wear dates — it's UTC and shifts
+// dates by ±1 for anyone not on UTC.
+function todayLocalStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function toLocalDateStr(input){
+  // Accepts Date, or string in various formats. Returns YYYY-MM-DD in local time.
+  if(!input) return '';
+  if(typeof input === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
+  const d = input instanceof Date ? input : new Date(input);
+  if(isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function parseLocalDate(dateStr){
+  // Parse "YYYY-MM-DD" as local midnight (not UTC).
+  if(!dateStr) return null;
+  const parts = String(dateStr).slice(0,10).split('-').map(Number);
+  if(parts.length !== 3 || parts.some(isNaN)) return null;
+  return new Date(parts[0], parts[1]-1, parts[2]);
+}
+
 function getWatchStatus(w){
   if(w.sold) return { label:'Sold', cls:'sold' };
   if(!w.lastWorn) return { label:'', cls:'' };
+  const wornLocal = parseLocalDate(w.lastWorn);
+  if(!wornLocal) return { label:'', cls:'' };
   const now = new Date();
-  const worn = new Date(w.lastWorn);
+  const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const dayMs = 86400000;
-  const today = new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
-  const wornDay = new Date(worn.getFullYear(),worn.getMonth(),worn.getDate()).getTime();
-  const diff = Math.floor((today - wornDay)/dayMs);
+  const diff = Math.floor((todayLocal.getTime() - wornLocal.getTime()) / dayMs);
   if(diff <= 0) return { label:'Today', cls:'hero' };
-  if(diff === 1) return { label:'1 d', cls:'' };
-  if(diff < 365) return { label:diff+' d', cls:'' };
+  if(diff === 1) return { label:'1d ago', cls:'' };
+  if(diff < 365) return { label:diff+'d ago', cls:'' };
   const yrs = Math.floor(diff/365);
-  return { label:yrs+' yr+', cls:'' };
+  return { label:yrs+'yr+ ago', cls:'' };
 }
 
 // Service status — returns {label, cls, months} or null if service not tracked
@@ -1992,7 +2034,7 @@ function addLongPressWearLog(el, w){
     if(status.label === 'Today'){
       showToast('Already logged today');
     } else {
-      const todayStr = new Date().toISOString().slice(0,10);
+      const todayStr = todayLocalStr();
       logWear(w.id, todayStr);
       renderList();
       showToast('Logged: '+(w.model||w.series||w.brand||'watch'), 5000, {
@@ -2026,8 +2068,8 @@ function logWear(watchId, date){
   const w = customWatches.find(x=>x.id===watchId);
   if(!w) return;
   if(!w.wearLog) w.wearLog = [];
-  const dateStr = (date instanceof Date ? date : new Date(date)).toISOString().slice(0,10);
-  // Avoid duplicates for same day
+  const dateStr = toLocalDateStr(date);
+  if(!dateStr) return;
   if(!w.wearLog.includes(dateStr)) w.wearLog.push(dateStr);
   w.wearLog.sort();
   w.lastWorn = w.wearLog[w.wearLog.length - 1];
@@ -2036,8 +2078,9 @@ function logWear(watchId, date){
 function unlogWear(watchId, date){
   const w = customWatches.find(x=>x.id===watchId);
   if(!w || !w.wearLog) return;
-  const dateStr = (date instanceof Date ? date : new Date(date)).toISOString().slice(0,10);
-  w.wearLog = w.wearLog.filter(d => d !== dateStr);
+  const dateStr = toLocalDateStr(date);
+  if(!dateStr) return;
+  w.wearLog = w.wearLog.filter(d => String(d).slice(0,10) !== dateStr);
   w.lastWorn = w.wearLog.length ? w.wearLog[w.wearLog.length-1] : null;
   saveCustom(customWatches);
 }
@@ -2055,10 +2098,10 @@ function renderWearingBlock(w){
   const el = document.getElementById('wearingBlock');
   if(!el) return;
   const status = getWatchStatus(w);
-  const wearCount = (w.wearLog||[]).length;
+  const wearCount = new Set((w.wearLog||[]).map(d => String(d).slice(0,10))).size;
   const lastWornStr = w.lastWorn ? fmtWearDate(w.lastWorn) : 'Never worn';
   const wornToday = status.label === 'Today';
-  const todayStr = new Date().toISOString().slice(0,10);
+  const todayStr = todayLocalStr();
   const recent = (w.wearLog||[]).slice(-6).reverse();
 
   el.innerHTML = `
@@ -2145,7 +2188,7 @@ function renderServiceBlock(w){
       <button class="btn-secondary" id="markServicedBtn" style="margin-top:14px">Mark serviced today</button>
     </div>`;
   document.getElementById('markServicedBtn').addEventListener('click',()=>{
-    const todayStr = new Date().toISOString().slice(0,10);
+    const todayStr = todayLocalStr();
     w.serviceLast = todayStr;
     saveCustom(customWatches);
     renderServiceBlock(w);
@@ -4146,7 +4189,7 @@ async function generatePassport(){
       ['Market', fmtPrice(w.price)],
     ].filter(([,v])=>v);
 
-    const wearCount = (w.wearLog||[]).length;
+    const wearCount = new Set((w.wearLog||[]).map(d => String(d).slice(0,10))).size;
     const svc = getServiceStatus(w);
     const meta = [];
     if(w.lastWorn) meta.push(`<span>Last worn ${fmtWearDate(w.lastWorn)}</span>`);
@@ -4513,7 +4556,7 @@ document.getElementById('tool-passport').addEventListener('click', generatePassp
   applyTheme();
 
   // Load local data first for instant render
-  try{ customWatches=sortWatches(JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]')); }catch(e){}
+  try{ customWatches=sortWatches(JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]')); normalizeWearLogs(customWatches); }catch(e){}
   try{ subCols=JSON.parse(localStorage.getItem(SUBCOL_KEY)||'[]'); }catch(e){}
   try{ wishWatches=JSON.parse(localStorage.getItem(WISH_KEY)||'[]'); }catch(e){}
   photos=loadPhotos();
