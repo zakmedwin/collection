@@ -194,7 +194,7 @@ body{background:var(--bg);color:var(--fg)}
 .watch-list{display:flex;flex-direction:column;gap:0;background:transparent}
 .watch-row{
   padding:18px 20px;background:var(--bg);
-  display:grid;grid-template-columns:44px 92px 1fr auto;gap:18px;align-items:center;
+  display:grid;grid-template-columns:92px 1fr auto;gap:18px;align-items:center;
   border-bottom:1px solid var(--line);cursor:pointer;
   transition:background .12s;
 }
@@ -986,7 +986,7 @@ body{background:var(--bg);color:var(--fg)}
   #screen-list .collection-nav-label{padding-left:32px;padding-right:32px}
   #searchInput{padding:0 32px}
   .chip{padding:0 18px}
-  .watch-row{padding:20px 32px;grid-template-columns:52px 108px 1fr auto;gap:24px}
+  .watch-row{padding:20px 32px;grid-template-columns:108px 1fr auto;gap:24px}
   .watch-row-photo{width:108px;height:132px}
   .watch-row-text .t-row-model{font-size:22px}
 
@@ -1896,7 +1896,6 @@ function renderList(){
       card.className='watch-card'+(isSold?' sold':'');
       card.innerHTML=`
         <div class="watch-card-photo-wrap">
-          <div class="watch-card-idx">${idx}</div>
           ${status.label ? `<div class="watch-card-status ${status.cls}">${status.label}</div>` : ''}
           <div class="watch-card-nophoto" id="card-nophoto-${w.id}">
             <span class="watch-card-nophoto-num">${idx}</span>
@@ -1937,7 +1936,6 @@ function renderList(){
       const row=document.createElement('div');
       row.className='watch-row';
       row.innerHTML=`
-        <div class="watch-row-idx">${idx}</div>
         <div class="watch-row-photo" id="thumb-${w.id}">
           <span class="watch-row-photo-label">${idx}</span>
         </div>
