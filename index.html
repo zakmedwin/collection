@@ -165,21 +165,31 @@ body{background:var(--bg);color:var(--fg)}
   padding:0 20px;outline:none;letter-spacing:.04em;text-transform:uppercase;
 }
 #searchInput::placeholder{opacity:.35;text-transform:uppercase;letter-spacing:.08em}
+.collection-nav{
+  border-bottom:1px solid var(--line);background:var(--bg);
+}
+.collection-nav-label{
+  padding:14px 20px 6px;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+}
 .chips-wrap{
   display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;
-  border-bottom:1px solid var(--line);scrollbar-width:none;
+  scrollbar-width:none;
 }
 .chips-wrap::-webkit-scrollbar{display:none}
 .chip{
-  min-height:36px;padding:0 14px;border-radius:0;
-  border:none;border-right:1px solid var(--line);background:transparent;color:var(--muted);
-  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
-  letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;
-  cursor:pointer;transition:background .12s,color .12s;display:flex;align-items:center;gap:6px;
+  min-height:44px;padding:0 18px;border-radius:0;
+  border:none;background:transparent;color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;
+  letter-spacing:.10em;text-transform:uppercase;white-space:nowrap;
+  cursor:pointer;transition:background .12s,color .12s,border-bottom-color .12s;
+  display:flex;align-items:center;
+  border-bottom:2px solid transparent;
+  margin-right:2px;
 }
-.chip .n{font-weight:400;color:var(--muted-2)}
-.chip.active{background:var(--fg);color:var(--bg)}
-.chip.active .n{color:var(--accent);font-weight:700}
+.chip:hover{color:var(--fg)}
+.chip.active{color:var(--fg);border-bottom-color:var(--accent)}
 /* Watch rows — Swiss list */
 .watch-list{display:flex;flex-direction:column;gap:0;background:transparent}
 .watch-row{
@@ -973,6 +983,7 @@ body{background:var(--bg);color:var(--fg)}
   .sw-jumbo-num{font-size:120px}
   #screen-list .search-wrap{padding:0}
   #screen-list .chips-wrap{padding:0}
+  #screen-list .collection-nav-label{padding-left:32px;padding-right:32px}
   #searchInput{padding:0 32px}
   .chip{padding:0 18px}
   .watch-row{padding:20px 32px;grid-template-columns:52px 108px 1fr auto;gap:24px}
@@ -1119,8 +1130,11 @@ body{background:var(--bg);color:var(--fg)}
     <div class="search-wrap">
       <input type="text" id="searchInput" placeholder="Search brand, model, reference" autocomplete="off" autocorrect="off" spellcheck="false">
     </div>
-    <div class="chips-wrap" id="chipsWrap">
-      <button class="chip active" data-sub="all">All</button>
+    <div class="collection-nav">
+      <div class="collection-nav-label">— Collection</div>
+      <div class="chips-wrap" id="chipsWrap">
+        <button class="chip active" data-sub="all">All</button>
+      </div>
     </div>
     <div id="watchListWrap">
       <div class="watch-list" id="watchList"></div>
@@ -2208,22 +2222,19 @@ function buildChips(){
   const wrap=document.getElementById('chipsWrap');
   wrap.innerHTML='';
 
-  const makeChip=(label, sub, count)=>{
+  const makeChip=(label, sub)=>{
     const c=document.createElement('button');
     c.className='chip'+(activeSub===sub?' active':'');
     c.dataset.sub=sub;
-    c.innerHTML=`${label}${count!=null?`<span class="n">${count}</span>`:''}`;
+    c.textContent = label;
     c.addEventListener('touchend',e=>{ e.preventDefault(); activeSub=sub; buildChips(); renderList(); },{passive:false});
     c.addEventListener('click',()=>{ activeSub=sub; buildChips(); renderList(); });
     wrap.appendChild(c);
   };
 
-  makeChip('All','all', active().length);
-  subCols.forEach(s=>{
-    const cnt = active().filter(w=>w.sub===s.id).length;
-    makeChip(s.name, s.id, cnt);
-  });
-  if(wishWatches.length>0) makeChip('Wish list','wish', wishWatches.length);
+  makeChip('My Watches','all');
+  subCols.forEach(s=>makeChip(s.name, s.id));
+  if(wishWatches.length>0) makeChip('Wish List','wish');
 }
 
 // ── DETAIL PHOTO SYSTEM ──
