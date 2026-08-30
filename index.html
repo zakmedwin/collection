@@ -457,6 +457,98 @@ body{background:var(--bg);color:var(--fg)}
 .insights-pill-val{font-family:'Inter','Helvetica Neue',sans-serif;font-size:16px;font-weight:500;color:var(--fg);letter-spacing:-.01em}
 .insights-pill-label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .insights-section{padding:20px 20px}
+/* Wear Journal */
+.journal-open-btn{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  padding:18px 20px;background:var(--tile);border:1px solid var(--line);
+  cursor:pointer;text-align:left;transition:background .12s,border-color .12s;
+  border-radius:0;color:var(--fg);font-family:inherit;
+}
+.journal-open-btn:hover{background:var(--bg);border-color:var(--line-strong)}
+.journal-open-l{display:flex;flex-direction:column;gap:4px}
+.journal-open-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--accent);text-transform:uppercase}
+.journal-open-title{font-size:20px;font-weight:500;letter-spacing:-.02em;line-height:1.1}
+.journal-open-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.journal-open-r{color:var(--accent);flex:none}
+
+.journal-month{
+  padding:16px 24px 8px;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.18em;color:var(--muted);text-transform:uppercase;
+  border-bottom:1px solid var(--line);background:var(--tile);
+  position:sticky;top:0;z-index:2;
+}
+.journal-day{border-bottom:1px solid var(--line);padding:14px 24px 16px}
+.journal-day-head{
+  display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;
+}
+.journal-day-date{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;
+  letter-spacing:.14em;color:var(--fg);text-transform:uppercase;
+}
+.journal-day-count{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.1em;color:var(--accent);text-transform:uppercase;
+}
+.journal-watches{display:flex;flex-direction:column;gap:6px}
+.journal-watch{
+  display:grid;grid-template-columns:48px 1fr;gap:12px;align-items:center;
+  padding:6px 0;cursor:pointer;transition:opacity .12s;
+}
+.journal-watch:hover{opacity:.7}
+.journal-watch-photo{
+  width:48px;height:58px;background:var(--tile);border:1px solid var(--line);
+  overflow:hidden;flex:none;position:relative;
+}
+.journal-watch-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.journal-watch-photo-empty{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.14em;color:var(--muted-2);
+}
+.journal-watch-text{min-width:0;display:flex;flex-direction:column;gap:2px}
+.journal-watch-brand{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+}
+.journal-watch-model{font-size:14px;font-weight:500;letter-spacing:-.01em;line-height:1.2}
+.journal-empty{
+  padding:48px 24px;text-align:center;
+}
+.journal-empty-title{font-size:18px;font-weight:500;letter-spacing:-.02em;margin-bottom:6px}
+.journal-empty-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+
+/* Multi-log sheet */
+.log-sheet-row{
+  display:grid;grid-template-columns:44px 48px 1fr auto;gap:12px;align-items:center;
+  padding:10px 24px;border-bottom:1px solid var(--line);cursor:pointer;
+  transition:background .12s;
+}
+.log-sheet-row:hover{background:var(--tile)}
+.log-sheet-row.selected{background:var(--tile)}
+.log-sheet-check{
+  width:22px;height:22px;border:1.5px solid var(--line-strong);
+  display:flex;align-items:center;justify-content:center;flex:none;
+  transition:background .12s,border-color .12s;
+}
+.log-sheet-row.selected .log-sheet-check{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.log-sheet-check svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.5;fill:none;opacity:0}
+.log-sheet-row.selected .log-sheet-check svg{opacity:1}
+.log-sheet-photo{
+  width:48px;height:58px;background:var(--tile);border:1px solid var(--line);
+  overflow:hidden;flex:none;position:relative;
+}
+.log-sheet-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.log-sheet-text{min-width:0;display:flex;flex-direction:column;gap:2px}
+.log-sheet-brand{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+}
+.log-sheet-model{font-size:14px;font-weight:500;letter-spacing:-.01em;line-height:1.2}
+.log-sheet-note{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.1em;color:var(--muted);text-transform:uppercase;text-align:right;
+}
+.log-sheet-note.warn{color:#c05050}
 .brand-bar-row{display:flex;align-items:baseline;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
 .brand-bar-row:last-child{border-bottom:none}
 .brand-bar-name{font-family:'Inter','Helvetica Neue',sans-serif;font-size:15px;font-weight:500;color:var(--fg);letter-spacing:-.01em}
@@ -1193,6 +1285,19 @@ body{background:var(--bg);color:var(--fg)}
     <div class="insights-stat-grid" id="insightsStatGrid"></div>
     <!-- Quick facts strip -->
     <div class="insights-strip" id="insightsStrip"></div>
+    <!-- Wear Journal entry -->
+    <div class="insights-section">
+      <button class="journal-open-btn" id="journalOpenBtn">
+        <div class="journal-open-l">
+          <div class="journal-open-eyebrow">— Diary</div>
+          <div class="journal-open-title">Wear Journal</div>
+          <div class="journal-open-sub" id="journalOpenSub">Chronological log of what you've worn</div>
+        </div>
+        <div class="journal-open-r">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </button>
+    </div>
     <!-- Brands -->
     <div class="insights-section">
       <div class="t-section-label" style="margin-bottom:14px">Brands</div>
@@ -1446,6 +1551,45 @@ body{background:var(--bg);color:var(--fg)}
       <button class="btn-primary-pill" id="cpSave" style="width:100%">Update PIN</button>
     </div>
     <div id="cpError" style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#c05050;text-align:center;margin-top:12px;min-height:16px"></div>
+  </div>
+</div>
+
+<!-- WEAR JOURNAL OVERLAY -->
+<div class="overlay" id="journalOverlay">
+  <div class="overlay-header">
+    <div class="t-form">Wear Journal</div>
+    <button class="overlay-close" id="journalClose">✕</button>
+  </div>
+  <div class="overlay-body" style="padding:0">
+    <div style="padding:16px 24px 12px;border-bottom:1px solid var(--line)">
+      <button class="btn-primary-pill" id="journalLogBtn" style="width:100%">+ Log today's wear</button>
+    </div>
+    <div id="journalContent" style="padding:0"></div>
+  </div>
+</div>
+
+<!-- MULTI-LOG SHEET -->
+<div class="overlay" id="logSheetOverlay">
+  <div class="overlay-header">
+    <div class="t-form">Log Wear</div>
+    <button class="overlay-close" id="logSheetClose">✕</button>
+  </div>
+  <div class="overlay-body" style="padding:0">
+    <div style="padding:16px 24px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:8px">
+      <div class="t-spec-label">Date</div>
+      <label style="cursor:pointer;position:relative;overflow:hidden;display:flex;align-items:center;padding:10px 12px;border:1px solid var(--line-strong);background:var(--bg);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.06em" for="logSheetDate">
+        <span id="logSheetDateLabel">Today</span>
+        <input type="date" id="logSheetDate" style="position:absolute;inset:0;opacity:0;cursor:pointer;border:none;padding:0;margin:0;width:100%;height:100%">
+      </label>
+    </div>
+    <div style="padding:12px 24px 6px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)">
+      <div class="t-spec-label">Select watches</div>
+      <div class="t-spec-label" id="logSheetCount">0 selected</div>
+    </div>
+    <div id="logSheetList" style="padding:0"></div>
+    <div style="padding:16px 24px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--bg)">
+      <button class="btn-primary-pill" id="logSheetApplyBtn" style="width:100%" disabled>Log 0 watches</button>
+    </div>
   </div>
 </div>
 
@@ -2407,6 +2551,16 @@ function removeDraft(){
 // ── INSIGHTS ──
 function renderInsights(){
   const watches = active();
+  // Update journal card subtitle
+  const journalSub = document.getElementById('journalOpenSub');
+  if(journalSub){
+    const totalWears = watches.reduce((s,w)=>s+((w.wearLog||[]).length),0);
+    const uniqueDays = new Set();
+    watches.forEach(w=>(w.wearLog||[]).forEach(d=>uniqueDays.add(String(d).slice(0,10))));
+    journalSub.textContent = totalWears
+      ? `${totalWears} wears across ${uniqueDays.size} day${uniqueDays.size!==1?'s':''}`
+      : 'No wears logged yet — tap to start';
+  }
   const brands = [...new Set(watches.map(w=>w.brand).filter(Boolean))].length;
   const totalPaid = watches.reduce((s,w)=>s+(Number(w.paid)||0),0);
   const totalMarket = watches.reduce((s,w)=>s+(Number(w.price)||0),0);
@@ -4091,7 +4245,264 @@ async function generatePassport(){
   w.document.close();
   showToast('Passport opened in new tab ✓');
 }
+// ── WEAR JOURNAL ──
+function buildWearIndex(){
+  // { "2026-08-30": [watchId, watchId, ...] } — reverse chronological when sorted
+  const idx = {};
+  customWatches.forEach(w => {
+    (w.wearLog || []).forEach(d => {
+      if(!d) return;
+      const key = String(d).slice(0,10); // normalize to YYYY-MM-DD
+      if(!idx[key]) idx[key] = [];
+      if(!idx[key].includes(w.id)) idx[key].push(w.id);
+    });
+  });
+  return idx;
+}
+
+function fmtJournalDay(dateStr){
+  // "2026-08-30" -> "Fri · Aug 30"
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${days[dt.getDay()]} · ${months[dt.getMonth()]} ${dt.getDate()}`;
+}
+
+function fmtJournalMonth(monthKey){
+  // "2026-08" -> "August 2026"
+  const [y,m] = monthKey.split('-').map(Number);
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `${months[m-1]} ${y}`;
+}
+
+function todayLocalStr(){
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+async function buildJournalContent(){
+  const container = document.getElementById('journalContent');
+  const idx = buildWearIndex();
+  const dates = Object.keys(idx).sort().reverse(); // newest first
+
+  if(dates.length === 0){
+    container.innerHTML = `
+      <div class="journal-empty">
+        <div class="journal-empty-title">No wears logged yet</div>
+        <div class="journal-empty-sub">Tap "Log today's wear" above to start</div>
+      </div>`;
+    return;
+  }
+
+  // Group by month
+  const byMonth = {};
+  dates.forEach(d => {
+    const monthKey = d.slice(0,7);
+    if(!byMonth[monthKey]) byMonth[monthKey] = [];
+    byMonth[monthKey].push(d);
+  });
+
+  let html = '';
+  Object.keys(byMonth).sort().reverse().forEach(monthKey => {
+    html += `<div class="journal-month">${fmtJournalMonth(monthKey)}</div>`;
+    byMonth[monthKey].forEach(dateStr => {
+      const watchIds = idx[dateStr];
+      const count = watchIds.length;
+      html += `<div class="journal-day">
+        <div class="journal-day-head">
+          <div class="journal-day-date">${fmtJournalDay(dateStr)}</div>
+          <div class="journal-day-count">${count} watch${count!==1?'es':''}</div>
+        </div>
+        <div class="journal-watches">
+          ${watchIds.map(id => {
+            const w = customWatches.find(x => x.id === id);
+            if(!w) return '';
+            return `<div class="journal-watch" data-wid="${w.id}">
+              <div class="journal-watch-photo" data-photo-slot="${w.id}">
+                <div class="journal-watch-photo-empty">No photo</div>
+              </div>
+              <div class="journal-watch-text">
+                <div class="journal-watch-brand">${w.brand||''}</div>
+                <div class="journal-watch-model">${composeModel(w)}</div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    });
+  });
+  container.innerHTML = html;
+
+  // Wire up taps to open detail
+  container.querySelectorAll('.journal-watch').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.wid;
+      const w = customWatches.find(x => x.id === id);
+      if(!w) return;
+      closeJournal();
+      openDetail(w);
+    });
+  });
+
+  // Async-load photo thumbs
+  container.querySelectorAll('[data-photo-slot]').forEach(slot => {
+    const id = slot.dataset.photoSlot;
+    const w = customWatches.find(x => x.id === id);
+    if(!w) return;
+    const pk = photoKey(w);
+    const imgs = getPhotos(pk);
+    if(imgs.length){
+      resolvePhotoRef(imgs[0]).then(src => {
+        if(src) slot.innerHTML = `<img src="${src}" alt="">`;
+      });
+    }
+  });
+}
+
+function openJournal(){
+  document.getElementById('journalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  buildJournalContent();
+}
+function closeJournal(){
+  document.getElementById('journalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── MULTI-LOG SHEET ──
+let logSheetSelected = new Set();
+let logSheetDate = todayLocalStr();
+
+function openLogSheet(){
+  logSheetSelected = new Set();
+  logSheetDate = todayLocalStr();
+  document.getElementById('logSheetDate').value = logSheetDate;
+  updateLogSheetDateLabel();
+  buildLogSheetList();
+  document.getElementById('logSheetOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  updateLogSheetCount();
+}
+function closeLogSheet(){
+  document.getElementById('logSheetOverlay').classList.remove('open');
+  document.body.style.overflow = 'hidden'; // journal still open behind
+}
+
+function updateLogSheetDateLabel(){
+  const label = document.getElementById('logSheetDateLabel');
+  if(logSheetDate === todayLocalStr()) label.textContent = 'Today';
+  else label.textContent = fmtJournalDay(logSheetDate);
+}
+
+function buildLogSheetList(){
+  const container = document.getElementById('logSheetList');
+  const watches = active();
+  if(!watches.length){
+    container.innerHTML = `<div style="padding:32px 24px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase">No watches to log</div>`;
+    return;
+  }
+
+  container.innerHTML = watches.map(w => {
+    const alreadyWorn = (w.wearLog||[]).some(d => String(d).slice(0,10) === logSheetDate);
+    const noteHTML = alreadyWorn
+      ? `<div class="log-sheet-note warn">Already logged</div>`
+      : `<div class="log-sheet-note"></div>`;
+    return `<div class="log-sheet-row${logSheetSelected.has(w.id)?' selected':''}" data-wid="${w.id}" data-worn="${alreadyWorn?1:0}">
+      <div class="log-sheet-check">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="log-sheet-photo" data-photo-slot="${w.id}"></div>
+      <div class="log-sheet-text">
+        <div class="log-sheet-brand">${w.brand||''}</div>
+        <div class="log-sheet-model">${composeModel(w)}</div>
+      </div>
+      ${noteHTML}
+    </div>`;
+  }).join('');
+
+  // Wire up row taps
+  container.querySelectorAll('.log-sheet-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const id = row.dataset.wid;
+      if(logSheetSelected.has(id)){
+        logSheetSelected.delete(id);
+        row.classList.remove('selected');
+      } else {
+        logSheetSelected.add(id);
+        row.classList.add('selected');
+      }
+      updateLogSheetCount();
+    });
+  });
+
+  // Async photo thumbs
+  container.querySelectorAll('[data-photo-slot]').forEach(slot => {
+    const id = slot.dataset.photoSlot;
+    const w = customWatches.find(x => x.id === id);
+    if(!w) return;
+    const pk = photoKey(w);
+    const imgs = getPhotos(pk);
+    if(imgs.length){
+      resolvePhotoRef(imgs[0]).then(src => {
+        if(src) slot.innerHTML = `<img src="${src}" alt="">`;
+      });
+    }
+  });
+}
+
+function updateLogSheetCount(){
+  const n = logSheetSelected.size;
+  document.getElementById('logSheetCount').textContent = `${n} selected`;
+  const btn = document.getElementById('logSheetApplyBtn');
+  btn.textContent = `Log ${n} watch${n!==1?'es':''}`;
+  btn.disabled = n === 0;
+}
+
+function applyMultiLog(){
+  const n = logSheetSelected.size;
+  if(n === 0) return;
+  const date = logSheetDate;
+  const previouslyUnlogged = []; // for undo — only these get unlogged
+  logSheetSelected.forEach(id => {
+    const w = customWatches.find(x => x.id === id);
+    if(!w) return;
+    const already = (w.wearLog||[]).some(d => String(d).slice(0,10) === date);
+    if(!already){
+      logWear(id, date);
+      previouslyUnlogged.push(id);
+    }
+  });
+  const dateLabel = date === todayLocalStr() ? 'today' : fmtJournalDay(date);
+  const newlyLogged = previouslyUnlogged.length;
+  closeLogSheet();
+  buildJournalContent(); // refresh journal
+  showToast(`Logged ${newlyLogged} watch${newlyLogged!==1?'es':''} for ${dateLabel}`, 5000, {
+    label: 'Undo',
+    fn: () => {
+      previouslyUnlogged.forEach(id => unlogWear(id, date));
+      buildJournalContent();
+    }
+  });
+}
+
+// Wire up all journal + log-sheet controls
+document.getElementById('journalOpenBtn').addEventListener('click', openJournal);
+document.getElementById('journalClose').addEventListener('click', closeJournal);
+document.getElementById('journalLogBtn').addEventListener('click', openLogSheet);
+document.getElementById('logSheetClose').addEventListener('click', closeLogSheet);
+document.getElementById('logSheetApplyBtn').addEventListener('click', applyMultiLog);
+document.getElementById('logSheetDate').addEventListener('change', (e) => {
+  if(e.target.value){
+    logSheetDate = e.target.value;
+    updateLogSheetDateLabel();
+    buildLogSheetList(); // refresh "Already logged" markers
+  }
+});
+
 document.getElementById('tool-passport').addEventListener('click', generatePassport);
+
+
 
 // ── INIT ──
 (async function(){
