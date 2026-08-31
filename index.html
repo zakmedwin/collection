@@ -559,6 +559,42 @@ body{background:var(--bg);color:var(--fg)}
   letter-spacing:.1em;color:var(--muted);text-transform:uppercase;text-align:right;
 }
 .log-sheet-note.warn{color:#c05050}
+
+/* Photo manager tiles */
+.pmt{
+  position:relative;background:var(--tile);border:1px solid var(--line);
+  display:flex;flex-direction:column;
+}
+.pmt-img{
+  width:100%;aspect-ratio:1;background:var(--tile);background-size:cover;background-position:center;
+  position:relative;
+}
+.pmt-cover{
+  position:absolute;top:6px;left:6px;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  background:var(--accent);color:var(--accent-fg);padding:3px 6px;line-height:1;
+}
+.pmt-star{
+  position:absolute;top:6px;right:6px;
+  width:26px;height:26px;background:rgba(255,255,255,.92);border:1px solid var(--line-strong);
+  color:var(--muted);cursor:pointer;padding:0;font-size:14px;line-height:1;
+  display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s;
+}
+.pmt-star:hover{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.pmt-star.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);cursor:default}
+.pmt-actions{
+  display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--line);
+}
+.pmt-btn{
+  background:var(--bg);border:none;border-right:1px solid var(--line);color:var(--fg);
+  padding:8px 0;cursor:pointer;font-size:15px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .12s,color .12s;
+}
+.pmt-btn:last-child{border-right:none}
+.pmt-btn:hover:not(:disabled){background:var(--tile)}
+.pmt-btn:disabled{color:var(--muted-2);cursor:default;opacity:.4}
+.pmt-btn.del:hover{background:#c05050;color:#fff}
 .brand-bar-row{display:flex;align-items:baseline;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
 .brand-bar-row:last-child{border-bottom:none}
 .brand-bar-name{font-family:'Inter','Helvetica Neue',sans-serif;font-size:15px;font-weight:500;color:var(--fg);letter-spacing:-.01em}
@@ -1457,7 +1493,7 @@ body{background:var(--bg);color:var(--fg)}
     <button class="overlay-close" id="photoMgmtClose">✕</button>
   </div>
   <div class="overlay-body">
-    <div id="photoMgmtStrip" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px"></div>
+    <div id="photoMgmtStrip" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px"></div>
     <div style="display:flex;gap:10px">
       <button id="photoMgmtCamera" class="btn-secondary" style="flex:1;height:44px;font-size:10px;display:flex;align-items:center;justify-content:center;gap:8px">
         <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1 6.5A1.5 1.5 0 0 1 2.5 5h.879a2 2 0 0 0 1.414-.586l.828-.828A2 2 0 0 1 7.035 3h5.93a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 16.621 5H17.5A1.5 1.5 0 0 1 19 6.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 1 15.5v-9z"/><circle cx="10" cy="11" r="3"/></svg>
@@ -1470,7 +1506,7 @@ body{background:var(--bg);color:var(--fg)}
     </div>
     <input type="file" accept="image/*" capture="environment" id="photoMgmtCameraInput" style="display:none">
     <input type="file" accept="image/*" id="photoMgmtLibraryInput" style="display:none">
-    <div class="t-helper" style="margin-top:12px;text-align:center">Tap a photo to set as cover · Long-press to delete</div>
+    <div class="t-helper" style="margin-top:12px;text-align:center">Star to set cover · Arrows to reorder · × to delete</div>
   </div>
 </div>
 
@@ -3875,46 +3911,84 @@ function openPhotoMgmt(){
   function rebuildStrip(){
     strip.innerHTML='';
     const current = getPhotos(pk);
+    if(!current.length){
+      strip.innerHTML = `<div style="grid-column:1/-1;padding:32px 16px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase">No photos yet — add one below</div>`;
+      return;
+    }
     current.forEach((ref,i)=>{
-      const wrap=document.createElement('div');
-      wrap.style.cssText='position:relative;width:80px;height:80px';
-      const img=document.createElement('img');
-      img.style.cssText='width:80px;height:80px;object-fit:cover;cursor:pointer;border:2px solid '+(i===0?'var(--accent)':'transparent');
-      img.title=i===0?'Cover photo':'Tap to set as cover';
-      resolvePhotoRef(ref).then(src=>{ if(src) img.src=src; });
-      // Tap = set as cover
-      img.addEventListener('click',()=>{
-        if(i===0) return;
-        const arr=getPhotos(pk);
-        const [item]=arr.splice(i,1);
+      const tile = document.createElement('div');
+      tile.className = 'pmt';
+      const isCover = i === 0;
+      tile.innerHTML = `
+        <div class="pmt-img" data-idx="${i}">
+          ${isCover ? '<div class="pmt-cover">Cover</div>' : ''}
+          <button class="pmt-star${isCover?' on':''}" title="${isCover?'Cover photo':'Set as cover'}">★</button>
+        </div>
+        <div class="pmt-actions">
+          <button class="pmt-btn move-left" title="Move left" ${i===0?'disabled':''}>←</button>
+          <button class="pmt-btn move-right" title="Move right" ${i===current.length-1?'disabled':''}>→</button>
+          <button class="pmt-btn del" title="Delete">✕</button>
+        </div>`;
+      strip.appendChild(tile);
+
+      // Resolve photo URL async
+      const imgEl = tile.querySelector('.pmt-img');
+      resolvePhotoRef(ref).then(url => {
+        if(url) imgEl.style.backgroundImage = `url("${url.replace(/"/g,'\\"')}")`;
+      });
+
+      // Set as cover
+      tile.querySelector('.pmt-star').addEventListener('click', ()=>{
+        if(i === 0) return;
+        const arr = getPhotos(pk);
+        const [item] = arr.splice(i, 1);
         arr.unshift(item);
-        photos[pk]=arr; savePhotos(photos); scheduleSave();
+        photos[pk] = arr; savePhotos(photos); scheduleSave();
         rebuildStrip();
         buildDetailPhotos(w);
         showToast('Cover updated ✓');
       });
-      // Long press = delete
-      let pressTimer;
-      img.addEventListener('touchstart',()=>{ pressTimer=setTimeout(()=>{
-        if(!confirm('Remove this photo?')) return;
-        const arr=getPhotos(pk);
-        arr.splice(i,1);
-        photos[pk]=arr; savePhotos(photos); scheduleSave();
+
+      // Move left
+      tile.querySelector('.move-left').addEventListener('click', ()=>{
+        if(i === 0) return;
+        const arr = getPhotos(pk);
+        [arr[i-1], arr[i]] = [arr[i], arr[i-1]];
+        photos[pk] = arr; savePhotos(photos); scheduleSave();
         rebuildStrip();
         buildDetailPhotos(w);
-        showToast('Photo removed');
-      },700); },{passive:true});
-      img.addEventListener('touchend',()=>clearTimeout(pressTimer),{passive:true});
-      img.addEventListener('touchmove',()=>clearTimeout(pressTimer),{passive:true});
-      // Star on cover
-      if(i===0){
-        const star=document.createElement('div');
-        star.textContent='★';
-        star.style.cssText='position:absolute;top:2px;left:2px;font-size:10px;color:var(--accent);pointer-events:none;text-shadow:0 0 4px rgba(0,0,0,.6)';
-        wrap.appendChild(star);
-      }
-      wrap.appendChild(img);
-      strip.appendChild(wrap);
+      });
+
+      // Move right
+      tile.querySelector('.move-right').addEventListener('click', ()=>{
+        const arr = getPhotos(pk);
+        if(i >= arr.length - 1) return;
+        [arr[i+1], arr[i]] = [arr[i], arr[i+1]];
+        photos[pk] = arr; savePhotos(photos); scheduleSave();
+        rebuildStrip();
+        buildDetailPhotos(w);
+      });
+
+      // Delete — immediate with undo toast
+      tile.querySelector('.del').addEventListener('click', ()=>{
+        const arr = getPhotos(pk);
+        const removed = arr[i];
+        const removedIdx = i;
+        arr.splice(i, 1);
+        photos[pk] = arr; savePhotos(photos); scheduleSave();
+        rebuildStrip();
+        buildDetailPhotos(w);
+        showToast('Photo removed', 5000, {
+          label:'Undo',
+          fn:()=>{
+            const cur = getPhotos(pk);
+            cur.splice(removedIdx, 0, removed);
+            photos[pk] = cur; savePhotos(photos); scheduleSave();
+            rebuildStrip();
+            buildDetailPhotos(w);
+          }
+        });
+      });
     });
   }
   rebuildStrip();
