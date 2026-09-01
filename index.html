@@ -595,6 +595,76 @@ body{background:var(--bg);color:var(--fg)}
 .pmt-btn:hover:not(:disabled){background:var(--tile)}
 .pmt-btn:disabled{color:var(--muted-2);cursor:default;opacity:.4}
 .pmt-btn.del:hover{background:#c05050;color:#fff}
+
+/* Sort & Filter bar */
+.sf-bar{
+  display:flex;border-bottom:1px solid var(--line);background:var(--bg);
+}
+.sf-btn{
+  flex:1;padding:12px 20px;background:transparent;border:none;
+  border-right:1px solid var(--line);color:var(--fg);
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;line-height:1;
+  transition:background .12s,color .12s;
+}
+.sf-btn:last-child{border-right:none}
+.sf-btn:hover{background:var(--tile)}
+.sf-btn svg{color:var(--accent);flex:none}
+#sfFilterBadge{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:16px;height:16px;padding:0 5px;background:var(--accent);color:var(--accent-fg);
+  border-radius:0;margin-left:6px;font-size:9px;font-weight:700;
+}
+
+.sf-tags{
+  display:flex;flex-wrap:wrap;gap:6px;padding:12px 20px;
+  background:var(--tile);border-bottom:1px solid var(--line);align-items:center;
+}
+.sf-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 10px;background:var(--bg);border:1px solid var(--line-strong);
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--fg);
+  cursor:pointer;transition:background .12s,color .12s;
+}
+.sf-tag:hover{background:var(--fg);color:var(--bg)}
+.sf-tag-x{font-size:11px;line-height:1;opacity:.6}
+.sf-clear{
+  margin-left:auto;background:transparent;border:none;color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;cursor:pointer;padding:5px 6px;
+}
+.sf-clear:hover{color:#c05050}
+
+/* Sheet option rows */
+.sf-opt-row{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 24px;border-bottom:1px solid var(--line);cursor:pointer;
+  transition:background .12s;
+}
+.sf-opt-row:hover{background:var(--tile)}
+.sf-opt-marker{
+  width:20px;height:20px;border:1.5px solid var(--line-strong);
+  display:flex;align-items:center;justify-content:center;flex:none;
+  transition:background .12s,border-color .12s;
+}
+.sf-opt-row.selected .sf-opt-marker{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.sf-opt-marker svg{width:12px;height:12px;stroke:currentColor;stroke-width:3;fill:none;opacity:0}
+.sf-opt-row.selected .sf-opt-marker svg{opacity:1}
+.sf-opt-radio{border-radius:50%}
+.sf-opt-label{font-size:14px;font-weight:500}
+.sf-opt-count{
+  margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.08em;color:var(--muted);
+}
+
+.sf-group-head{
+  padding:16px 24px 8px;background:var(--tile);
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  border-bottom:1px solid var(--line);
+}
 .brand-bar-row{display:flex;align-items:baseline;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
 .brand-bar-row:last-child{border-bottom:none}
 .brand-bar-name{font-family:'Inter','Helvetica Neue',sans-serif;font-size:15px;font-weight:500;color:var(--fg);letter-spacing:-.01em}
@@ -1172,6 +1242,17 @@ body{background:var(--bg);color:var(--fg)}
         <button class="chip active" data-sub="all">All</button>
       </div>
     </div>
+    <div class="sf-bar">
+      <button class="sf-btn" id="sfSortBtn">
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h13M4 10h9M4 14h5"/></svg>
+        <span>Sort: <span id="sfSortLabel">Recent</span></span>
+      </button>
+      <button class="sf-btn" id="sfFilterBtn">
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 5h14M6 10h8M9 15h2"/></svg>
+        <span>Filter <span id="sfFilterBadge" style="display:none"></span></span>
+      </button>
+    </div>
+    <div class="sf-tags" id="sfTagsStrip" style="display:none"></div>
     <div id="watchListWrap">
       <div class="watch-list" id="watchList"></div>
     </div>
@@ -1605,6 +1686,28 @@ body{background:var(--bg);color:var(--fg)}
   </div>
 </div>
 
+<!-- SORT SHEET -->
+<div class="overlay" id="sortSheet">
+  <div class="overlay-header">
+    <div class="t-form">Sort by</div>
+    <button class="overlay-close" id="sortSheetClose">✕</button>
+  </div>
+  <div class="overlay-body" style="padding:0" id="sortSheetOptions"></div>
+</div>
+
+<!-- FILTER SHEET -->
+<div class="overlay" id="filterSheet">
+  <div class="overlay-header">
+    <div class="t-form">Filter</div>
+    <button class="overlay-close" id="filterSheetClose">✕</button>
+  </div>
+  <div class="overlay-body" style="padding:0" id="filterSheetContent"></div>
+  <div style="padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:8px;background:var(--bg);position:sticky;bottom:0">
+    <button class="btn-outline-pill" id="filterSheetReset" style="flex:1">Reset all</button>
+    <button class="btn-primary-pill" id="filterSheetApply" style="flex:2">Apply</button>
+  </div>
+</div>
+
 <!-- WEAR JOURNAL OVERLAY -->
 <div class="overlay" id="journalOverlay">
   <div class="overlay-header">
@@ -1677,6 +1780,60 @@ let currentView = 'list';
 let selectedId = null;
 let query = '';
 let activeSub = 'all';
+
+// ── SORT & FILTER STATE ──
+const SORT_KEY = 'tc_sort_v1';
+const FILTERS_KEY = 'tc_filters_v1';
+const SORT_OPTIONS = [
+  { key:'recent',        label:'Recent'          },
+  { key:'brand-az',      label:'Brand A → Z'     },
+  { key:'year-newest',   label:'Year, newest'    },
+  { key:'year-oldest',   label:'Year, oldest'    },
+  { key:'most-worn',     label:'Most worn'       },
+  { key:'recently-worn', label:'Recently worn'   },
+  { key:'never-worn',    label:'Never worn first'},
+  { key:'price-high',    label:'Value, high → low' },
+  { key:'price-low',     label:'Value, low → high' },
+];
+let activeSort = localStorage.getItem(SORT_KEY) || 'recent';
+let activeFilters = { brands:new Set(), movements:new Set(), decades:new Set(), sizes:new Set() };
+try {
+  const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) || '{}');
+  ['brands','movements','decades','sizes'].forEach(k => {
+    if(Array.isArray(saved[k])) activeFilters[k] = new Set(saved[k]);
+  });
+} catch(e){}
+
+function saveSort(){ localStorage.setItem(SORT_KEY, activeSort); }
+function saveFilters(){
+  const obj = {};
+  Object.keys(activeFilters).forEach(k => obj[k] = [...activeFilters[k]]);
+  localStorage.setItem(FILTERS_KEY, JSON.stringify(obj));
+}
+function activeFilterCount(){
+  return Object.values(activeFilters).reduce((s,set)=>s+set.size, 0);
+}
+
+function getWatchDecade(w){
+  const y = parseInt(w.year);
+  if(!y) return null;
+  return Math.floor(y/10) * 10;
+}
+function getWatchSizeCategory(w){
+  const s = parseFloat(w.size);
+  if(!s) return null;
+  if(s < 40) return 'small';
+  if(s <= 43) return 'medium';
+  return 'large';
+}
+function normalizeMovement(w){
+  const m = (w.movement||'').toLowerCase();
+  if(m.includes('automatic') || m.includes('auto')) return 'automatic';
+  if(m.includes('manual') || m.includes('hand')) return 'manual';
+  if(m.includes('quartz')) return 'quartz';
+  return null;
+}
+
 let dark = false;
 let theme = 'archive';
 let layout = 'modern'; // 'modern' or 'classic'
@@ -1881,9 +2038,47 @@ function getFilteredWatches(){
     const sub=subCols.find(s=>s.id===activeSub);
     pool=sub?sub.watches.filter(w=>!w.sold):[];
   }
-  if(!query) return pool;
-  const q=query.toLowerCase();
-  return pool.filter(w=>[w.brand,w.series,w.model,w.ref,w.dial,w.movement].some(v=>v&&v.toLowerCase().includes(q)));
+  // Text search
+  if(query){
+    const q=query.toLowerCase();
+    pool = pool.filter(w=>[w.brand,w.series,w.model,w.ref,w.dial,w.movement].some(v=>v&&v.toLowerCase().includes(q)));
+  }
+  // Filters
+  if(activeFilters.brands.size){
+    pool = pool.filter(w => activeFilters.brands.has(w.brand||''));
+  }
+  if(activeFilters.movements.size){
+    pool = pool.filter(w => activeFilters.movements.has(normalizeMovement(w)));
+  }
+  if(activeFilters.decades.size){
+    pool = pool.filter(w => activeFilters.decades.has(getWatchDecade(w)));
+  }
+  if(activeFilters.sizes.size){
+    pool = pool.filter(w => activeFilters.sizes.has(getWatchSizeCategory(w)));
+  }
+  // Sort
+  const arr = [...pool];
+  const val = w => Number(w.price) || Number(w.paid) || 0;
+  const wearCount = w => new Set((w.wearLog||[]).map(d => String(d).slice(0,10))).size;
+  const lastWorn = w => w.lastWorn ? parseLocalDate(w.lastWorn).getTime() : 0;
+  switch(activeSort){
+    case 'brand-az':      arr.sort((a,b)=>(a.brand||'').localeCompare(b.brand||'') || composeModel(a).localeCompare(composeModel(b))); break;
+    case 'year-newest':   arr.sort((a,b)=>(parseInt(b.year)||0) - (parseInt(a.year)||0)); break;
+    case 'year-oldest':   arr.sort((a,b)=>(parseInt(a.year)||9999) - (parseInt(b.year)||9999)); break;
+    case 'most-worn':     arr.sort((a,b)=>wearCount(b) - wearCount(a)); break;
+    case 'recently-worn': arr.sort((a,b)=>lastWorn(b) - lastWorn(a)); break;
+    case 'never-worn':    arr.sort((a,b)=>{
+      const wa = wearCount(a), wb = wearCount(b);
+      if(wa === 0 && wb === 0) return lastWorn(a) - lastWorn(b);
+      if(wa === 0) return -1;
+      if(wb === 0) return 1;
+      return wa - wb;
+    }); break;
+    case 'price-high':    arr.sort((a,b)=>val(b) - val(a)); break;
+    case 'price-low':     arr.sort((a,b)=>val(a) - val(b)); break;
+    // 'recent' = default order (customWatches is already sortWatches'd)
+  }
+  return arr;
 }
 
 function renderList(){
@@ -4628,6 +4823,197 @@ document.getElementById('logSheetDate').addEventListener('change', (e) => {
 });
 
 document.getElementById('tool-passport').addEventListener('click', generatePassport);
+
+// ── SORT & FILTER SHEETS ──
+function updateSortLabel(){
+  const opt = SORT_OPTIONS.find(o => o.key === activeSort);
+  document.getElementById('sfSortLabel').textContent = opt ? opt.label : 'Recent';
+}
+function updateFilterBadge(){
+  const n = activeFilterCount();
+  const badge = document.getElementById('sfFilterBadge');
+  if(n > 0){ badge.textContent = n; badge.style.display = 'inline-flex'; }
+  else{ badge.style.display = 'none'; }
+}
+function updateFilterTagStrip(){
+  const strip = document.getElementById('sfTagsStrip');
+  const tags = [];
+  activeFilters.brands.forEach(b => tags.push({label:b, group:'brands', value:b}));
+  activeFilters.movements.forEach(m => tags.push({label:m.charAt(0).toUpperCase()+m.slice(1), group:'movements', value:m}));
+  activeFilters.decades.forEach(d => tags.push({label:d+'s', group:'decades', value:d}));
+  activeFilters.sizes.forEach(s => {
+    const map = {small:'< 40mm', medium:'40–43mm', large:'> 43mm'};
+    tags.push({label:map[s]||s, group:'sizes', value:s});
+  });
+  if(tags.length === 0){ strip.style.display = 'none'; strip.innerHTML = ''; return; }
+  strip.style.display = 'flex';
+  strip.innerHTML = tags.map(t =>
+    `<button class="sf-tag" data-group="${t.group}" data-value="${String(t.value).replace(/"/g,'&quot;')}">${t.label} <span class="sf-tag-x">✕</span></button>`
+  ).join('') + `<button class="sf-clear" id="sfClearAll">Clear all</button>`;
+  strip.querySelectorAll('.sf-tag').forEach(el => {
+    el.addEventListener('click', () => {
+      const g = el.dataset.group;
+      let v = el.dataset.value;
+      if(g === 'decades') v = parseInt(v);
+      activeFilters[g].delete(v);
+      saveFilters();
+      updateFilterBadge();
+      updateFilterTagStrip();
+      renderList();
+    });
+  });
+  document.getElementById('sfClearAll').addEventListener('click', () => {
+    Object.values(activeFilters).forEach(s => s.clear());
+    saveFilters();
+    updateFilterBadge();
+    updateFilterTagStrip();
+    renderList();
+  });
+}
+
+function openSortSheet(){
+  const container = document.getElementById('sortSheetOptions');
+  container.innerHTML = SORT_OPTIONS.map(o =>
+    `<div class="sf-opt-row${activeSort===o.key?' selected':''}" data-key="${o.key}">
+      <div class="sf-opt-marker sf-opt-radio"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="sf-opt-label">${o.label}</div>
+    </div>`
+  ).join('');
+  container.querySelectorAll('.sf-opt-row').forEach(row => {
+    row.addEventListener('click', () => {
+      activeSort = row.dataset.key;
+      saveSort();
+      updateSortLabel();
+      renderList();
+      document.getElementById('sortSheet').classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+  document.getElementById('sortSheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function openFilterSheet(){
+  // Compute available filter options from pool relevant to the current sub-collection
+  const pool = (activeSub === 'wish')
+    ? wishWatches
+    : (activeSub === 'all')
+      ? active()
+      : (subCols.find(s => s.id === activeSub)?.watches?.filter(w => !w.sold) || []);
+
+  // Brands (with counts)
+  const brandMap = {};
+  pool.forEach(w => { const b = w.brand||''; if(!b) return; brandMap[b] = (brandMap[b]||0) + 1; });
+  const brands = Object.entries(brandMap).sort((a,b) => a[0].localeCompare(b[0]));
+
+  // Movements
+  const mvMap = { automatic:0, manual:0, quartz:0 };
+  pool.forEach(w => { const m = normalizeMovement(w); if(m) mvMap[m]++; });
+
+  // Decades (dynamic from data)
+  const decMap = {};
+  pool.forEach(w => { const d = getWatchDecade(w); if(d) decMap[d] = (decMap[d]||0) + 1; });
+  const decades = Object.keys(decMap).map(Number).sort((a,b) => b - a);
+
+  // Size buckets
+  const szMap = { small:0, medium:0, large:0 };
+  pool.forEach(w => { const s = getWatchSizeCategory(w); if(s) szMap[s]++; });
+
+  // Working copy of filters (only committed on Apply)
+  const working = {
+    brands:   new Set(activeFilters.brands),
+    movements:new Set(activeFilters.movements),
+    decades:  new Set(activeFilters.decades),
+    sizes:    new Set(activeFilters.sizes),
+  };
+
+  const makeGroup = (title, entries, group) => {
+    if(!entries.length) return '';
+    const rows = entries.map(([label, value, count]) =>
+      `<div class="sf-opt-row${working[group].has(value)?' selected':''}" data-group="${group}" data-value="${String(value).replace(/"/g,'&quot;')}">
+        <div class="sf-opt-marker"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="sf-opt-label">${label}</div>
+        <div class="sf-opt-count">${count}</div>
+      </div>`
+    ).join('');
+    return `<div class="sf-group-head">${title}</div>${rows}`;
+  };
+
+  const container = document.getElementById('filterSheetContent');
+  container.innerHTML =
+    makeGroup('Brand', brands.map(([b,c]) => [b, b, c]), 'brands') +
+    makeGroup('Movement', ['automatic','manual','quartz']
+        .filter(m => mvMap[m] > 0)
+        .map(m => [m.charAt(0).toUpperCase()+m.slice(1), m, mvMap[m]]),
+      'movements') +
+    makeGroup('Decade', decades.map(d => [d+'s', d, decMap[d]]), 'decades') +
+    makeGroup('Case size', ['small','medium','large']
+        .filter(s => szMap[s] > 0)
+        .map(s => {
+          const map = {small:'< 40mm', medium:'40–43mm', large:'> 43mm'};
+          return [map[s], s, szMap[s]];
+        }),
+      'sizes');
+
+  if(!container.innerHTML.trim()){
+    container.innerHTML = `<div style="padding:32px 24px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase">No filter options for this collection</div>`;
+  }
+
+  // Toggle handlers
+  container.querySelectorAll('.sf-opt-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const g = row.dataset.group;
+      let v = row.dataset.value;
+      if(g === 'decades') v = parseInt(v);
+      if(working[g].has(v)){ working[g].delete(v); row.classList.remove('selected'); }
+      else { working[g].add(v); row.classList.add('selected'); }
+    });
+  });
+
+  // Store working set for Apply/Reset
+  window.__filterWorking = working;
+  document.getElementById('filterSheet').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function applyFilters(){
+  const w = window.__filterWorking;
+  if(!w) return;
+  activeFilters = w;
+  saveFilters();
+  updateFilterBadge();
+  updateFilterTagStrip();
+  renderList();
+  document.getElementById('filterSheet').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function resetFilters(){
+  Object.values(activeFilters).forEach(s => s.clear());
+  saveFilters();
+  updateFilterBadge();
+  updateFilterTagStrip();
+  renderList();
+  document.getElementById('filterSheet').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('sfSortBtn').addEventListener('click', openSortSheet);
+document.getElementById('sfFilterBtn').addEventListener('click', openFilterSheet);
+document.getElementById('sortSheetClose').addEventListener('click', () => {
+  document.getElementById('sortSheet').classList.remove('open');
+  document.body.style.overflow = '';
+});
+document.getElementById('filterSheetClose').addEventListener('click', () => {
+  document.getElementById('filterSheet').classList.remove('open');
+  document.body.style.overflow = '';
+});
+document.getElementById('filterSheetApply').addEventListener('click', applyFilters);
+document.getElementById('filterSheetReset').addEventListener('click', resetFilters);
+
+// Initial state on load
+updateSortLabel();
+updateFilterBadge();
+updateFilterTagStrip();
 
 
 
