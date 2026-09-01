@@ -1245,11 +1245,15 @@ body{background:var(--bg);color:var(--fg)}
     <div class="sf-bar">
       <button class="sf-btn" id="sfSortBtn">
         <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6h13M4 10h9M4 14h5"/></svg>
-        <span>Sort: <span id="sfSortLabel">Recent</span></span>
+        <span>Sort: <span id="sfSortLabel">A → Z</span></span>
       </button>
       <button class="sf-btn" id="sfFilterBtn">
         <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 5h14M6 10h8M9 15h2"/></svg>
         <span>Filter <span id="sfFilterBadge" style="display:none"></span></span>
+      </button>
+      <button class="sf-btn" id="sfResetBtn" title="Reset sort to A → Z and clear all filters">
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 10a7 7 0 1 0 2.05-4.95L3 7"/><polyline points="3 3 3 7 7 7"/></svg>
+        <span>Reset</span>
       </button>
     </div>
     <div class="sf-tags" id="sfTagsStrip" style="display:none"></div>
@@ -1785,8 +1789,7 @@ let activeSub = 'all';
 const SORT_KEY = 'tc_sort_v1';
 const FILTERS_KEY = 'tc_filters_v1';
 const SORT_OPTIONS = [
-  { key:'recent',        label:'Recent'          },
-  { key:'brand-az',      label:'Brand A → Z'     },
+  { key:'brand-az',      label:'Brand A → Z (default)' },
   { key:'year-newest',   label:'Year, newest'    },
   { key:'year-oldest',   label:'Year, oldest'    },
   { key:'most-worn',     label:'Most worn'       },
@@ -1795,7 +1798,7 @@ const SORT_OPTIONS = [
   { key:'price-high',    label:'Value, high → low' },
   { key:'price-low',     label:'Value, low → high' },
 ];
-let activeSort = localStorage.getItem(SORT_KEY) || 'recent';
+let activeSort = localStorage.getItem(SORT_KEY) || 'brand-az';
 let activeFilters = { brands:new Set(), movements:new Set(), decades:new Set(), sizes:new Set() };
 try {
   const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) || '{}');
@@ -2062,7 +2065,11 @@ function getFilteredWatches(){
   const wearCount = w => new Set((w.wearLog||[]).map(d => String(d).slice(0,10))).size;
   const lastWorn = w => w.lastWorn ? parseLocalDate(w.lastWorn).getTime() : 0;
   switch(activeSort){
-    case 'brand-az':      arr.sort((a,b)=>(a.brand||'').localeCompare(b.brand||'') || composeModel(a).localeCompare(composeModel(b))); break;
+    case 'brand-az':      arr.sort((a,b)=>{
+      const ba=(a.brand||'').toLowerCase(), bb=(b.brand||'').toLowerCase();
+      if(ba !== bb) return ba.localeCompare(bb);
+      return (composeModel(a)||'').toLowerCase().localeCompare((composeModel(b)||'').toLowerCase());
+    }); break;
     case 'year-newest':   arr.sort((a,b)=>(parseInt(b.year)||0) - (parseInt(a.year)||0)); break;
     case 'year-oldest':   arr.sort((a,b)=>(parseInt(a.year)||9999) - (parseInt(b.year)||9999)); break;
     case 'most-worn':     arr.sort((a,b)=>wearCount(b) - wearCount(a)); break;
@@ -2076,7 +2083,6 @@ function getFilteredWatches(){
     }); break;
     case 'price-high':    arr.sort((a,b)=>val(b) - val(a)); break;
     case 'price-low':     arr.sort((a,b)=>val(a) - val(b)); break;
-    // 'recent' = default order (customWatches is already sortWatches'd)
   }
   return arr;
 }
@@ -4827,7 +4833,17 @@ document.getElementById('tool-passport').addEventListener('click', generatePassp
 // ── SORT & FILTER SHEETS ──
 function updateSortLabel(){
   const opt = SORT_OPTIONS.find(o => o.key === activeSort);
-  document.getElementById('sfSortLabel').textContent = opt ? opt.label : 'Recent';
+  // Show a short form on the button (before ", " or " (default)")
+  const short = opt ? opt.label.replace(/\s*\(default\)/,'').split(',')[0] : 'A → Z';
+  document.getElementById('sfSortLabel').textContent = short;
+}
+function updateResetBtn(){
+  const btn = document.getElementById('sfResetBtn');
+  if(!btn) return;
+  const active = activeSort !== 'brand-az' || activeFilterCount() > 0;
+  btn.style.opacity = active ? '1' : '.4';
+  btn.style.cursor = active ? 'pointer' : 'default';
+  btn.querySelector('svg').style.color = active ? '#c05050' : '';
 }
 function updateFilterBadge(){
   const n = activeFilterCount();
@@ -4859,6 +4875,7 @@ function updateFilterTagStrip(){
       saveFilters();
       updateFilterBadge();
       updateFilterTagStrip();
+      updateResetBtn();
       renderList();
     });
   });
@@ -4884,6 +4901,7 @@ function openSortSheet(){
       activeSort = row.dataset.key;
       saveSort();
       updateSortLabel();
+      updateResetBtn();
       renderList();
       document.getElementById('sortSheet').classList.remove('open');
       document.body.style.overflow = '';
@@ -4983,6 +5001,7 @@ function applyFilters(){
   saveFilters();
   updateFilterBadge();
   updateFilterTagStrip();
+  updateResetBtn();
   renderList();
   document.getElementById('filterSheet').classList.remove('open');
   document.body.style.overflow = '';
@@ -4992,6 +5011,7 @@ function resetFilters(){
   saveFilters();
   updateFilterBadge();
   updateFilterTagStrip();
+  updateResetBtn();
   renderList();
   document.getElementById('filterSheet').classList.remove('open');
   document.body.style.overflow = '';
@@ -4999,6 +5019,20 @@ function resetFilters(){
 
 document.getElementById('sfSortBtn').addEventListener('click', openSortSheet);
 document.getElementById('sfFilterBtn').addEventListener('click', openFilterSheet);
+document.getElementById('sfResetBtn').addEventListener('click', () => {
+  // Only actually reset if there's something to reset
+  if(activeSort === 'brand-az' && activeFilterCount() === 0) return;
+  activeSort = 'brand-az';
+  saveSort();
+  Object.values(activeFilters).forEach(s => s.clear());
+  saveFilters();
+  updateSortLabel();
+  updateFilterBadge();
+  updateFilterTagStrip();
+  updateResetBtn();
+  renderList();
+  showToast('Reset ✓');
+});
 document.getElementById('sortSheetClose').addEventListener('click', () => {
   document.getElementById('sortSheet').classList.remove('open');
   document.body.style.overflow = '';
@@ -5014,6 +5048,7 @@ document.getElementById('filterSheetReset').addEventListener('click', resetFilte
 updateSortLabel();
 updateFilterBadge();
 updateFilterTagStrip();
+updateResetBtn();
 
 
 
