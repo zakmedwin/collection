@@ -637,6 +637,44 @@ body{background:var(--bg);color:var(--fg)}
 }
 .sf-clear:hover{color:#c05050}
 
+/* Rank sheet */
+.rank-help{
+  padding:12px 24px;background:var(--tile);border-bottom:1px solid var(--line);
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+}
+#rankList{position:relative}
+.rank-row{
+  display:grid;grid-template-columns:36px 48px 1fr auto;gap:12px;align-items:center;
+  padding:10px 16px 10px 12px;border-bottom:1px solid var(--line);background:var(--bg);
+  touch-action:none;user-select:none;-webkit-user-select:none;
+  transition:box-shadow .15s,background .15s;
+}
+.rank-row.dragging{position:relative;z-index:5;background:var(--tile);box-shadow:0 10px 28px rgba(0,0,0,.18);transition:none}
+.rank-row.shift{transition:transform .18s cubic-bezier(.2,.8,.2,1)}
+.rank-handle{
+  width:36px;height:44px;display:flex;align-items:center;justify-content:center;
+  color:var(--muted-2);cursor:grab;
+}
+.rank-handle:active{cursor:grabbing}
+.rank-handle svg{width:14px;height:14px}
+.rank-num{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:var(--accent);
+  letter-spacing:.06em;white-space:nowrap;
+}
+.rank-thumb{width:48px;height:58px;background:var(--tile);border:1px solid var(--line);overflow:hidden;position:relative}
+.rank-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.rank-text{min-width:0}
+.rank-brand{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.rank-model{font-size:14px;font-weight:500;letter-spacing:-.01em;line-height:1.2}
+.rank-arrows{display:flex;flex-direction:column;gap:2px}
+.rank-arrow{
+  width:30px;height:22px;background:var(--bg);border:1px solid var(--line);color:var(--fg);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;padding:0;
+}
+.rank-arrow:hover:not(:disabled){background:var(--tile)}
+.rank-arrow:disabled{opacity:.3;cursor:default}
+
 /* Sheet option rows */
 .sf-opt-row{
   display:flex;align-items:center;gap:12px;
@@ -1685,6 +1723,10 @@ body{background:var(--bg);color:var(--fg)}
         <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 5h14M6 10h8M9 15h2"/></svg>
         <span>Filter <span id="sfFilterBadge" style="display:none"></span></span>
       </button>
+      <button class="sf-btn" id="sfRankBtn" style="display:none" title="Reorder your wish list by desirability">
+        <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 4v12M6 4l-3 3M6 4l3 3"/><path d="M14 16V4M14 16l-3-3M14 16l3-3"/></svg>
+        <span>Rank</span>
+      </button>
       <button class="sf-btn" id="sfResetBtn" title="Reset sort to A → Z and clear all filters">
         <svg width="12" height="12" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 10a7 7 0 1 0 2.05-4.95L3 7"/><polyline points="3 3 3 7 7 7"/></svg>
         <span>Reset</span>
@@ -2166,6 +2208,18 @@ body{background:var(--bg);color:var(--fg)}
   <div class="overlay-body" style="padding:0" id="saleBody"></div>
 </div>
 
+<!-- RANK SHEET (wish list) -->
+<div class="overlay" id="rankSheet">
+  <div class="overlay-header">
+    <div class="t-form">Rank Wish List</div>
+    <button class="overlay-close" id="rankSheetClose">✕</button>
+  </div>
+  <div class="overlay-body" style="padding:0">
+    <div class="rank-help">Drag to reorder · № 1 is the one you want most</div>
+    <div id="rankList"></div>
+  </div>
+</div>
+
 <!-- SORT SHEET -->
 <div class="overlay" id="sortSheet">
   <div class="overlay-header">
@@ -2265,6 +2319,7 @@ let activeSub = 'all';
 const SORT_KEY = 'tc_sort_v1';
 const FILTERS_KEY = 'tc_filters_v1';
 const SORT_OPTIONS = [
+  { key:'rank',          label:'My ranking (wish list)', wishOnly:true },
   { key:'brand-az',      label:'Brand A → Z (default)' },
   { key:'year-newest',   label:'Year, newest'    },
   { key:'year-oldest',   label:'Year, oldest'    },
@@ -2275,6 +2330,7 @@ const SORT_OPTIONS = [
   { key:'price-low',     label:'Value, low → high' },
 ];
 let activeSort = localStorage.getItem(SORT_KEY) || 'brand-az';
+let wishSortOverride = false; // set true when user explicitly picks a non-rank sort on the wish tab
 let activeFilters = { brands:new Set(), movements:new Set(), decades:new Set(), sizes:new Set() };
 try {
   const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) || '{}');
@@ -2540,7 +2596,9 @@ function getFilteredWatches(){
   const val = w => Number(w.price) || Number(w.paid) || 0;
   const wearCount = w => new Set((w.wearLog||[]).map(d => String(d).slice(0,10))).size;
   const lastWorn = w => w.lastWorn ? parseLocalDate(w.lastWorn).getTime() : 0;
-  switch(activeSort){
+  const sortKey = (activeSub==='wish' && activeSort==='brand-az' && !wishSortOverride) ? 'rank' : activeSort;
+  switch(sortKey){
+    case 'rank': /* array order = desirability */ break;
     case 'brand-az':      arr.sort((a,b)=>{
       const ba=(a.brand||'').toLowerCase(), bb=(b.brand||'').toLowerCase();
       if(ba !== bb) return ba.localeCompare(bb);
@@ -2604,7 +2662,9 @@ function renderList(){
     list.innerHTML = '';
     watches.forEach((w,i)=>{
       const idx = String(i+1).padStart(3,'0');
-      const status = getWatchStatus(w);
+      const status = activeSub==='wish'
+        ? { label:'№ '+(wishWatches.indexOf(w)+1), cls:'hero' }
+        : getWatchStatus(w);
       const isSold = !!w.sold;
       const card=document.createElement('div');
       card.className='watch-card'+(isSold?' sold':'');
@@ -2646,7 +2706,9 @@ function renderList(){
     list.innerHTML = '';
     watches.forEach((w,i)=>{
       const idx = String(i+1).padStart(3,'0');
-      const status = getWatchStatus(w);
+      const status = activeSub==='wish'
+        ? { label:'№ '+(wishWatches.indexOf(w)+1), cls:'hero' }
+        : getWatchStatus(w);
       const row=document.createElement('div');
       row.className='watch-row';
       row.innerHTML=`
@@ -2947,6 +3009,9 @@ function buildChips(){
   makeChip('My Watches','all');
   subCols.forEach(s=>makeChip(s.name, s.id));
   if(wishWatches.length>0) makeChip('Wish List','wish');
+  const rankBtn=document.getElementById('sfRankBtn');
+  if(rankBtn) rankBtn.style.display = (activeSub==='wish' && wishWatches.length>1) ? 'flex' : 'none';
+  if(typeof updateSortLabel==='function') updateSortLabel();
 }
 
 // ── DETAIL PHOTO SYSTEM ──
@@ -6304,6 +6369,10 @@ document.getElementById('tool-passport').addEventListener('click', generatePassp
 
 // ── SORT & FILTER SHEETS ──
 function updateSortLabel(){
+  if(activeSub==='wish' && activeSort==='brand-az' && !wishSortOverride){
+    document.getElementById('sfSortLabel').textContent = 'My ranking';
+    return;
+  }
   const opt = SORT_OPTIONS.find(o => o.key === activeSort);
   // Show a short form on the button (before ", " or " (default)")
   const short = opt ? opt.label.replace(/\s*\(default\)/,'').split(',')[0] : 'A → Z';
@@ -6362,8 +6431,9 @@ function updateFilterTagStrip(){
 
 function openSortSheet(){
   const container = document.getElementById('sortSheetOptions');
-  container.innerHTML = SORT_OPTIONS.map(o =>
-    `<div class="sf-opt-row${activeSort===o.key?' selected':''}" data-key="${o.key}">
+  const effective = (activeSub==='wish' && activeSort==='brand-az' && !wishSortOverride) ? 'rank' : activeSort;
+  container.innerHTML = SORT_OPTIONS.filter(o => !o.wishOnly || activeSub==='wish').map(o =>
+    `<div class="sf-opt-row${effective===o.key?' selected':''}" data-key="${o.key}">
       <div class="sf-opt-marker sf-opt-radio"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
       <div class="sf-opt-label">${o.label}</div>
     </div>`
@@ -6371,6 +6441,8 @@ function openSortSheet(){
   container.querySelectorAll('.sf-opt-row').forEach(row => {
     row.addEventListener('click', () => {
       activeSort = row.dataset.key;
+      wishSortOverride = (activeSub==='wish' && activeSort!=='rank');
+      if(activeSort==='rank') activeSort='brand-az'; // rank is implicit on wish tab; keep saved sort sane elsewhere
       saveSort();
       updateSortLabel();
       updateResetBtn();
@@ -6489,12 +6561,111 @@ function resetFilters(){
   document.body.style.overflow = '';
 }
 
+// ── WISH LIST RANKING ──
+function openRankSheet(){
+  const sheet=document.getElementById('rankSheet');
+  buildRankList();
+  sheet.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeRankSheet(){
+  document.getElementById('rankSheet').classList.remove('open');
+  document.body.style.overflow='';
+  renderList(); // reflect new order + badges
+}
+function buildRankList(){
+  const list=document.getElementById('rankList');
+  list.innerHTML = wishWatches.map((w,i)=>`
+    <div class="rank-row" data-id="${w.id}">
+      <div class="rank-handle" aria-label="Drag to reorder">
+        <svg viewBox="0 0 14 14" fill="currentColor"><circle cx="4" cy="3" r="1.3"/><circle cx="10" cy="3" r="1.3"/><circle cx="4" cy="7" r="1.3"/><circle cx="10" cy="7" r="1.3"/><circle cx="4" cy="11" r="1.3"/><circle cx="10" cy="11" r="1.3"/></svg>
+      </div>
+      <div class="rank-thumb" data-photo-slot="${w.id}"><div class="rank-num" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">№ ${i+1}</div></div>
+      <div class="rank-text">
+        <div class="rank-brand">${w.brand||''}</div>
+        <div class="rank-model">${composeModel(w)}</div>
+      </div>
+      <div class="rank-arrows">
+        <button class="rank-arrow up" ${i===0?'disabled':''} aria-label="Move up">↑</button>
+        <button class="rank-arrow down" ${i===wishWatches.length-1?'disabled':''} aria-label="Move down">↓</button>
+      </div>
+    </div>`).join('');
+
+  // thumbs
+  list.querySelectorAll('[data-photo-slot]').forEach(slot=>{
+    const w=wishWatches.find(x=>x.id===slot.dataset.photoSlot); if(!w) return;
+    const imgs=getPhotos(photoKey(w));
+    if(imgs.length) resolvePhotoRef(imgs[0]).then(src=>{ if(src){ slot.innerHTML=`<img src="${src}" alt="">`; } });
+  });
+
+  // arrows
+  list.querySelectorAll('.rank-row').forEach((row,i)=>{
+    row.querySelector('.up').addEventListener('click',()=>moveWish(i,i-1));
+    row.querySelector('.down').addEventListener('click',()=>moveWish(i,i+1));
+  });
+
+  // drag (pointer events → mouse + touch)
+  list.querySelectorAll('.rank-handle').forEach(handle=>{
+    handle.addEventListener('pointerdown',startDrag);
+  });
+}
+function moveWish(from,to){
+  if(to<0||to>=wishWatches.length||from===to) return;
+  const arr=[...wishWatches];
+  const [item]=arr.splice(from,1);
+  arr.splice(to,0,item);
+  saveWish(arr);
+  buildRankList();
+}
+function startDrag(e){
+  const row=e.currentTarget.closest('.rank-row');
+  const list=document.getElementById('rankList');
+  const rows=[...list.querySelectorAll('.rank-row')];
+  const startIdx=rows.indexOf(row);
+  const rowH=row.getBoundingClientRect().height;
+  const startY=e.clientY;
+  let curIdx=startIdx;
+  row.setPointerCapture(e.pointerId);
+  row.classList.add('dragging');
+  if(navigator.vibrate) navigator.vibrate(8);
+
+  const onMove=ev=>{
+    const dy=ev.clientY-startY;
+    row.style.transform=`translateY(${dy}px)`;
+    const newIdx=Math.max(0,Math.min(rows.length-1,startIdx+Math.round(dy/rowH)));
+    if(newIdx!==curIdx){
+      curIdx=newIdx;
+      rows.forEach((r,i)=>{
+        if(r===row) return;
+        r.classList.add('shift');
+        if(startIdx<curIdx && i>startIdx && i<=curIdx) r.style.transform=`translateY(${-rowH}px)`;
+        else if(startIdx>curIdx && i<startIdx && i>=curIdx) r.style.transform=`translateY(${rowH}px)`;
+        else r.style.transform='';
+      });
+    }
+  };
+  const onUp=()=>{
+    row.releasePointerCapture(e.pointerId);
+    row.removeEventListener('pointermove',onMove);
+    row.removeEventListener('pointerup',onUp);
+    row.removeEventListener('pointercancel',onUp);
+    rows.forEach(r=>{ r.style.transform=''; r.classList.remove('shift','dragging'); });
+    if(curIdx!==startIdx) moveWish(startIdx,curIdx); else buildRankList();
+  };
+  row.addEventListener('pointermove',onMove);
+  row.addEventListener('pointerup',onUp);
+  row.addEventListener('pointercancel',onUp);
+}
+document.getElementById('sfRankBtn').addEventListener('click', openRankSheet);
+document.getElementById('rankSheetClose').addEventListener('click', closeRankSheet);
+
 document.getElementById('sfSortBtn').addEventListener('click', openSortSheet);
 document.getElementById('sfFilterBtn').addEventListener('click', openFilterSheet);
 document.getElementById('sfResetBtn').addEventListener('click', () => {
   // Only actually reset if there's something to reset
   if(activeSort === 'brand-az' && activeFilterCount() === 0) return;
   activeSort = 'brand-az';
+  wishSortOverride = false;
   saveSort();
   Object.values(activeFilters).forEach(s => s.clear());
   saveFilters();
