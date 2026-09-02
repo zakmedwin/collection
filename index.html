@@ -1182,6 +1182,18 @@ body{background:var(--bg);color:var(--fg)}
   border-bottom:1px solid rgba(240,240,238,.25);
 }
 .pin-setup:hover{color:var(--lock-paper);border-bottom-color:var(--lock-paper)}
+.pin-tap-layer{
+  position:absolute;inset:0;z-index:20;cursor:pointer;
+  display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:max(34px, env(safe-area-inset-bottom, 34px));
+  -webkit-tap-highlight-color:transparent;
+}
+.pin-tap-hint{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.2em;text-transform:uppercase;color:rgba(240,240,238,.7);
+  animation:pinHint 2.4s ease-in-out infinite;
+}
+@keyframes pinHint{0%,100%{opacity:.45}50%{opacity:1}}
 
 @media(min-width:769px){
   .pin-face{--size:340px;--key:56px}
@@ -1585,6 +1597,10 @@ body{background:var(--bg);color:var(--fg)}
 
   <div class="pin-error" id="pinError"></div>
   <button class="pin-setup" id="pinBioSetup" style="display:none">Set up <span id="pinBioSetupName">biometrics</span> →</button>
+  <!-- When biometrics are on: the whole screen is the unlock button -->
+  <div class="pin-tap-layer" id="pinTapLayer" style="display:none">
+    <div class="pin-tap-hint" id="pinTapHint">Tap anywhere to unlock</div>
+  </div>
 </div>
 
 <!-- TOAST -->
@@ -4511,8 +4527,9 @@ window.applyImport = function(mode){
       if(ok){ succeed(); return; }
       setStatus('Enter passcode');
     }catch(e){
-      // NotAllowedError = user cancelled or no gesture; fall back quietly to the dial
-      setStatus('Enter passcode');
+      // NotAllowedError = user cancelled or no gesture yet
+      const layerUp = tapLayer && tapLayer.style.display!=='none';
+      setStatus(layerUp && !fromButton ? 'Tap to unlock' : 'Enter passcode');
       if(fromButton && e && e.name!=='NotAllowedError'){
         pinError.textContent=`${bioName} unavailable`; pinError.classList.add('bad');
         setTimeout(()=>{ pinError.textContent=''; pinError.classList.remove('bad'); },1600);
@@ -4521,6 +4538,26 @@ window.applyImport = function(mode){
   }
 
   bioBtn.addEventListener('click',()=>bioAttempt(true));
+
+  // Whole-screen tap → biometrics (iOS needs a real tap before it will show Face ID / Touch ID)
+  const tapLayer=document.getElementById('pinTapLayer');
+  const tapHint=document.getElementById('pinTapHint');
+  function showTapLayer(){ if(tapLayer){ tapLayer.style.display='flex'; setStatus('Tap to unlock'); if(tapHint) tapHint.textContent=`Tap anywhere for ${bioName}`; } }
+  function hideTapLayer(){ if(tapLayer){ tapLayer.style.display='none'; setStatus('Enter passcode'); } }
+  if(tapLayer){
+    tapLayer.addEventListener('click',async()=>{
+      await bioAttempt(true);
+      // If we're still locked after the attempt (cancelled/failed), hand over to the dial
+      if(pinLock.style.display!=='none' && !locked) hideTapLayer();
+    });
+  }
+
+  // When the PWA comes back to the foreground while locked, try again automatically
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState!=='visible') return;
+    if(pinLock.style.display==='none' || locked) return;
+    if(bioEnrolled()) bioAttempt(false);
+  });
 
   async function refreshBioUI(){
     const reason=await bioUnavailableReason();
@@ -4628,8 +4665,11 @@ window.applyImport = function(mode){
     pinLock.style.display='flex';
     setTimeout(()=>pinLock.focus(),100);
     refreshBioUI().then(ready=>{
-      // Auto-prompt if enrolled; falls back silently to the dial if the browser needs a gesture
-      if(ready && document.visibilityState==='visible') setTimeout(()=>bioAttempt(false),350);
+      if(!ready) return;
+      showTapLayer();
+      // Auto-fire where the browser allows it (desktop Chrome/Edge, Android). iOS will
+      // throw NotAllowedError until the user taps — the tap layer handles that.
+      if(document.visibilityState==='visible') setTimeout(()=>bioAttempt(false),350);
     });
   }
 
