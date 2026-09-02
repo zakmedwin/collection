@@ -784,6 +784,11 @@ body{background:var(--bg);color:var(--fg)}
 .home-alert-title{font-size:14px;font-weight:500;letter-spacing:-.01em;line-height:1.2}
 .home-alert-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--muted);margin-top:2px}
 .home-alert-arrow{color:var(--muted-2);flex:none}
+.home-alert-dismiss{
+  width:28px;height:28px;background:transparent;border:1px solid var(--line);color:var(--muted);
+  cursor:pointer;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;flex:none;
+}
+.home-alert-dismiss:hover{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 
 .home-actions{
   display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:20px 20px 0;
@@ -1168,6 +1173,15 @@ body{background:var(--bg);color:var(--fg)}
   height:16px;text-align:center;margin-top:22px;
 }
 .pin-error.bad{color:#ff8c8c}
+.pin-setup{
+  position:relative;z-index:1;margin-top:8px;
+  background:transparent;border:none;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;color:rgba(240,240,238,.55);
+  padding:8px 12px;-webkit-tap-highlight-color:transparent;
+  border-bottom:1px solid rgba(240,240,238,.25);
+}
+.pin-setup:hover{color:var(--lock-paper);border-bottom-color:var(--lock-paper)}
 
 @media(min-width:769px){
   .pin-face{--size:340px;--key:56px}
@@ -1570,6 +1584,7 @@ body{background:var(--bg);color:var(--fg)}
   </div>
 
   <div class="pin-error" id="pinError"></div>
+  <button class="pin-setup" id="pinBioSetup" style="display:none">Set up <span id="pinBioSetupName">biometrics</span> →</button>
 </div>
 
 <!-- TOAST -->
@@ -1951,9 +1966,9 @@ body{background:var(--bg);color:var(--fg)}
         <div class="t-tool-name">Security</div>
         <div class="t-helper">Change your PIN code</div>
       </div>
-      <div class="tool-item" id="tool-bio" style="display:none">
+      <div class="tool-item" id="tool-bio">
         <div class="t-tool-name">Biometric unlock</div>
-        <div class="t-helper" id="toolBioHelper">Use Face ID, Touch ID, or fingerprint instead of your PIN</div>
+        <div class="t-helper" id="toolBioHelper">Checking this device…</div>
       </div>
     </div>
     <div style="height:24px"></div>
@@ -4441,14 +4456,17 @@ window.applyImport = function(mode){
               : isAndroid ? 'fingerprint or face'
               : 'biometrics';
 
-  async function bioAvailable(){
+  // Returns '' when available, otherwise a short human reason
+  async function bioUnavailableReason(){
     try{
-      if(!window.isSecureContext) return false;
-      if(!window.PublicKeyCredential) return false;
-      if(!PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) return false;
-      return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-    }catch(e){ return false; }
+      if(!window.isSecureContext) return 'Needs HTTPS';
+      if(!window.PublicKeyCredential) return 'Not supported in this browser';
+      if(!PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) return 'Not supported in this browser';
+      const ok=await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      return ok ? '' : 'No biometric sensor found';
+    }catch(e){ return 'Not supported in this browser'; }
   }
+  async function bioAvailable(){ return (await bioUnavailableReason())===''; }
   function bioEnrolled(){ return !!localStorage.getItem(BIO_KEY); }
   function b64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
   function unb64(s){ return Uint8Array.from(atob(s),c=>c.charCodeAt(0)); }
@@ -4505,49 +4523,99 @@ window.applyImport = function(mode){
   bioBtn.addEventListener('click',()=>bioAttempt(true));
 
   async function refreshBioUI(){
-    const avail=await bioAvailable();
+    const reason=await bioUnavailableReason();
+    const avail=reason==='';
     const enrolled=bioEnrolled();
     bioLabel.textContent=`Unlock with ${bioName}`;
     bioBtn.style.display=(avail&&enrolled)?'flex':'none';
-    // Tools card
-    const tool=document.getElementById('tool-bio');
+    if(setupBtn){
+      if(setupName) setupName.textContent=bioName;
+      setupBtn.style.display=(avail&&!enrolled&&!pendingEnroll)?'inline-block':'none';
+    }
     const helper=document.getElementById('toolBioHelper');
-    if(tool){
-      tool.style.display=avail?'block':'none';
-      if(helper) helper.textContent=enrolled ? `${bioName} is on · tap to turn off` : `Use ${bioName} instead of your PIN`;
+    if(helper){
+      helper.textContent = !avail ? `Not available · ${reason}`
+                         : enrolled ? `${bioName} is on · tap to turn off`
+                         : `Not set up · tap to enable ${bioName}`;
     }
     return avail&&enrolled;
   }
 
-  // Offer once, after the first successful PIN unlock on a capable device
-  async function maybeOfferBiometrics(){
-    if(bioEnrolled()) return;
-    if(localStorage.getItem(BIO_PROMPTED_KEY)) return;
-    if(!(await bioAvailable())) return;
-    localStorage.setItem(BIO_PROMPTED_KEY,'1');
-    setTimeout(()=>{
-      showToast(`Unlock faster with ${bioName}?`,9000,{
-        label:'Enable',
-        fn:async()=>{
-          try{ await bioEnroll(); showToast(`${bioName} enabled ✓`); refreshBioUI(); }
-          catch(e){ showToast(`Couldn't set up ${bioName}`); }
-        }
-      });
-    },1200);
+  // Enrollment always happens AFTER a successful PIN, so nobody can enroll their face without the code.
+  const BIO_DISMISSED_KEY='tc_bio_dismissed_v1';
+  let pendingEnroll=false;
+
+  async function doEnroll(){
+    try{
+      await bioEnroll();
+      showToast(`${bioName} enabled ✓`);
+      localStorage.removeItem(BIO_DISMISSED_KEY);
+    }catch(e){
+      showToast(e&&e.name==='NotAllowedError' ? 'Cancelled' : `Couldn't set up ${bioName}`);
+    }
+    refreshBioUI();
+    if(typeof renderHome==='function') renderHome();
   }
+
+  // Called from succeed(): if the user tapped "Set up" on the lock screen, enroll immediately
+  async function maybeOfferBiometrics(){
+    if(!pendingEnroll) return;
+    pendingEnroll=false;
+    if(bioEnrolled()) return;
+    if(!(await bioAvailable())) return;
+    // small delay so the unlock transition finishes and the system sheet isn't fighting it
+    setTimeout(doEnroll,700);
+  }
+
+  // Lock-screen "Set up" link
+  const setupBtn=document.getElementById('pinBioSetup');
+  const setupName=document.getElementById('pinBioSetupName');
+  if(setupBtn){
+    setupBtn.addEventListener('click',()=>{
+      pendingEnroll=true;
+      setupBtn.style.display='none';
+      setStatus(`Enter passcode to set up`);
+      pinError.textContent=`${bioName} will be enabled after you unlock`;
+      pinError.classList.remove('bad');
+      setTimeout(()=>{ if(pendingEnroll) pinError.textContent=''; },2600);
+    });
+  }
+
+  // Home-screen card (persistent until enabled or dismissed) — exposed for renderHome()
+  window.__bioHomeCard=async function(){
+    if(bioEnrolled()) return '';
+    if(localStorage.getItem(BIO_DISMISSED_KEY)) return '';
+    if(!(await bioAvailable())) return '';
+    return `<div class="home-alert good" id="homeBioCard">
+      <div class="home-alert-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 7.5a4.5 4.5 0 0 0-4.5 4.5v1"/><path d="M12 9.5a2.5 2.5 0 0 0-2.5 2.5v2.5"/><path d="M12 11.5v4"/><path d="M14.5 12a2.5 2.5 0 0 0-2.5-2.5"/><path d="M16.5 13.5V12a4.5 4.5 0 0 0-1.3-3.2"/></svg></div>
+      <div class="home-alert-text">
+        <div class="home-alert-title">Unlock faster with ${bioName}</div>
+        <div class="home-alert-sub">Tap to enable · skips the passcode next time</div>
+      </div>
+      <button class="home-alert-dismiss" id="homeBioDismiss" aria-label="Dismiss">✕</button>
+    </div>`;
+  };
+  window.__bioHomeCardWire=function(){
+    const card=document.getElementById('homeBioCard');
+    if(!card) return;
+    card.addEventListener('click',e=>{ if(e.target.closest('#homeBioDismiss')) return; doEnroll(); });
+    const x=document.getElementById('homeBioDismiss');
+    if(x) x.addEventListener('click',e=>{ e.stopPropagation(); localStorage.setItem(BIO_DISMISSED_KEY,'1'); card.remove(); });
+  };
 
   // Tools card: enroll / remove
   const toolBio=document.getElementById('tool-bio');
   if(toolBio){
     toolBio.addEventListener('click',async()=>{
+      const reason=await bioUnavailableReason();
+      if(reason){ showToast(`Biometrics: ${reason}`); return; }
       if(bioEnrolled()){
         localStorage.removeItem(BIO_KEY);
         showToast(`${bioName} turned off`);
         refreshBioUI();
+        if(typeof renderHome==='function') renderHome();
       } else {
-        try{ await bioEnroll(); showToast(`${bioName} enabled ✓`); }
-        catch(e){ showToast(e&&e.name==='NotAllowedError' ? 'Cancelled' : `Couldn't set up ${bioName}`); }
-        refreshBioUI();
+        doEnroll();
       }
     });
   }
@@ -4733,6 +4801,14 @@ function renderHome(){
   }
 
   alerts.innerHTML = alertHTML.join('');
+  // Biometric setup card (async; prepends when available)
+  if(window.__bioHomeCard){
+    window.__bioHomeCard().then(html => {
+      if(!html || document.getElementById('homeBioCard')) return;
+      alerts.insertAdjacentHTML('afterbegin', html);
+      window.__bioHomeCardWire();
+    });
+  }
   alerts.querySelectorAll('.home-alert').forEach(el => {
     el.addEventListener('click', () => {
       const goto = el.dataset.goto;
