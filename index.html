@@ -4567,7 +4567,7 @@ window.applyImport = function(mode){
     bioBtn.style.display=(avail&&enrolled)?'flex':'none';
     if(setupBtn){
       if(setupName) setupName.textContent=bioName;
-      setupBtn.style.display=(avail&&!enrolled&&!pendingEnroll)?'inline-block':'none';
+      setupBtn.style.display=(avail&&!enrolled)?'inline-block':'none';
     }
     const helper=document.getElementById('toolBioHelper');
     if(helper){
@@ -4595,26 +4595,28 @@ window.applyImport = function(mode){
   }
 
   // Called from succeed(): if the user tapped "Set up" on the lock screen, enroll immediately
-  async function maybeOfferBiometrics(){
-    if(!pendingEnroll) return;
-    pendingEnroll=false;
-    if(bioEnrolled()) return;
-    if(!(await bioAvailable())) return;
-    // small delay so the unlock transition finishes and the system sheet isn't fighting it
-    setTimeout(doEnroll,700);
-  }
+  async function maybeOfferBiometrics(){ /* enrollment is direct now — nothing to do after PIN */ }
 
   // Lock-screen "Set up" link
   const setupBtn=document.getElementById('pinBioSetup');
   const setupName=document.getElementById('pinBioSetupName');
   if(setupBtn){
-    setupBtn.addEventListener('click',()=>{
-      pendingEnroll=true;
+    setupBtn.addEventListener('click',async()=>{
+      if(locked) return;
       setupBtn.style.display='none';
-      setStatus(`Enter passcode to set up`);
-      pinError.textContent=`${bioName} will be enabled after you unlock`;
-      pinError.classList.remove('bad');
-      setTimeout(()=>{ if(pendingEnroll) pinError.textContent=''; },2600);
+      setStatus('Verifying…');
+      try{
+        await bioEnroll();           // the system's own Face ID / Touch ID prompt IS the verification
+        localStorage.removeItem(BIO_DISMISSED_KEY);
+        succeed();                   // enrolled + unlocked in one motion
+      }catch(e){
+        setStatus('Enter passcode');
+        refreshBioUI();
+        if(!(e&&e.name==='NotAllowedError')){
+          pinError.textContent=`Couldn't set up ${bioName}`; pinError.classList.add('bad');
+          setTimeout(()=>{ pinError.textContent=''; pinError.classList.remove('bad'); },1800);
+        }
+      }
     });
   }
 
