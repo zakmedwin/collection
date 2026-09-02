@@ -1521,10 +1521,14 @@ body{background:var(--bg);color:var(--fg)}
     <span class="pin-bio-ring">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 8V6a2 2 0 0 1 2-2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M20 16v2a2 2 0 0 1-2 2h-2"/><path d="M8 20H6a2 2 0 0 1-2-2v-2"/>
-        <path d="M9 10v1"/><path d="M15 10v1"/><path d="M9.5 15a3.5 3.5 0 0 0 5 0"/>
+        <path d="M12 7.5a4.5 4.5 0 0 0-4.5 4.5v1"/>
+        <path d="M12 9.5a2.5 2.5 0 0 0-2.5 2.5v2.5"/>
+        <path d="M12 11.5v4"/>
+        <path d="M14.5 12a2.5 2.5 0 0 0-2.5-2.5"/>
+        <path d="M16.5 13.5V12a4.5 4.5 0 0 0-1.3-3.2"/>
       </svg>
     </span>
-    <span class="pin-bio-label" id="pinBioLabel">Unlock with Face ID</span>
+    <span class="pin-bio-label" id="pinBioLabel">Unlock with biometrics</span>
   </button>
 
   <div class="pin-face-wrap">
@@ -1949,7 +1953,7 @@ body{background:var(--bg);color:var(--fg)}
       </div>
       <div class="tool-item" id="tool-bio" style="display:none">
         <div class="t-tool-name">Biometric unlock</div>
-        <div class="t-helper" id="toolBioHelper">Use Face ID or Touch ID instead of your PIN</div>
+        <div class="t-helper" id="toolBioHelper">Use Face ID, Touch ID, or fingerprint instead of your PIN</div>
       </div>
     </div>
     <div style="height:24px"></div>
@@ -4423,9 +4427,19 @@ window.applyImport = function(mode){
   });
 
   // ── BIOMETRICS (WebAuthn platform authenticator)
-  const isApple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
-  const isMacLike=/Macintosh/.test(navigator.userAgent);
-  const bioName=isApple ? (isMacLike ? 'Touch ID' : 'Face ID') : 'biometrics';
+  // Label by platform. Apple doesn't expose Face ID vs Touch ID to the web,
+  // so iPhone/iPad get Apple's own combined wording. The system prompt itself
+  // always shows the correct one.
+  const ua=navigator.userAgent;
+  const isIOS=/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1); // iPadOS masquerades as Mac
+  const isMac=/Macintosh/.test(ua) && !isIOS;
+  const isWin=/Windows/.test(ua);
+  const isAndroid=/Android/.test(ua);
+  const bioName= isIOS ? 'Face ID / Touch ID'
+              : isMac ? 'Touch ID'
+              : isWin ? 'Windows Hello'
+              : isAndroid ? 'fingerprint or face'
+              : 'biometrics';
 
   async function bioAvailable(){
     try{
