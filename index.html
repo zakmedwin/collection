@@ -828,6 +828,7 @@ body{background:var(--bg);color:var(--fg)}
 }
 .home-alert-dismiss:hover{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 
+
 .home-actions{
   display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:20px 20px 0;
 }
@@ -1070,28 +1071,6 @@ body{background:var(--bg);color:var(--fg)}
   letter-spacing:.16em;text-transform:uppercase;color:rgba(240,240,238,.6);
 }
 
-/* Biometric button */
-.pin-bio{
-  position:relative;z-index:1;
-  display:flex;flex-direction:column;align-items:center;gap:8px;
-  background:transparent;border:none;color:var(--lock-paper);cursor:pointer;
-  margin-bottom:18px;padding:4px 10px;
-  -webkit-tap-highlight-color:transparent;
-}
-.pin-bio-ring{
-  width:52px;height:52px;border:1px solid rgba(240,240,238,.55);
-  display:flex;align-items:center;justify-content:center;
-  transition:background .15s,border-color .15s,transform .15s;
-}
-.pin-bio-ring svg{width:26px;height:26px}
-.pin-bio:hover .pin-bio-ring,.pin-bio:active .pin-bio-ring{background:var(--lock-paper);color:var(--lock-navy);border-color:var(--lock-paper)}
-.pin-bio:active .pin-bio-ring{transform:scale(.96)}
-.pin-bio-label{
-  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
-  letter-spacing:.16em;text-transform:uppercase;color:rgba(240,240,238,.75);
-}
-.pin-bio.busy .pin-bio-ring{animation:pinBioPulse 1.1s ease-in-out infinite}
-@keyframes pinBioPulse{0%,100%{box-shadow:0 0 0 0 rgba(240,240,238,.28)}50%{box-shadow:0 0 0 10px rgba(240,240,238,0)}}
 
 /* The dial */
 .pin-face-wrap{position:relative;z-index:1}
@@ -1211,27 +1190,34 @@ body{background:var(--bg);color:var(--fg)}
   height:16px;text-align:center;margin-top:22px;
 }
 .pin-error.bad{color:#ff8c8c}
+.pin-bio{
+  position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:8px;
+  background:transparent;border:none;color:var(--lock-paper);cursor:pointer;
+  margin-bottom:18px;padding:4px 10px;-webkit-tap-highlight-color:transparent;
+}
+.pin-bio-ring{
+  width:52px;height:52px;border:1px solid rgba(240,240,238,.55);
+  display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s,transform .15s;
+}
+.pin-bio-ring svg{width:26px;height:26px}
+.pin-bio:hover .pin-bio-ring,.pin-bio:active .pin-bio-ring{background:var(--lock-paper);color:var(--lock-navy);border-color:var(--lock-paper)}
+.pin-bio:active .pin-bio-ring{transform:scale(.96)}
+.pin-bio-label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(240,240,238,.75)}
+.pin-bio.busy .pin-bio-ring{animation:pinBioPulse 1.1s ease-in-out infinite}
+@keyframes pinBioPulse{0%,100%{box-shadow:0 0 0 0 rgba(240,240,238,.28)}50%{box-shadow:0 0 0 10px rgba(240,240,238,0)}}
 .pin-setup{
-  position:relative;z-index:1;margin-top:8px;
-  background:transparent;border:none;cursor:pointer;
-  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
-  letter-spacing:.18em;text-transform:uppercase;color:rgba(240,240,238,.55);
-  padding:8px 12px;-webkit-tap-highlight-color:transparent;
-  border-bottom:1px solid rgba(240,240,238,.25);
+  position:relative;z-index:1;margin-top:8px;background:transparent;border:none;cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(240,240,238,.55);padding:8px 12px;-webkit-tap-highlight-color:transparent;border-bottom:1px solid rgba(240,240,238,.25);
 }
 .pin-setup:hover{color:var(--lock-paper);border-bottom-color:var(--lock-paper)}
 .pin-tap-layer{
-  position:absolute;inset:0;z-index:20;cursor:pointer;
-  display:flex;align-items:flex-end;justify-content:center;
-  padding-bottom:max(34px, env(safe-area-inset-bottom, 34px));
-  -webkit-tap-highlight-color:transparent;
+  position:absolute;inset:0;z-index:20;cursor:pointer;display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:max(34px, env(safe-area-inset-bottom, 34px));-webkit-tap-highlight-color:transparent;
 }
-.pin-tap-hint{
-  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
-  letter-spacing:.2em;text-transform:uppercase;color:rgba(240,240,238,.7);
-  animation:pinHint 2.4s ease-in-out infinite;
-}
+.pin-tap-hint{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(240,240,238,.7);animation:pinHint 2.4s ease-in-out infinite}
 @keyframes pinHint{0%,100%{opacity:.45}50%{opacity:1}}
+
 
 @media(min-width:769px){
   .pin-face{--size:340px;--key:56px}
@@ -1581,15 +1567,12 @@ body{background:var(--bg);color:var(--fg)}
     <div class="pin-brand-sub">Personal Archive · Vol. IX · MMXXVI</div>
   </div>
 
+
   <button class="pin-bio" id="pinBioBtn" style="display:none" aria-label="Unlock with biometrics">
     <span class="pin-bio-ring">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 8V6a2 2 0 0 1 2-2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M20 16v2a2 2 0 0 1-2 2h-2"/><path d="M8 20H6a2 2 0 0 1-2-2v-2"/>
-        <path d="M12 7.5a4.5 4.5 0 0 0-4.5 4.5v1"/>
-        <path d="M12 9.5a2.5 2.5 0 0 0-2.5 2.5v2.5"/>
-        <path d="M12 11.5v4"/>
-        <path d="M14.5 12a2.5 2.5 0 0 0-2.5-2.5"/>
-        <path d="M16.5 13.5V12a4.5 4.5 0 0 0-1.3-3.2"/>
+        <path d="M12 7.5a4.5 4.5 0 0 0-4.5 4.5v1"/><path d="M12 9.5a2.5 2.5 0 0 0-2.5 2.5v2.5"/><path d="M12 11.5v4"/><path d="M14.5 12a2.5 2.5 0 0 0-2.5-2.5"/><path d="M16.5 13.5V12a4.5 4.5 0 0 0-1.3-3.2"/>
       </svg>
     </span>
     <span class="pin-bio-label" id="pinBioLabel">Unlock with biometrics</span>
@@ -1635,7 +1618,6 @@ body{background:var(--bg);color:var(--fg)}
 
   <div class="pin-error" id="pinError"></div>
   <button class="pin-setup" id="pinBioSetup" style="display:none">Set up <span id="pinBioSetupName">biometrics</span> →</button>
-  <!-- When biometrics are on: the whole screen is the unlock button -->
   <div class="pin-tap-layer" id="pinTapLayer" style="display:none">
     <div class="pin-tap-hint" id="pinTapHint">Tap anywhere to unlock</div>
   </div>
@@ -4398,8 +4380,6 @@ window.applyImport = function(mode){
   const DEFAULT_PIN='1973';
   const PIN_KEY='wc_pin';
   const SESSION_KEY='wc_unlocked';
-  const BIO_KEY='tc_bio_cred_v1';
-  const BIO_PROMPTED_KEY='tc_bio_prompted_v1';
 
   const pinLock=document.getElementById('pinLock');
   const pinFace=document.getElementById('pinFace');
@@ -4407,8 +4387,6 @@ window.applyImport = function(mode){
   const pinStatus=document.getElementById('pinStatus');
   const pinDots=[0,1,2,3].map(i=>document.getElementById('pd'+i));
   const pinError=document.getElementById('pinError');
-  const bioBtn=document.getElementById('pinBioBtn');
-  const bioLabel=document.getElementById('pinBioLabel');
   let entered='';
   let handAngle=0;        // cumulative, so we can always take the shortest path
   let locked=false;       // during shake/unlock animations
@@ -4475,7 +4453,6 @@ window.applyImport = function(mode){
     setTimeout(()=>{
       pinLock.style.display='none';
       showCoverPage();
-      maybeOfferBiometrics();
     },560);
   }
 
@@ -4522,22 +4499,33 @@ window.applyImport = function(mode){
     } else if(e.key==='Enter' && entered.length===4){ tryUnlock(); }
   });
 
-  // ── BIOMETRICS (WebAuthn platform authenticator)
-  // Label by platform. Apple doesn't expose Face ID vs Touch ID to the web,
-  // so iPhone/iPad get Apple's own combined wording. The system prompt itself
-  // always shows the correct one.
+
+  // ── BIOMETRICS (WebAuthn passkey, platform authenticator)
+  // Source of truth is the passkey in the OS keychain — NOT localStorage — so it works
+  // across Safari and the home-screen app, and across www / non-www.
+  const BIO_KEY='tc_bio_enrolled_v2';          // hint only: "we've unlocked with a passkey in this context before"
+  const BIO_DISMISSED_KEY='tc_bio_dismissed_v2';
+  const BIO_LAST_ERR='tc_bio_last_error';
+  const bioBtn=document.getElementById('pinBioBtn');
+  const bioLabel=document.getElementById('pinBioLabel');
+  const setupBtn=document.getElementById('pinBioSetup');
+  const setupName=document.getElementById('pinBioSetupName');
+  const tapLayer=document.getElementById('pinTapLayer');
+  const tapHint=document.getElementById('pinTapHint');
+
   const ua=navigator.userAgent;
-  const isIOS=/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1); // iPadOS masquerades as Mac
+  const isIOS=/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints>1);
   const isMac=/Macintosh/.test(ua) && !isIOS;
   const isWin=/Windows/.test(ua);
   const isAndroid=/Android/.test(ua);
-  const bioName= isIOS ? 'Face ID / Touch ID'
-              : isMac ? 'Touch ID'
-              : isWin ? 'Windows Hello'
-              : isAndroid ? 'fingerprint or face'
-              : 'biometrics';
+  const bioName= isIOS ? 'Face ID / Touch ID' : isMac ? 'Touch ID' : isWin ? 'Windows Hello' : isAndroid ? 'fingerprint or face' : 'biometrics';
 
-  // Returns '' when available, otherwise a short human reason
+  // Registrable domain so www.thecollection.watch and thecollection.watch share one passkey
+  const RP_ID = location.hostname.replace(/^www\./,'');
+
+  function recordErr(e){ try{ localStorage.setItem(BIO_LAST_ERR, `${e&&e.name||'Error'}: ${e&&e.message||''}`.slice(0,160)); }catch(_){} }
+  function lastErr(){ try{ return localStorage.getItem(BIO_LAST_ERR)||''; }catch(_){ return ''; } }
+
   async function bioUnavailableReason(){
     try{
       if(!window.isSecureContext) return 'Needs HTTPS';
@@ -4545,149 +4533,113 @@ window.applyImport = function(mode){
       if(!PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) return 'Not supported in this browser';
       const ok=await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
       return ok ? '' : 'No biometric sensor found';
-    }catch(e){ return 'Not supported in this browser'; }
+    }catch(e){ recordErr(e); return 'Not supported in this browser'; }
   }
   async function bioAvailable(){ return (await bioUnavailableReason())===''; }
-  function bioEnrolled(){ return !!localStorage.getItem(BIO_KEY); }
-  function b64(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); }
-  function unb64(s){ return Uint8Array.from(atob(s),c=>c.charCodeAt(0)); }
+  function bioHint(){ return !!localStorage.getItem(BIO_KEY); }
+  function setHint(v){ try{ v ? localStorage.setItem(BIO_KEY,'1') : localStorage.removeItem(BIO_KEY); }catch(_){} }
+  function challenge(){ return crypto.getRandomValues(new Uint8Array(32)); }
 
-  async function bioEnroll(){
-    const cred=await navigator.credentials.create({
+  // Try to unlock with ANY passkey for this domain (discoverable). No allowCredentials on purpose.
+  async function passkeyGet(){
+    const a=await navigator.credentials.get({
+      publicKey:{ challenge:challenge(), rpId:RP_ID, userVerification:'required', timeout:60000 }
+    });
+    return !!a;
+  }
+  // Create a passkey for this domain
+  async function passkeyCreate(){
+    const c=await navigator.credentials.create({
       publicKey:{
-        challenge:crypto.getRandomValues(new Uint8Array(32)),
-        rp:{ name:'The Collection', id:location.hostname },
-        user:{ id:crypto.getRandomValues(new Uint8Array(16)), name:'owner', displayName:'Collection Owner' },
+        challenge:challenge(),
+        rp:{ name:'The Collection', id:RP_ID },
+        user:{ id:crypto.getRandomValues(new Uint8Array(16)), name:'owner', displayName:'The Collection' },
         pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
-        authenticatorSelection:{ authenticatorAttachment:'platform', userVerification:'required', residentKey:'preferred' },
-        timeout:60000,
-        attestation:'none',
+        authenticatorSelection:{ authenticatorAttachment:'platform', userVerification:'required', residentKey:'required', requireResidentKey:true },
+        timeout:60000, attestation:'none',
       }
     });
-    localStorage.setItem(BIO_KEY,b64(cred.rawId));
-    return true;
+    return !!c;
   }
 
-  async function bioVerify(){
-    const stored=localStorage.getItem(BIO_KEY);
-    if(!stored) return false;
-    const assertion=await navigator.credentials.get({
-      publicKey:{
-        challenge:crypto.getRandomValues(new Uint8Array(32)),
-        rpId:location.hostname,
-        allowCredentials:[{ id:unb64(stored), type:'public-key', transports:['internal'] }],
-        userVerification:'required',
-        timeout:60000,
-      }
-    });
-    return !!assertion;
-  }
-
-  async function bioAttempt(fromButton){
-    if(locked) return;
-    bioBtn.classList.add('busy');
-    setStatus('Verifying…');
+  // Unlock attempt: one Face ID / Touch ID, success → in
+  async function bioAttempt(fromUser){
+    if(locked) return false;
+    bioBtn.classList.add('busy'); setStatus('Verifying…');
     try{
-      const ok=await bioVerify();
-      if(ok){ succeed(); return; }
-      setStatus('Enter passcode');
+      if(await passkeyGet()){ setHint(true); succeed(); return true; }
     }catch(e){
-      // NotAllowedError = user cancelled or no gesture yet
-      const layerUp = tapLayer && tapLayer.style.display!=='none';
-      setStatus(layerUp && !fromButton ? 'Tap to unlock' : 'Enter passcode');
-      if(fromButton && e && e.name!=='NotAllowedError'){
-        pinError.textContent=`${bioName} unavailable`; pinError.classList.add('bad');
-        setTimeout(()=>{ pinError.textContent=''; pinError.classList.remove('bad'); },1600);
+      recordErr(e);
+      // A gesture-less auto-attempt on iOS throws NotAllowedError — that's expected, wait for the tap.
+      if(fromUser){
+        if(e&&e.name==='NotAllowedError'){ /* cancelled or no passkey yet */ }
+        else { pinError.textContent=`${bioName}: ${e&&e.name||'error'}`; pinError.classList.add('bad'); setTimeout(()=>{pinError.textContent='';pinError.classList.remove('bad');},2200); }
       }
     }finally{ bioBtn.classList.remove('busy'); }
+    const layerUp = tapLayer && tapLayer.style.display!=='none';
+    setStatus(layerUp && !fromUser ? 'Tap to unlock' : 'Enter passcode');
+    return false;
   }
 
-  bioBtn.addEventListener('click',()=>bioAttempt(true));
+  // "Set up": idempotent. Try an existing passkey first; only create one if none works.
+  async function bioSetup(){
+    if(locked) return;
+    setupBtn.style.display='none'; setStatus('Verifying…');
+    try{
+      try{ if(await passkeyGet()){ setHint(true); succeed(); return; } }
+      catch(e){ recordErr(e); /* no passkey yet, or cancelled — fall through to create */ }
+      await passkeyCreate();
+      setHint(true);
+      localStorage.removeItem(BIO_DISMISSED_KEY);
+      succeed();
+    }catch(e){
+      recordErr(e);
+      setStatus('Enter passcode');
+      refreshBioUI();
+      const msg = (e&&e.name==='NotAllowedError')
+        ? 'Cancelled — if this keeps happening, check iCloud Keychain is on'
+        : `Couldn't set up ${bioName} (${e&&e.name||'error'})`;
+      pinError.textContent=msg; pinError.classList.add('bad');
+      setTimeout(()=>{pinError.textContent='';pinError.classList.remove('bad');},3200);
+    }
+  }
 
-  // Whole-screen tap → biometrics (iOS needs a real tap before it will show Face ID / Touch ID)
-  const tapLayer=document.getElementById('pinTapLayer');
-  const tapHint=document.getElementById('pinTapHint');
   function showTapLayer(){ if(tapLayer){ tapLayer.style.display='flex'; setStatus('Tap to unlock'); if(tapHint) tapHint.textContent=`Tap anywhere for ${bioName}`; } }
   function hideTapLayer(){ if(tapLayer){ tapLayer.style.display='none'; setStatus('Enter passcode'); } }
-  if(tapLayer){
-    tapLayer.addEventListener('click',async()=>{
-      await bioAttempt(true);
-      // If we're still locked after the attempt (cancelled/failed), hand over to the dial
-      if(pinLock.style.display!=='none' && !locked) hideTapLayer();
-    });
-  }
 
-  // When the PWA comes back to the foreground while locked, try again automatically
+  bioBtn.addEventListener('click',()=>bioAttempt(true));
+  if(setupBtn) setupBtn.addEventListener('click',bioSetup);
+  if(tapLayer) tapLayer.addEventListener('click',async()=>{
+    const ok=await bioAttempt(true);
+    if(!ok && pinLock.style.display!=='none' && !locked) hideTapLayer();
+  });
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState!=='visible') return;
     if(pinLock.style.display==='none' || locked) return;
-    if(bioEnrolled()) bioAttempt(false);
+    if(bioHint()) bioAttempt(false);
   });
 
   async function refreshBioUI(){
     const reason=await bioUnavailableReason();
     const avail=reason==='';
-    const enrolled=bioEnrolled();
+    const hint=bioHint();
     bioLabel.textContent=`Unlock with ${bioName}`;
-    bioBtn.style.display=(avail&&enrolled)?'flex':'none';
-    if(setupBtn){
-      if(setupName) setupName.textContent=bioName;
-      setupBtn.style.display=(avail&&!enrolled)?'inline-block':'none';
-    }
+    bioBtn.style.display=(avail&&hint)?'flex':'none';
+    if(setupBtn){ if(setupName) setupName.textContent=bioName; setupBtn.style.display=(avail&&!hint)?'inline-block':'none'; }
     const helper=document.getElementById('toolBioHelper');
     if(helper){
+      const err=lastErr();
       helper.textContent = !avail ? `Not available · ${reason}`
-                         : enrolled ? `${bioName} is on · tap to turn off`
+                         : hint ? `${bioName} is on · tap to turn off`
                          : `Not set up · tap to enable ${bioName}`;
+      if(err && (!avail || !hint)) helper.textContent += ` · last error: ${err}`;
     }
-    return avail&&enrolled;
+    return avail&&hint;
   }
 
-  // Enrollment always happens AFTER a successful PIN, so nobody can enroll their face without the code.
-  const BIO_DISMISSED_KEY='tc_bio_dismissed_v1';
-  let pendingEnroll=false;
-
-  async function doEnroll(){
-    try{
-      await bioEnroll();
-      showToast(`${bioName} enabled ✓`);
-      localStorage.removeItem(BIO_DISMISSED_KEY);
-    }catch(e){
-      showToast(e&&e.name==='NotAllowedError' ? 'Cancelled' : `Couldn't set up ${bioName}`);
-    }
-    refreshBioUI();
-    if(typeof renderHome==='function') renderHome();
-  }
-
-  // Called from succeed(): if the user tapped "Set up" on the lock screen, enroll immediately
-  async function maybeOfferBiometrics(){ /* enrollment is direct now — nothing to do after PIN */ }
-
-  // Lock-screen "Set up" link
-  const setupBtn=document.getElementById('pinBioSetup');
-  const setupName=document.getElementById('pinBioSetupName');
-  if(setupBtn){
-    setupBtn.addEventListener('click',async()=>{
-      if(locked) return;
-      setupBtn.style.display='none';
-      setStatus('Verifying…');
-      try{
-        await bioEnroll();           // the system's own Face ID / Touch ID prompt IS the verification
-        localStorage.removeItem(BIO_DISMISSED_KEY);
-        succeed();                   // enrolled + unlocked in one motion
-      }catch(e){
-        setStatus('Enter passcode');
-        refreshBioUI();
-        if(!(e&&e.name==='NotAllowedError')){
-          pinError.textContent=`Couldn't set up ${bioName}`; pinError.classList.add('bad');
-          setTimeout(()=>{ pinError.textContent=''; pinError.classList.remove('bad'); },1800);
-        }
-      }
-    });
-  }
-
-  // Home-screen card (persistent until enabled or dismissed) — exposed for renderHome()
+  // Home-screen card (persistent until enabled or dismissed)
   window.__bioHomeCard=async function(){
-    if(bioEnrolled()) return '';
+    if(bioHint()) return '';
     if(localStorage.getItem(BIO_DISMISSED_KEY)) return '';
     if(!(await bioAvailable())) return '';
     return `<div class="home-alert good" id="homeBioCard">
@@ -4700,29 +4652,35 @@ window.applyImport = function(mode){
     </div>`;
   };
   window.__bioHomeCardWire=function(){
-    const card=document.getElementById('homeBioCard');
-    if(!card) return;
-    card.addEventListener('click',e=>{ if(e.target.closest('#homeBioDismiss')) return; doEnroll(); });
+    const card=document.getElementById('homeBioCard'); if(!card) return;
+    card.addEventListener('click',async e=>{
+      if(e.target.closest('#homeBioDismiss')) return;
+      try{
+        try{ await passkeyGet(); }catch(_){ await passkeyCreate(); }
+        setHint(true); localStorage.removeItem(BIO_DISMISSED_KEY);
+        showToast(`${bioName} enabled ✓`);
+      }catch(err){ recordErr(err); showToast(err&&err.name==='NotAllowedError' ? 'Cancelled' : `Couldn't set up ${bioName}`); }
+      refreshBioUI(); if(typeof renderHome==='function') renderHome();
+    });
     const x=document.getElementById('homeBioDismiss');
     if(x) x.addEventListener('click',e=>{ e.stopPropagation(); localStorage.setItem(BIO_DISMISSED_KEY,'1'); card.remove(); });
   };
 
-  // Tools card: enroll / remove
+  // Tools card
   const toolBio=document.getElementById('tool-bio');
-  if(toolBio){
-    toolBio.addEventListener('click',async()=>{
-      const reason=await bioUnavailableReason();
-      if(reason){ showToast(`Biometrics: ${reason}`); return; }
-      if(bioEnrolled()){
-        localStorage.removeItem(BIO_KEY);
-        showToast(`${bioName} turned off`);
-        refreshBioUI();
-        if(typeof renderHome==='function') renderHome();
-      } else {
-        doEnroll();
-      }
-    });
-  }
+  if(toolBio) toolBio.addEventListener('click',async()=>{
+    const reason=await bioUnavailableReason();
+    if(reason){ showToast(`Biometrics: ${reason}`); return; }
+    if(bioHint()){
+      setHint(false); showToast(`${bioName} turned off here`); refreshBioUI(); if(typeof renderHome==='function') renderHome();
+      return;
+    }
+    try{
+      try{ await passkeyGet(); }catch(_){ await passkeyCreate(); }
+      setHint(true); localStorage.removeItem(BIO_DISMISSED_KEY); showToast(`${bioName} enabled ✓`);
+    }catch(e){ recordErr(e); showToast(e&&e.name==='NotAllowedError' ? 'Cancelled' : `Couldn't set up ${bioName}`); }
+    refreshBioUI(); if(typeof renderHome==='function') renderHome();
+  });
 
   // ── Boot
   if(sessionStorage.getItem(SESSION_KEY)==='yes'){
@@ -4734,8 +4692,6 @@ window.applyImport = function(mode){
     refreshBioUI().then(ready=>{
       if(!ready) return;
       showTapLayer();
-      // Auto-fire where the browser allows it (desktop Chrome/Edge, Android). iOS will
-      // throw NotAllowedError until the user taps — the tap layer handles that.
       if(document.visibilityState==='visible') setTimeout(()=>bioAttempt(false),350);
     });
   }
@@ -4908,7 +4864,6 @@ function renderHome(){
   }
 
   alerts.innerHTML = alertHTML.join('');
-  // Biometric setup card (async; prepends when available)
   if(window.__bioHomeCard){
     window.__bioHomeCard().then(html => {
       if(!html || document.getElementById('homeBioCard')) return;
