@@ -665,6 +665,209 @@ body{background:var(--bg);color:var(--fg)}
   letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
   border-bottom:1px solid var(--line);
 }
+
+/* Rotation stat grid */
+.rotation-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:0;
+  border-top:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);
+}
+.rot-cell{
+  padding:14px 16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+}
+.rot-cell:nth-child(even){border-right:none}
+.rot-cell:nth-last-child(-n+2){border-bottom:none}
+.rot-cell-l{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;
+}
+.rot-cell-v{font-size:22px;font-weight:500;letter-spacing:-.02em;line-height:1;color:var(--fg)}
+.rot-cell-v .unit{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--muted);margin-left:4px}
+.rot-cell-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);margin-top:3px}
+
+/* Heatmap */
+.heatmap-wrap{
+  display:grid;grid-template-rows:repeat(7,1fr);grid-auto-flow:column;
+  gap:3px;padding:8px 0;
+}
+.heatmap-cell{width:100%;aspect-ratio:1;background:var(--tile);border:1px solid var(--line)}
+.heatmap-l0{background:var(--tile)}
+.heatmap-l1{background:rgba(15,42,110,.18);border-color:rgba(15,42,110,.25)}
+.heatmap-l2{background:rgba(15,42,110,.42);border-color:rgba(15,42,110,.42)}
+.heatmap-l3{background:rgba(15,42,110,.72);border-color:rgba(15,42,110,.72)}
+.heatmap-l4{background:var(--accent);border-color:var(--accent)}
+.heatmap-legend{
+  display:flex;align-items:center;gap:6px;margin-top:10px;
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+}
+.heatmap-legend .heatmap-cell{width:12px;height:12px;flex:none;aspect-ratio:auto}
+
+/* Neglected list */
+.neg-row{
+  display:grid;grid-template-columns:56px 1fr auto;gap:14px;align-items:center;
+  padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer;
+  transition:opacity .12s;
+}
+.neg-row:hover{opacity:.7}
+.neg-row:first-child{border-top:1px solid var(--line-strong)}
+.neg-row:last-child{border-bottom:1px solid var(--line-strong)}
+.neg-thumb{
+  width:56px;height:68px;background:var(--tile);border:1px solid var(--line);
+  overflow:hidden;position:relative;flex:none;
+}
+.neg-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.neg-text{min-width:0}
+.neg-brand{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:2px;
+}
+.neg-model{font-size:14px;font-weight:500;letter-spacing:-.01em;line-height:1.2;margin-bottom:4px}
+.neg-when{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.neg-badge{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:4px 8px;border:1px solid #c05050;color:#c05050;line-height:1;white-space:nowrap;
+}
+.neg-badge.warn{border-color:var(--accent);color:var(--accent)}
+.neg-empty{
+  padding:20px;text-align:center;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  border:1px solid var(--line);
+}
+
+/* Home screen */
+#screen-home{padding:0}
+.home-hero{
+  position:relative;height:280px;overflow:hidden;background:var(--tile);
+  cursor:pointer;border-bottom:1px solid var(--line);
+}
+.home-hero-photo{
+  position:absolute;inset:0;background-size:cover;background-position:center;background-color:var(--tile);
+}
+.home-hero-photo::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom, transparent 30%, rgba(15,42,110,.75) 100%);
+}
+.home-hero-overlay{
+  position:absolute;left:0;right:0;bottom:0;padding:24px 20px;color:#F0F0EE;z-index:1;
+}
+.home-hero-eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;opacity:.85;margin-bottom:4px;
+}
+.home-hero-brand{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;opacity:.9;margin-bottom:4px;
+}
+.home-hero-model{
+  font-size:26px;font-weight:500;letter-spacing:-.02em;line-height:1.1;
+}
+.home-hero-empty{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+}
+
+.home-alerts{padding:20px 20px 0}
+.home-alert{
+  display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;
+  padding:14px 16px;background:var(--tile);border:1px solid var(--line);margin-bottom:8px;
+  cursor:pointer;transition:background .12s,border-color .12s;
+}
+.home-alert:hover{background:var(--bg);border-color:var(--line-strong)}
+.home-alert-icon{
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  color:var(--accent);flex:none;
+}
+.home-alert.warn .home-alert-icon{color:#c05050}
+.home-alert.good .home-alert-icon{color:var(--accent)}
+.home-alert-text{min-width:0}
+.home-alert-title{font-size:14px;font-weight:500;letter-spacing:-.01em;line-height:1.2}
+.home-alert-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--muted);margin-top:2px}
+.home-alert-arrow{color:var(--muted-2);flex:none}
+
+.home-actions{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:0;padding:20px 20px 0;
+}
+.home-action{
+  padding:16px 0;background:var(--bg);border:1px solid var(--line);border-radius:0;
+  color:var(--fg);cursor:pointer;
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  transition:background .12s,color .12s,border-color .12s;
+  border-right:none;
+}
+.home-action:last-child{border-right:1px solid var(--line)}
+.home-action:hover{background:var(--fg);color:var(--bg);border-color:var(--fg);z-index:1}
+.home-action svg{color:var(--accent)}
+.home-action:hover svg{color:var(--bg)}
+
+.home-recent{padding:20px}
+.home-recent-head{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;
+}
+.home-recent-row{
+  display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer;
+  transition:opacity .12s;
+}
+.home-recent-row:hover{opacity:.7}
+.home-recent-row:first-child{border-top:1px solid var(--line-strong)}
+.home-recent-row:last-child{border-bottom:1px solid var(--line-strong)}
+.home-recent-thumb{width:56px;height:68px;background:var(--tile);border:1px solid var(--line);overflow:hidden;position:relative}
+.home-recent-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.home-recent-text{min-width:0}
+.home-recent-brand{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.home-recent-model{font-size:13px;font-weight:500;letter-spacing:-.01em;line-height:1.2}
+.home-recent-when{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--muted)}
+
+/* Sale prep sheet */
+.sale-section{padding:16px 24px;border-bottom:1px solid var(--line)}
+.sale-section-head{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;
+}
+.sale-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px}
+.sale-photo{
+  aspect-ratio:1;background:var(--tile);border:2px solid var(--line);
+  background-size:cover;background-position:center;cursor:pointer;position:relative;
+  transition:border-color .12s;
+}
+.sale-photo.selected{border-color:var(--accent)}
+.sale-photo-check{
+  position:absolute;top:4px;right:4px;
+  width:20px;height:20px;background:var(--bg);border:1px solid var(--line-strong);
+  display:flex;align-items:center;justify-content:center;color:var(--fg);
+  transition:background .12s;
+}
+.sale-photo.selected .sale-photo-check{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.sale-photo-check svg{width:12px;height:12px;stroke:currentColor;stroke-width:3;fill:none;opacity:0}
+.sale-photo.selected .sale-photo-check svg{opacity:1}
+.sale-input{
+  width:100%;padding:10px 12px;border:1px solid var(--line-strong);background:var(--bg);color:var(--fg);
+  font-family:'Inter','Helvetica Neue',sans-serif;font-size:14px;border-radius:0;
+}
+.sale-input:focus{outline:none;border-color:var(--accent)}
+.sale-textarea{min-height:80px;resize:vertical;font-family:inherit}
+.sale-field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.sale-field-l{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+}
+.sale-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--bg)}
+.sale-btn{
+  padding:14px 12px;background:var(--bg);border:none;border-right:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--fg);
+  cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:center;gap:8px;line-height:1;
+  transition:background .12s,color .12s;
+}
+.sale-btn:hover{background:var(--tile)}
+.sale-btn svg{color:var(--accent);flex:none}
+.sale-btn:hover svg{color:var(--fg)}
+.sale-btn:nth-child(even){border-right:none}
+.sale-btn:nth-last-child(-n+2){border-bottom:none}
 .brand-bar-row{display:flex;align-items:baseline;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
 .brand-bar-row:last-child{border-bottom:none}
 .brand-bar-name{font-family:'Inter','Helvetica Neue',sans-serif;font-size:15px;font-weight:500;color:var(--fg);letter-spacing:-.01em}
@@ -1204,8 +1407,37 @@ body{background:var(--bg);color:var(--fg)}
 <!-- APP SHELL -->
 <div id="app">
 
+  <!-- ── SCREEN 0: HOME ── -->
+  <div id="screen-home" class="screen active">
+    <div class="home-hero" id="homeHero">
+      <div class="home-hero-photo" id="homeHeroPhoto"></div>
+      <div class="home-hero-overlay">
+        <div class="home-hero-eyebrow">— Today on view</div>
+        <div class="home-hero-brand" id="homeHeroBrand"></div>
+        <div class="home-hero-model" id="homeHeroModel"></div>
+      </div>
+    </div>
+    <div class="home-alerts" id="homeAlerts"></div>
+    <div class="home-actions">
+      <button class="home-action" data-action="log-today">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6 L10 12 L16 6"/></svg>
+        <span>Log today</span>
+      </button>
+      <button class="home-action" data-action="journal">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="3" width="14" height="14"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="13" x2="11" y2="13"/></svg>
+        <span>Journal</span>
+      </button>
+      <button class="home-action" data-action="add">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
+        <span>Add watch</span>
+      </button>
+    </div>
+    <div class="home-recent" id="homeRecent"></div>
+    <div style="height:24px"></div>
+  </div>
+
   <!-- ── SCREEN 1: COLLECTION LIST ── -->
-  <div id="screen-list" class="screen active">
+  <div id="screen-list" class="screen">
     <div class="list-header">
       <div class="list-header-left">
         <div class="t-screen">The Collection</div>
@@ -1310,6 +1542,7 @@ body{background:var(--bg);color:var(--fg)}
       </div>
       <div class="detail-actions">
         <button class="btn-primary" id="detailEdit">Edit</button>
+        <button class="btn-secondary" id="detailSell">For Sale</button>
         <button class="btn-secondary" id="detailClose">Back</button>
       </div>
       <!-- AI Actions -->
@@ -1434,6 +1667,30 @@ body{background:var(--bg);color:var(--fg)}
         </div>
       </button>
     </div>
+    <!-- Rotation stats -->
+    <div class="insights-section" id="rotationSection" style="display:none">
+      <div class="t-section-label" style="margin-bottom:14px">Rotation</div>
+      <div class="rotation-grid" id="rotationGrid"></div>
+    </div>
+    <!-- Wear heatmap -->
+    <div class="insights-section" id="heatmapSection" style="display:none">
+      <div class="t-section-label" style="margin-bottom:14px">Last 90 Days</div>
+      <div class="heatmap-wrap" id="heatmapWrap"></div>
+      <div class="heatmap-legend">
+        <span>Less</span>
+        <div class="heatmap-cell heatmap-l0"></div>
+        <div class="heatmap-cell heatmap-l1"></div>
+        <div class="heatmap-cell heatmap-l2"></div>
+        <div class="heatmap-cell heatmap-l3"></div>
+        <div class="heatmap-cell heatmap-l4"></div>
+        <span>More</span>
+      </div>
+    </div>
+    <!-- Neglected -->
+    <div class="insights-section" id="neglectedSection" style="display:none">
+      <div class="t-section-label" style="margin-bottom:14px">Neglected · not worn in 60+ days</div>
+      <div id="neglectedList"></div>
+    </div>
     <!-- Brands -->
     <div class="insights-section">
       <div class="t-section-label" style="margin-bottom:14px">Brands</div>
@@ -1537,8 +1794,12 @@ body{background:var(--bg);color:var(--fg)}
 <!-- SEARCH OVERLAY (removed - search bar is in header) -->
 
   <nav id="bottomNav">
-    <div class="nav-inner" style="grid-template-columns:repeat(4,1fr)">
-      <button class="nav-btn active" data-nav="list" aria-label="Collection">
+    <div class="nav-inner" style="grid-template-columns:repeat(5,1fr)">
+      <button class="nav-btn active" data-nav="home" aria-label="Home">
+        <svg viewBox="0 0 20 20"><path d="M2 10 L10 3 L18 10"/><path d="M4 9 L4 17 L16 17 L16 9"/></svg>
+        <span class="t-nav-label">Home</span>
+      </button>
+      <button class="nav-btn" data-nav="list" aria-label="Collection">
         <svg viewBox="0 0 20 20"><rect x="2" y="2" width="7" height="7"/><rect x="11" y="2" width="7" height="7"/><rect x="2" y="11" width="7" height="7"/><rect x="11" y="11" width="7" height="7"/></svg>
         <span class="t-nav-label">Collection</span>
       </button>
@@ -1690,6 +1951,15 @@ body{background:var(--bg);color:var(--fg)}
   </div>
 </div>
 
+<!-- PREPARE FOR SALE OVERLAY -->
+<div class="overlay" id="saleOverlay">
+  <div class="overlay-header">
+    <div class="t-form">Prepare for Sale</div>
+    <button class="overlay-close" id="saleClose">✕</button>
+  </div>
+  <div class="overlay-body" style="padding:0" id="saleBody"></div>
+</div>
+
 <!-- SORT SHEET -->
 <div class="overlay" id="sortSheet">
   <div class="overlay-header">
@@ -1780,7 +2050,7 @@ let customWatches = [];
 let subCols = [];
 let wishWatches = [];
 let photos = {};
-let currentView = 'list';
+let currentView = 'home';
 let selectedId = null;
 let query = '';
 let activeSub = 'all';
@@ -2006,9 +2276,9 @@ function navigate(view){
   document.getElementById('screen-'+view).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));
   currentView=view;
-  // Scroll active screen to top
   const screen = document.getElementById('screen-'+view);
   if(screen) screen.scrollTop = 0;
+  if(view==='home') renderHome();
   if(view==='list'){ renderList(); buildChips(); }
   if(view==='insights') renderInsights();
   if(view==='tools') renderTools();
@@ -2613,11 +2883,6 @@ function updateSwipePosition(animate){
   document.querySelectorAll('.photo-dot').forEach((d,i)=>d.classList.toggle('active', i===detailPhotoIdx));
 }
 
-function updateDesktopThumbs(){
-  document.querySelectorAll('.d-thumb').forEach((t,i)=>t.classList.toggle('active', i===detailPhotoIdx));
-  updateSwipePosition(true);
-}
-
 async function updateDesktopThumbs(){
   document.querySelectorAll('.d-thumb').forEach((t,i)=>t.classList.toggle('active', i===detailPhotoIdx));
   await updateSwipePosition(true);
@@ -2962,6 +3227,215 @@ function renderInsights(){
   } else {
     vsEl.style.display = 'none';
   }
+
+  renderWearAnalytics(watches);
+}
+
+// ── WEAR ANALYTICS ──
+function renderWearAnalytics(watches){
+  renderRotation(watches);
+  renderHeatmap(watches);
+  renderNeglected(watches);
+}
+
+function renderRotation(watches){
+  const section = document.getElementById('rotationSection');
+  const grid = document.getElementById('rotationGrid');
+  const withWears = watches.filter(w => (w.wearLog||[]).length > 0);
+  if(!withWears.length){ section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  // All unique wear dates across the whole collection
+  const allDays = new Set();
+  watches.forEach(w => (w.wearLog||[]).forEach(d => allDays.add(String(d).slice(0,10))));
+  const daysWithAnyWear = allDays.size;
+
+  // Current streak: consecutive days up to today (or yesterday) where SOMETHING was worn
+  const today = todayLocalStr();
+  const dayMs = 86400000;
+  const todayDate = parseLocalDate(today);
+  let currentStreak = 0;
+  const wornSet = allDays;
+  // Start from today; if not worn today, start from yesterday (a common rule so a not-yet-logged day doesn't break the streak)
+  let cursor = new Date(todayDate);
+  if(!wornSet.has(today)){ cursor.setTime(cursor.getTime() - dayMs); }
+  while(true){
+    const key = `${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}-${String(cursor.getDate()).padStart(2,'0')}`;
+    if(wornSet.has(key)){ currentStreak++; cursor.setTime(cursor.getTime() - dayMs); }
+    else break;
+    if(currentStreak > 10000) break; // safety
+  }
+
+  // Longest streak across the whole log
+  const sortedDays = [...wornSet].sort();
+  let longest = 0, run = 0, prev = null;
+  sortedDays.forEach(k => {
+    const d = parseLocalDate(k);
+    if(prev && (d.getTime() - prev.getTime()) === dayMs){ run++; }
+    else { run = 1; }
+    if(run > longest) longest = run;
+    prev = d;
+  });
+
+  // Rotation concentration: top 3 watches' share of total wears
+  const totalWears = watches.reduce((s,w)=>s + new Set((w.wearLog||[]).map(d=>String(d).slice(0,10))).size, 0);
+  const byCount = watches.map(w => ({w, n: new Set((w.wearLog||[]).map(d=>String(d).slice(0,10))).size})).sort((a,b)=>b.n-a.n);
+  const top3sum = byCount.slice(0,3).reduce((s,x)=>s+x.n, 0);
+  const top3pct = totalWears ? Math.round((top3sum/totalWears)*100) : 0;
+  const activeCount = byCount.filter(x => x.n > 0).length;
+
+  grid.innerHTML = `
+    <div class="rot-cell">
+      <div class="rot-cell-l">Current streak</div>
+      <div class="rot-cell-v">${currentStreak}<span class="unit">day${currentStreak!==1?'s':''}</span></div>
+      <div class="rot-cell-sub">${currentStreak > 0 ? 'Keep it going' : 'Log a wear today'}</div>
+    </div>
+    <div class="rot-cell">
+      <div class="rot-cell-l">Longest streak</div>
+      <div class="rot-cell-v">${longest}<span class="unit">day${longest!==1?'s':''}</span></div>
+      <div class="rot-cell-sub">Any watch in rotation</div>
+    </div>
+    <div class="rot-cell">
+      <div class="rot-cell-l">Top 3 share</div>
+      <div class="rot-cell-v">${top3pct}<span class="unit">%</span></div>
+      <div class="rot-cell-sub">${top3pct > 70 ? 'Heavy favorites' : top3pct > 50 ? 'Some concentration' : 'Well distributed'}</div>
+    </div>
+    <div class="rot-cell">
+      <div class="rot-cell-l">In rotation</div>
+      <div class="rot-cell-v">${activeCount}<span class="unit">of ${watches.length}</span></div>
+      <div class="rot-cell-sub">Watches with any wear</div>
+    </div>`;
+}
+
+function renderHeatmap(watches){
+  const section = document.getElementById('heatmapSection');
+  const wrap = document.getElementById('heatmapWrap');
+  const anyWears = watches.some(w => (w.wearLog||[]).length > 0);
+  if(!anyWears){ section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  // Count wears per day
+  const dayCounts = {};
+  watches.forEach(w => {
+    (w.wearLog||[]).forEach(d => {
+      const k = String(d).slice(0,10);
+      dayCounts[k] = (dayCounts[k]||0) + 1;
+    });
+  });
+
+  // Build 90 days ending today, grid orientation: rows = weekday (Sun-Sat), cols = weeks
+  const today = new Date();
+  const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const dayMs = 86400000;
+
+  // Start from 90 days ago, then round back to the previous Sunday so weeks align
+  const startDate = new Date(todayLocal.getTime() - 89*dayMs);
+  const startSunday = new Date(startDate);
+  startSunday.setDate(startSunday.getDate() - startSunday.getDay()); // back to Sunday
+
+  const totalDays = Math.round((todayLocal - startSunday)/dayMs) + 1;
+  const weeks = Math.ceil(totalDays / 7);
+
+  wrap.style.gridTemplateColumns = `repeat(${weeks},1fr)`;
+
+  let cells = '';
+  for(let w = 0; w < weeks; w++){
+    for(let d = 0; d < 7; d++){
+      const cellDate = new Date(startSunday.getTime() + (w*7 + d)*dayMs);
+      if(cellDate < startDate || cellDate > todayLocal){
+        cells += `<div class="heatmap-cell heatmap-empty" style="opacity:.15"></div>`;
+        continue;
+      }
+      const k = `${cellDate.getFullYear()}-${String(cellDate.getMonth()+1).padStart(2,'0')}-${String(cellDate.getDate()).padStart(2,'0')}`;
+      const cnt = dayCounts[k] || 0;
+      let level = 0;
+      if(cnt === 1) level = 1;
+      else if(cnt === 2) level = 2;
+      else if(cnt === 3) level = 3;
+      else if(cnt >= 4) level = 4;
+      const label = cnt ? `${cnt} watch${cnt!==1?'es':''} · ${k}` : `No wears · ${k}`;
+      cells += `<div class="heatmap-cell heatmap-l${level}" title="${label}"></div>`;
+    }
+  }
+  wrap.innerHTML = cells;
+}
+
+function renderNeglected(watches){
+  const section = document.getElementById('neglectedSection');
+  const list = document.getElementById('neglectedList');
+  const threshold = 60; // days
+  const today = new Date();
+  const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const dayMs = 86400000;
+
+  // Only show if there's at least one watch that HAS been worn (otherwise it's just "you haven't started")
+  const anyWears = watches.some(w => (w.wearLog||[]).length > 0);
+  if(!anyWears){ section.style.display = 'none'; return; }
+
+  const neglected = watches.filter(w => {
+    const wl = w.wearLog || [];
+    if(!wl.length) return true; // never worn counts as neglected
+    const last = parseLocalDate(wl[wl.length-1]);
+    if(!last) return false;
+    return Math.floor((todayLocal - last)/dayMs) >= threshold;
+  }).map(w => {
+    const wl = w.wearLog || [];
+    if(!wl.length) return { w, days: null, label: 'Never worn' };
+    const last = parseLocalDate(wl[wl.length-1]);
+    const days = Math.floor((todayLocal - last)/dayMs);
+    return { w, days, label: `${days}d ago` };
+  });
+
+  if(!neglected.length){
+    section.style.display = 'block';
+    list.innerHTML = `<div class="neg-empty">Nothing neglected — well-rotated collection ✓</div>`;
+    return;
+  }
+
+  // Sort: never worn first, then longest-neglected first
+  neglected.sort((a,b) => {
+    if(a.days === null && b.days === null) return 0;
+    if(a.days === null) return -1;
+    if(b.days === null) return 1;
+    return b.days - a.days;
+  });
+
+  section.style.display = 'block';
+  list.innerHTML = neglected.slice(0, 10).map(x => {
+    const {w, days, label} = x;
+    const isNever = days === null;
+    return `<div class="neg-row" data-wid="${w.id}">
+      <div class="neg-thumb" data-photo-slot="${w.id}"></div>
+      <div class="neg-text">
+        <div class="neg-brand">${w.brand||''}</div>
+        <div class="neg-model">${composeModel(w)}</div>
+        <div class="neg-when">${label}</div>
+      </div>
+      <div class="neg-badge ${isNever?'':(days>=180?'':'warn')}">${isNever?'Never':label}</div>
+    </div>`;
+  }).join('');
+
+  // Wire up taps
+  list.querySelectorAll('.neg-row').forEach(el => {
+    el.addEventListener('click', () => {
+      const w = watches.find(x => x.id === el.dataset.wid);
+      if(w) openDetail(w);
+    });
+  });
+
+  // Async photo thumbs
+  list.querySelectorAll('[data-photo-slot]').forEach(slot => {
+    const id = slot.dataset.photoSlot;
+    const w = watches.find(x => x.id === id);
+    if(!w) return;
+    const pk = photoKey(w);
+    const imgs = getPhotos(pk);
+    if(imgs.length){
+      resolvePhotoRef(imgs[0]).then(src => {
+        if(src) slot.innerHTML = `<img src="${src}" alt="">`;
+      });
+    }
+  });
 }
 
 function renderTools(){
@@ -3740,6 +4214,496 @@ document.querySelectorAll('.theme-card').forEach(c=>{
 // Mode buttons in tools
 document.getElementById('toolsLightBtn').addEventListener('click',()=>{ dark=false; applyTheme(); });
 document.getElementById('toolsDarkBtn').addEventListener('click',()=>{ dark=true; applyTheme(); });
+
+// ── HOME SCREEN ──
+function renderHome(){
+  const watches = active();
+
+  // Hero: today's featured watch (same as cover page — daily rotation)
+  const hero = document.getElementById('homeHero');
+  const heroPhoto = document.getElementById('homeHeroPhoto');
+  const heroBrand = document.getElementById('homeHeroBrand');
+  const heroModel = document.getElementById('homeHeroModel');
+  if(watches.length){
+    const _d = new Date();
+    const dayIdx = Math.floor((_d.getTime() - _d.getTimezoneOffset()*60000) / 86400000);
+    const w = watches[dayIdx % watches.length];
+    heroBrand.textContent = (w.brand||'') + (w.year ? ' · '+w.year : '');
+    heroModel.textContent = composeModel(w);
+    heroPhoto.style.backgroundImage = '';
+    const pk = photoKey(w);
+    const imgs = getPhotos(pk);
+    if(imgs.length){
+      resolvePhotoRef(imgs[0]).then(src => {
+        if(src) heroPhoto.style.backgroundImage = `url("${src.replace(/"/g,'\\"')}")`;
+      });
+    }
+    hero.onclick = () => openDetail(w);
+    hero.style.cursor = 'pointer';
+  } else {
+    heroBrand.textContent = '';
+    heroModel.textContent = '';
+    heroPhoto.innerHTML = `<div class="home-hero-empty">No watches yet — add one below</div>`;
+    hero.onclick = null;
+  }
+
+  // Alerts: service warnings, neglected count, streak
+  const alerts = document.getElementById('homeAlerts');
+  const alertHTML = [];
+
+  // Service alerts
+  const svcOverdue = watches.filter(w => { const s = getServiceStatus(w); return s && s.cls === 'overdue'; });
+  const svcDue = watches.filter(w => { const s = getServiceStatus(w); return s && s.cls === 'due'; });
+  if(svcOverdue.length){
+    alertHTML.push(`<div class="home-alert warn" data-goto="insights">
+      <div class="home-alert-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16" x2="12" y2="16.01"/></svg></div>
+      <div class="home-alert-text">
+        <div class="home-alert-title">${svcOverdue.length} watch${svcOverdue.length!==1?'es':''} overdue for service</div>
+        <div class="home-alert-sub">Tap to review</div>
+      </div>
+      <div class="home-alert-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+    </div>`);
+  }
+  if(svcDue.length){
+    alertHTML.push(`<div class="home-alert" data-goto="insights">
+      <div class="home-alert-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16.01"/></svg></div>
+      <div class="home-alert-text">
+        <div class="home-alert-title">${svcDue.length} watch${svcDue.length!==1?'es':''} due for service soon</div>
+        <div class="home-alert-sub">Plan ahead</div>
+      </div>
+      <div class="home-alert-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+    </div>`);
+  }
+
+  // Neglected count
+  const today = todayLocalStr();
+  const todayDate = parseLocalDate(today);
+  const dayMs = 86400000;
+  const neglectedCount = watches.filter(w => {
+    const wl = w.wearLog || [];
+    if(!wl.length) return true;
+    const last = parseLocalDate(wl[wl.length-1]);
+    return last && Math.floor((todayDate - last)/dayMs) >= 60;
+  }).length;
+  const anyWears = watches.some(w => (w.wearLog||[]).length > 0);
+  if(neglectedCount > 0 && anyWears){
+    alertHTML.push(`<div class="home-alert" data-goto="insights">
+      <div class="home-alert-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></div>
+      <div class="home-alert-text">
+        <div class="home-alert-title">${neglectedCount} watch${neglectedCount!==1?'es':''} not worn in 60+ days</div>
+        <div class="home-alert-sub">Time for a rotation</div>
+      </div>
+      <div class="home-alert-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+    </div>`);
+  }
+
+  // Wear streak (compute inline)
+  const allDays = new Set();
+  watches.forEach(w => (w.wearLog||[]).forEach(d => allDays.add(String(d).slice(0,10))));
+  let streak = 0;
+  let cursor = new Date(todayDate);
+  if(!allDays.has(today)) cursor.setTime(cursor.getTime() - dayMs);
+  while(true){
+    const key = `${cursor.getFullYear()}-${String(cursor.getMonth()+1).padStart(2,'0')}-${String(cursor.getDate()).padStart(2,'0')}`;
+    if(allDays.has(key)){ streak++; cursor.setTime(cursor.getTime() - dayMs); }
+    else break;
+    if(streak > 10000) break;
+  }
+  if(streak >= 3){
+    alertHTML.push(`<div class="home-alert good" data-goto="insights">
+      <div class="home-alert-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 L14 8 L20 9 L15 13 L17 19 L12 16 L7 19 L9 13 L4 9 L10 8 Z"/></svg></div>
+      <div class="home-alert-text">
+        <div class="home-alert-title">${streak}-day wear streak</div>
+        <div class="home-alert-sub">${streak >= 30 ? 'Keep it going' : 'Nice rotation'}</div>
+      </div>
+      <div class="home-alert-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+    </div>`);
+  }
+
+  // No-log nudge
+  const daysSinceAnyLog = allDays.size ? (function(){
+    const sorted = [...allDays].sort();
+    const last = parseLocalDate(sorted[sorted.length-1]);
+    return Math.floor((todayDate - last)/dayMs);
+  })() : null;
+  if(daysSinceAnyLog !== null && daysSinceAnyLog >= 4 && streak === 0){
+    alertHTML.push(`<div class="home-alert" data-goto="log">
+      <div class="home-alert-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="0"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+      <div class="home-alert-text">
+        <div class="home-alert-title">${daysSinceAnyLog} days since your last wear log</div>
+        <div class="home-alert-sub">Tap to log today</div>
+      </div>
+      <div class="home-alert-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+    </div>`);
+  }
+
+  alerts.innerHTML = alertHTML.join('');
+  alerts.querySelectorAll('.home-alert').forEach(el => {
+    el.addEventListener('click', () => {
+      const goto = el.dataset.goto;
+      if(goto === 'insights') navigate('insights');
+      else if(goto === 'log') openLogSheet();
+    });
+  });
+
+  // Recent activity
+  const recentEl = document.getElementById('homeRecent');
+  const wearIdx = buildWearIndex();
+  const recentDates = Object.keys(wearIdx).sort().reverse().slice(0, 5);
+  if(recentDates.length){
+    let recentHTML = `<div class="home-recent-head">— Recent activity</div>`;
+    const rows = [];
+    recentDates.forEach(d => {
+      wearIdx[d].forEach(id => {
+        if(rows.length >= 5) return;
+        const w = watches.find(x => x.id === id);
+        if(!w) return;
+        rows.push({w, date: d});
+      });
+    });
+    recentHTML += rows.map(r => `
+      <div class="home-recent-row" data-wid="${r.w.id}">
+        <div class="home-recent-thumb" data-photo-slot="${r.w.id}"></div>
+        <div class="home-recent-text">
+          <div class="home-recent-brand">${r.w.brand||''}</div>
+          <div class="home-recent-model">${composeModel(r.w)}</div>
+        </div>
+        <div class="home-recent-when">${fmtJournalDay(r.date)}</div>
+      </div>`).join('');
+    recentEl.innerHTML = recentHTML;
+    recentEl.querySelectorAll('.home-recent-row').forEach(el => {
+      el.addEventListener('click', () => {
+        const w = watches.find(x => x.id === el.dataset.wid);
+        if(w) openDetail(w);
+      });
+    });
+    recentEl.querySelectorAll('[data-photo-slot]').forEach(slot => {
+      const id = slot.dataset.photoSlot;
+      const w = watches.find(x => x.id === id);
+      if(!w) return;
+      const pk = photoKey(w);
+      const imgs = getPhotos(pk);
+      if(imgs.length){
+        resolvePhotoRef(imgs[0]).then(src => {
+          if(src) slot.innerHTML = `<img src="${src}" alt="">`;
+        });
+      }
+    });
+  } else {
+    recentEl.innerHTML = '';
+  }
+}
+
+// Home action buttons
+document.querySelectorAll('.home-action').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const action = btn.dataset.action;
+    if(action === 'log-today') openLogSheet();
+    else if(action === 'journal') openJournal();
+    else if(action === 'add') openForm(null);
+  });
+});
+
+// ── PREPARE FOR SALE ──
+let saleState = { watch: null, selectedPhotos: new Set(), resolvedPhotos: {}, price: '', contact: '', notes: '' };
+
+async function openSaleSheet(){
+  const w = findWatch(selectedId);
+  if(!w){ showToast('Open a watch first'); return; }
+  saleState = { watch: w, selectedPhotos: new Set(), resolvedPhotos: {}, price: '', contact: '', notes: w.notes || '' };
+
+  const pk = photoKey(w);
+  const refs = getPhotos(pk);
+  // Default: cover photo selected
+  if(refs.length) saleState.selectedPhotos.add(0);
+
+  // Resolve all photos upfront
+  const overlay = document.getElementById('saleOverlay');
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('saleBody').innerHTML = `<div style="padding:32px;text-align:center;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase">Loading photos…</div>`;
+
+  const resolved = await Promise.all(refs.map(r => resolvePhotoRef(r).catch(()=>null)));
+  resolved.forEach((src, i) => { if(src) saleState.resolvedPhotos[i] = src; });
+
+  buildSaleSheet();
+}
+
+function buildSaleSheet(){
+  const w = saleState.watch;
+  const refs = getPhotos(photoKey(w));
+  const specs = [
+    ['Brand', w.brand],
+    ['Model', composeModel(w)],
+    ['Reference', w.ref],
+    ['Year', w.year],
+    ['Movement', w.movement],
+    ['Case', w.casemat && w.size ? `${w.casemat} · ${w.size}mm` : (w.casemat || (w.size?w.size+'mm':''))],
+    ['Dial', w.dial],
+    ['Strap', w.strap],
+    ['Water Resistance', w.wr ? w.wr+'m' : ''],
+    ['Power Reserve', w.pr ? w.pr+'h' : ''],
+    ['Origin', w.origin],
+  ].filter(([,v]) => v);
+
+  document.getElementById('saleBody').innerHTML = `
+    <div class="sale-section">
+      <div class="sale-section-head">Photos · ${saleState.selectedPhotos.size} of ${refs.length} selected</div>
+      <div class="sale-photo-grid" id="salePhotoGrid">
+        ${refs.map((r,i) => `
+          <div class="sale-photo${saleState.selectedPhotos.has(i)?' selected':''}" data-idx="${i}" data-src-idx="${i}">
+            <div class="sale-photo-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </div>`).join('') || '<div style="color:var(--muted);font-size:11px">No photos on this watch</div>'}
+      </div>
+    </div>
+    <div class="sale-section">
+      <div class="sale-section-head">Specs (auto-included)</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.7;color:var(--muted)">
+        ${specs.map(([l,v]) => `<div><span style="color:var(--fg)">${l}:</span> ${v}</div>`).join('')}
+      </div>
+    </div>
+    <div class="sale-section">
+      <div class="sale-section-head">Sale Details</div>
+      <div class="sale-field">
+        <label class="sale-field-l">Asking price</label>
+        <input type="text" class="sale-input" id="salePrice" placeholder="e.g. $12,500 or Best offer" value="${saleState.price}">
+      </div>
+      <div class="sale-field">
+        <label class="sale-field-l">Your contact</label>
+        <input type="text" class="sale-input" id="saleContact" placeholder="Email, phone, or handle" value="${saleState.contact}">
+      </div>
+      <div class="sale-field">
+        <label class="sale-field-l">Condition notes (optional)</label>
+        <textarea class="sale-input sale-textarea" id="saleNotes" placeholder="Full set, service history, condition, provenance...">${saleState.notes||''}</textarea>
+      </div>
+    </div>
+    <div class="sale-actions">
+      <button class="sale-btn" id="saleCopyBtn">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="6" y="6" width="11" height="11"/><path d="M4 14V4a1 1 0 0 1 1-1h10"/></svg>
+        Copy Text
+      </button>
+      <button class="sale-btn" id="saleImgBtn">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="16" height="14"/><circle cx="7" cy="8" r="1.5"/><path d="M2 13 L7 9 L12 13 L15 11 L18 14"/></svg>
+        Save Image
+      </button>
+      <button class="sale-btn" id="salePdfBtn">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 2h8l3 3v13H5z"/><path d="M13 2v3h3"/></svg>
+        Save PDF
+      </button>
+      <button class="sale-btn" id="saleEmailBtn">
+        <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="4" width="16" height="12"/><path d="M2 5 L10 11 L18 5"/></svg>
+        Email
+      </button>
+    </div>`;
+
+  // Photo tap toggles selection + set backgrounds
+  document.querySelectorAll('#salePhotoGrid .sale-photo').forEach(el => {
+    const srcIdx = parseInt(el.dataset.srcIdx);
+    const src = saleState.resolvedPhotos[srcIdx];
+    if(src) el.style.backgroundImage = `url("${src.replace(/"/g,'&quot;')}")`;
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx);
+      if(saleState.selectedPhotos.has(idx)) saleState.selectedPhotos.delete(idx);
+      else saleState.selectedPhotos.add(idx);
+      el.classList.toggle('selected');
+      document.querySelector('.sale-section-head').textContent = `Photos · ${saleState.selectedPhotos.size} of ${refs.length} selected`;
+    });
+  });
+
+  // Field bindings
+  ['salePrice','saleContact','saleNotes'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => {
+      if(id === 'salePrice') saleState.price = el.value;
+      else if(id === 'saleContact') saleState.contact = el.value;
+      else saleState.notes = el.value;
+    });
+  });
+
+  document.getElementById('saleCopyBtn').addEventListener('click', copyForSale);
+  document.getElementById('saleImgBtn').addEventListener('click', saveSaleImage);
+  document.getElementById('salePdfBtn').addEventListener('click', saveSalePDF);
+  document.getElementById('saleEmailBtn').addEventListener('click', openSaleEmail);
+}
+
+function buildSaleTextBlock(){
+  const w = saleState.watch;
+  const lines = [];
+  lines.push(`FOR SALE — ${(w.brand||'').toUpperCase()} ${composeModel(w).toUpperCase()}`);
+  lines.push('');
+  if(saleState.price) lines.push(`Asking: ${saleState.price}`);
+  lines.push('');
+  const specs = [
+    ['Brand', w.brand], ['Model', composeModel(w)], ['Reference', w.ref], ['Year', w.year],
+    ['Movement', w.movement],
+    ['Case', w.casemat && w.size ? `${w.casemat} · ${w.size}mm` : (w.casemat || (w.size?w.size+'mm':''))],
+    ['Dial', w.dial], ['Strap', w.strap],
+    ['Water Resistance', w.wr ? w.wr+'m' : ''], ['Power Reserve', w.pr ? w.pr+'h' : ''],
+    ['Origin', w.origin],
+  ].filter(([,v]) => v);
+  specs.forEach(([l,v]) => lines.push(`${l}: ${v}`));
+  if(saleState.notes){ lines.push(''); lines.push('Condition & Notes:'); lines.push(saleState.notes); }
+  if(saleState.contact){ lines.push(''); lines.push(`Contact: ${saleState.contact}`); }
+  return lines.join('\n');
+}
+
+function copyForSale(){
+  const text = buildSaleTextBlock();
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(
+      ()=>showToast('Copied to clipboard ✓'),
+      ()=>{
+        // Fallback: temp textarea
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); showToast('Copied ✓'); }
+        catch { showToast('Copy failed — try Save Image'); }
+        document.body.removeChild(ta);
+      }
+    );
+  }
+}
+
+function openSaleEmail(){
+  const w = saleState.watch;
+  const subject = `For Sale: ${w.brand||''} ${composeModel(w)}${saleState.price?' — '+saleState.price:''}`;
+  const body = buildSaleTextBlock();
+  window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+async function saveSaleImage(){
+  showToast('Rendering image…');
+  const html = await buildSaleDocument({standalone:false});
+  // Render via canvas by creating an offscreen iframe, screenshotting is complex
+  // Simpler: open in new window and let user save. But user wants a downloadable image.
+  // Use SVG foreignObject → canvas approach for a portable single-file PNG
+  const w = saleState.watch;
+  const selectedRefs = [...saleState.selectedPhotos].sort((a,b)=>a-b).map(i => saleState.resolvedPhotos[i]).filter(Boolean);
+
+  // Build a fixed-width HTML doc and rasterize
+  const width = 900;
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = `position:fixed;left:-10000px;top:0;width:${width}px;background:#F0F0EE;font-family:'Inter','Helvetica Neue',sans-serif;color:#0A0A0A;padding:48px;box-sizing:border-box`;
+  wrapper.innerHTML = buildSaleCardMarkup();
+  document.body.appendChild(wrapper);
+
+  // Wait a tick for layout
+  await new Promise(r => setTimeout(r, 100));
+  const height = wrapper.scrollHeight;
+
+  // Serialize the element into SVG foreignObject → PNG
+  const clonedHtml = wrapper.outerHTML.replace(/<div style="position:fixed[^"]*"/, `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;background:#F0F0EE;font-family:'Inter','Helvetica Neue',sans-serif;color:#0A0A0A;padding:48px;box-sizing:border-box"`);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><foreignObject width="100%" height="100%">${clonedHtml}</foreignObject></svg>`;
+  document.body.removeChild(wrapper);
+
+  const blob = new Blob([svg], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#F0F0EE';
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(img, 0, 0);
+    canvas.toBlob(b => {
+      if(!b){ showToast('Image render failed — try PDF instead'); return; }
+      const dlUrl = URL.createObjectURL(b);
+      const a = document.createElement('a');
+      a.href = dlUrl;
+      a.download = `${(w.brand||'watch').replace(/\s+/g,'-')}-${composeModel(w).replace(/\s+/g,'-').toLowerCase()}-for-sale.png`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(dlUrl), 1000);
+      showToast('Image saved ✓');
+    }, 'image/png');
+    URL.revokeObjectURL(url);
+  };
+  img.onerror = () => {
+    URL.revokeObjectURL(url);
+    showToast('Image render failed — try PDF instead');
+  };
+  img.src = url;
+}
+
+function buildSaleCardMarkup(){
+  const w = saleState.watch;
+  const selectedRefs = [...saleState.selectedPhotos].sort((a,b)=>a-b).map(i => saleState.resolvedPhotos[i]).filter(Boolean);
+  const specs = [
+    ['Brand', w.brand], ['Model', composeModel(w)], ['Reference', w.ref], ['Year', w.year],
+    ['Movement', w.movement],
+    ['Case', w.casemat && w.size ? `${w.casemat} · ${w.size}mm` : (w.casemat || (w.size?w.size+'mm':''))],
+    ['Dial', w.dial], ['Strap', w.strap],
+    ['Water Resistance', w.wr ? w.wr+'m' : ''], ['Power Reserve', w.pr ? w.pr+'h' : ''],
+    ['Origin', w.origin],
+  ].filter(([,v]) => v);
+
+  const photoCols = Math.min(selectedRefs.length, 3);
+  const photoImgs = selectedRefs.map(src =>
+    `<div style="aspect-ratio:1;background:#E8E8E5;border:1px solid rgba(10,10,10,.15);overflow:hidden;position:relative"><img src="${src}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" alt=""></div>`
+  ).join('');
+  const photosHTML = selectedRefs.length
+    ? `<div style="display:grid;grid-template-columns:repeat(${photoCols},1fr);gap:8px;margin-bottom:24px">${photoImgs}</div>`
+    : '';
+
+  return `
+    <div style="border-bottom:1px solid rgba(10,10,10,.85);padding-bottom:16px;margin-bottom:24px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#0F2A6E;margin-bottom:6px">— For Sale</div>
+      <div style="font-size:32px;font-weight:500;letter-spacing:-.03em;line-height:1.05">${(w.brand||'').toUpperCase()} ${composeModel(w)}</div>
+      ${saleState.price ? `<div style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;letter-spacing:.08em;color:#0F2A6E;margin-top:8px">Asking: ${saleState.price}</div>` : ''}
+    </div>
+    ${photosHTML}
+    <div style="border-top:1px solid rgba(10,10,10,.15);padding-top:16px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(10,10,10,.55);margin-bottom:10px">Specifications</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.6">
+        ${specs.map(([l,v]) => `<div><span style="color:rgba(10,10,10,.55)">${l}:</span> <span style="color:#0A0A0A">${v}</span></div>`).join('')}
+      </div>
+    </div>
+    ${saleState.notes ? `<div style="border-top:1px solid rgba(10,10,10,.15);padding-top:16px;margin-top:16px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(10,10,10,.55);margin-bottom:8px">Condition &amp; Notes</div>
+      <div style="font-size:13px;line-height:1.55;font-style:italic;border-left:2px solid #0F2A6E;padding-left:12px">${saleState.notes.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>
+    </div>` : ''}
+    ${saleState.contact ? `<div style="border-top:1px solid rgba(10,10,10,.85);padding-top:16px;margin-top:20px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;letter-spacing:.06em">Contact: ${saleState.contact}</div>` : ''}
+    <div style="margin-top:24px;padding-top:12px;border-top:1px solid rgba(10,10,10,.15);font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(10,10,10,.4)">The Collection · Prepared ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}</div>`;
+}
+
+async function buildSaleDocument({standalone}){
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>For Sale</title>
+  <style>
+    body{margin:0;padding:48px;background:#F0F0EE;font-family:'Inter','Helvetica Neue',sans-serif;color:#0A0A0A;max-width:820px;margin:0 auto}
+    @media print { body{padding:32px} }
+  </style></head><body>
+  ${buildSaleCardMarkup()}
+  ${standalone ? '<scr'+'ipt>setTimeout(()=>window.print(),300);</scr'+'ipt>' : ''}
+  </body></html>`;
+}
+
+async function saveSalePDF(){
+  // Open in new window with auto-print → user picks "Save as PDF"
+  const html = await buildSaleDocument({standalone:true});
+  const win = window.open('', '_blank');
+  if(!win){
+    // Popup blocked — offer download
+    const blob = new Blob([html], {type:'text/html'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'for-sale.html';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    showToast('Popup blocked — downloaded instead');
+    return;
+  }
+  win.document.write(html);
+  win.document.close();
+  showToast('Opening print dialog…');
+}
+
+document.getElementById('detailSell').addEventListener('click', openSaleSheet);
+document.getElementById('saleClose').addEventListener('click', () => {
+  document.getElementById('saleOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+});
 
 // Nav — simple click works reliably now that nav is in fixed shell (not affected by Safari scroll)
 document.querySelectorAll('[data-nav]').forEach(btn=>{
@@ -4604,11 +5568,6 @@ function fmtJournalMonth(monthKey){
   return `${months[m-1]} ${y}`;
 }
 
-function todayLocalStr(){
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-
 async function buildJournalContent(){
   const container = document.getElementById('journalContent');
   const idx = buildWearIndex();
@@ -5067,10 +6026,11 @@ updateResetBtn();
   photos=loadPhotos();
 
   renderList(); buildChips();
+  renderHome();
 
   // Then load from cloud
   const loaded=await cloudLoad();
-  if(loaded){ renderList(); buildChips(); }
+  if(loaded){ renderList(); buildChips(); renderHome(); }
   initWatchOfTheDay();
   checkMilestones();
 })();
