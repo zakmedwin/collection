@@ -637,6 +637,34 @@ body{background:var(--bg);color:var(--fg)}
 }
 .sf-clear:hover{color:#c05050}
 
+.just-saved{animation:justSaved 2.4s ease-out}
+@keyframes justSaved{0%,60%{box-shadow:inset 0 0 0 2px var(--accent)}100%{box-shadow:inset 0 0 0 0 transparent}}
+
+/* Save-to picker (form) */
+.save-to{border-bottom:1px solid var(--line);background:var(--bg)}
+.save-to-label{
+  padding:14px 24px 6px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+}
+.save-to-opts{display:flex;overflow-x:auto;scrollbar-width:none;padding:0 16px}
+.save-to-opts::-webkit-scrollbar{display:none}
+.save-to-opt{
+  min-height:44px;padding:0 14px;border:none;background:transparent;color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;
+  white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:8px;
+  border-bottom:2px solid transparent;margin-right:2px;transition:color .12s,border-bottom-color .12s;
+}
+.save-to-opt:hover{color:var(--fg)}
+.save-to-opt.active{color:var(--fg);border-bottom-color:var(--accent)}
+.save-to-opt .mark{
+  width:14px;height:14px;border:1.5px solid var(--line-strong);border-radius:50%;flex:none;
+  display:flex;align-items:center;justify-content:center;
+}
+.save-to-opt.active .mark{background:var(--accent);border-color:var(--accent)}
+.save-to-opt .mark::after{content:'';width:5px;height:5px;border-radius:50%;background:var(--bg);opacity:0}
+.save-to-opt.active .mark::after{opacity:1}
+@media(min-width:769px){ .save-to-label{padding-left:32px;padding-right:32px} .save-to-opts{padding:0 24px} }
+
 /* Rank sheet */
 .rank-help{
   padding:12px 24px;background:var(--tile);border-bottom:1px solid var(--line);
@@ -1818,6 +1846,10 @@ body{background:var(--bg);color:var(--fg)}
         <button class="form-cancel" id="formCancel">Cancel</button>
       </div>
     </div>
+    <div class="save-to">
+      <div class="save-to-label">— Save to</div>
+      <div class="save-to-opts" id="saveToOpts"></div>
+    </div>
     <div class="photo-well" id="photoWell">
       <span class="t-photo-placeholder" id="photoWellLabel">PHOTO</span>
       <input type="file" accept="image/*" capture="environment" id="formCameraInput" style="display:none">
@@ -2460,13 +2492,32 @@ function saveWish(arr){ wishWatches=arr; try{localStorage.setItem(WISH_KEY,JSON.
 function loadPhotos(){ try{return JSON.parse(localStorage.getItem(PHOTO_KEY)||'{}')}catch{return{}} }
 function savePhotos(p){ try{localStorage.setItem(PHOTO_KEY,JSON.stringify(p));}catch(e){} }
 
+const DIRTY_KEY='wc_dirty';
+function markDirty(){ try{ localStorage.setItem(DIRTY_KEY,'1'); }catch(e){} }
+function clearDirty(){ try{ localStorage.removeItem(DIRTY_KEY); }catch(e){} }
+function isDirty(){ try{ return localStorage.getItem(DIRTY_KEY)==='1'; }catch(e){ return false; } }
 function scheduleSave(){
+  markDirty();
   if(syncTimer) clearTimeout(syncTimer);
   syncTimer = setTimeout(cloudSave, SYN_DEBOUNCE);
 }
+// If the app is being hidden/closed with unsynced changes, push them now (keepalive survives page teardown)
+function flushSave(){
+  if(!isDirty() && !syncTimer) return;
+  if(syncTimer){ clearTimeout(syncTimer); syncTimer=null; }
+  cloudSave({keepalive:true});
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden') flushSave(); });
+window.addEventListener('pagehide', flushSave);
+window.addEventListener('online', ()=>{ if(isDirty()) cloudSave(); });
 
 // ── CLOUD SYNC ──
 async function cloudLoad(){
+  // Local changes that never reached the cloud win: push them up instead of pulling over them
+  if(isDirty()){
+    await cloudSave();
+    return false;
+  }
   try{
     const res=await fetch(WORKER_URL+'/collection',{headers:{'X-Auth-Token':AUTH_TOKEN}});
     if(!res.ok) return false;
@@ -2487,14 +2538,17 @@ async function cloudLoad(){
   }catch(e){ return false; }
 }
 
-async function cloudSave(){
+async function cloudSave(opts){
+  syncTimer=null;
   try{
-    await fetch(WORKER_URL+'/collection',{
+    const res=await fetch(WORKER_URL+'/collection',{
       method:'POST',
       headers:{'Content-Type':'application/json','X-Auth-Token':AUTH_TOKEN},
-      body:JSON.stringify({customWatches,subCols,wishWatches,photos})
+      body:JSON.stringify({customWatches,subCols,wishWatches,photos}),
+      keepalive: !!(opts&&opts.keepalive)
     });
-  }catch(e){}
+    if(res.ok) clearDirty();   // only forget the dirty flag once the cloud actually has it
+  }catch(e){ /* stays dirty; retried on next open / online / hide */ }
 }
 
 // ── TOAST ──
@@ -2682,6 +2736,7 @@ function renderList(){
           <div class="watch-card-model">${composeModel(w)}</div>
           <div class="watch-card-meta">${composeCardMeta(w)}</div>
         </div>`;
+      card.dataset.wid=w.id;
       card.addEventListener('click',()=>openDetail(w));
       addLongPressWearLog(card, w);
       list.appendChild(card);
@@ -2723,6 +2778,7 @@ function renderList(){
           <div class="t-row-spec">${composeSpecLine(w)}</div>
         </div>
         ${status.label ? `<div class="watch-row-status ${status.cls}">${status.label}</div>` : '<div></div>'}`;
+      row.dataset.wid=w.id;
       row.addEventListener('click',()=>openDetail(w));
       addLongPressWearLog(row, w);
       list.appendChild(row);
@@ -3314,14 +3370,46 @@ function findWatch(id){
 // ── ADD/EDIT FORM ──
 const FORM_FIELDS=['brand','series','model','ref','year','movement','complications','casemat','dial','strap','size','wr','pr','origin','serial','grade','source','dealer','acquired','serviceLast','serviceInterval','paid','price','valueEstimate','box','papers','finish','notes','soldDate','soldAmt'];
 
+// Which collection a watch currently lives in: 'main' | 'wish' | <subcol id> | null
+function locationOf(id){
+  if(customWatches.some(w=>w.id===id)) return 'main';
+  if(wishWatches.some(w=>w.id===id)) return 'wish';
+  const s=subCols.find(s=>s.watches.some(w=>w.id===id));
+  return s ? s.id : null;
+}
+function locationName(loc){
+  if(loc==='main') return 'My Watches';
+  if(loc==='wish') return 'Wish List';
+  const s=subCols.find(s=>s.id===loc); return s ? s.name : 'My Watches';
+}
+let formTarget='main';
+function buildSaveTo(){
+  const wrap=document.getElementById('saveToOpts');
+  const opts=[{id:'main',name:'My Watches'}, ...subCols.map(s=>({id:s.id,name:s.name})), {id:'wish',name:'Wish List'}];
+  wrap.innerHTML=opts.map(o=>`<button type="button" class="save-to-opt${formTarget===o.id?' active':''}" data-target="${o.id}"><span class="mark"></span>${o.name}</button>`).join('');
+  wrap.querySelectorAll('.save-to-opt').forEach(b=>b.addEventListener('click',()=>{
+    formTarget=b.dataset.target;
+    wrap.querySelectorAll('.save-to-opt').forEach(x=>x.classList.toggle('active',x===b));
+    updateSaveLabel();
+  }));
+  updateSaveLabel();
+}
+function updateSaveLabel(){
+  const btn=document.getElementById('formSave');
+  if(btn) btn.textContent = formTarget==='wish' ? 'Save to Wish List' : `Save to ${locationName(formTarget)}`;
+}
+
 function openForm(watch){
   fromDetail=!!watch;
   draft=watch?{...watch}:{id:genId(),_custom:true};
+  // Default destination: where the watch already lives, else the tab you're on
+  formTarget = watch ? (locationOf(watch.id)||'main') : (activeSub==='all' ? 'main' : activeSub);
+  buildSaveTo();
   document.getElementById('formTitle').textContent=watch?'Edit piece':'Add a piece';
   document.getElementById('formDelete').style.display=watch?'':'none';
   document.getElementById('formMarkSold').style.display=watch&&!watch.sold?'':'none';
   document.getElementById('formMarkActive').style.display=watch&&watch.sold?'':'none';
-  document.getElementById('formMove').style.display=watch?'':'none';
+  document.getElementById('formMove').style.display='none';
   document.getElementById('f-soldDate-wrap').style.display=watch&&watch.sold?'':'none';
   document.getElementById('f-soldAmt-wrap').style.display=watch&&watch.sold?'':'none';
   FORM_FIELDS.forEach(f=>{
@@ -3357,21 +3445,54 @@ function saveDraft(){
     if(['year','size','paid','price','pr','wr'].includes(f)) draft[f]=v?Number(v):'';
     else draft[f]=v;
   });
-  // Find in collection and update or add
-  const idx=customWatches.findIndex(w=>w.id===draft.id);
-  if(idx>=0) customWatches[idx]={...customWatches[idx],...draft};
-  else customWatches.push(draft);
-  saveCustom(customWatches);
-  showToast('Saved ✓');
-  if(fromDetail){ openDetail(findWatch(draft.id)||draft); }
-  else navigate('list');
+  const prev = locationOf(draft.id);
+  const target = formTarget || 'main';
+
+  // Merge into the existing record if there is one
+  const existing = findWatch(draft.id);
+  const record = existing ? {...existing, ...draft} : draft;
+
+  if(prev && prev!==target){
+    // remove from the old home
+    customWatches=customWatches.filter(w=>w.id!==draft.id);
+    wishWatches=wishWatches.filter(w=>w.id!==draft.id);
+    subCols.forEach(s=>{ s.watches=s.watches.filter(w=>w.id!==draft.id); });
+  }
+
+  const upsert=(arr)=>{ const i=arr.findIndex(w=>w.id===draft.id); if(i>=0) arr[i]=record; else arr.push(record); return arr; };
+  if(target==='main'){ customWatches=upsert(customWatches); }
+  else if(target==='wish'){ wishWatches=upsert(wishWatches); }
+  else { const s=subCols.find(s=>s.id===target); if(s) s.watches=upsert(s.watches); else customWatches=upsert(customWatches); }
+
+  saveCustom(customWatches); saveWish(wishWatches); saveSubCols();
+
+  const moved = prev && prev!==target;
+  const acquired = moved && prev==='wish' && target!=='wish';
+  showToast(acquired ? `Acquired — moved to ${locationName(target)} ✓` : moved ? `Moved to ${locationName(target)} ✓` : 'Saved ✓');
+
+  // Land on the collection you saved into, clear anything that could hide it, and show it
+  if(target==='main') activeSub='all'; else activeSub=target;
+  query=''; const si=document.getElementById('searchInput'); if(si) si.value='';
+  if(activeFilterCount()>0){ Object.values(activeFilters).forEach(s=>s.clear()); saveFilters(); updateFilterBadge(); updateFilterTagStrip(); updateResetBtn(); }
+  if(fromDetail && !moved){ openDetail(findWatch(draft.id)||record); }
+  else { navigate('list'); revealWatch(draft.id); }
+}
+function revealWatch(id){
+  setTimeout(()=>{
+    const el=document.querySelector(`#watchList [data-wid="${id}"]`);
+    if(!el) return;
+    el.scrollIntoView({block:'center',behavior:'smooth'});
+    el.classList.add('just-saved');
+    setTimeout(()=>el.classList.remove('just-saved'),2400);
+  },120);
 }
 
 function removeDraft(){
   if(!draft||!confirm('Remove this piece?')) return;
   customWatches=customWatches.filter(w=>w.id!==draft.id);
+  wishWatches=wishWatches.filter(w=>w.id!==draft.id);
   subCols.forEach(s=>{ s.watches=s.watches.filter(w=>w.id!==draft.id); });
-  saveCustom(customWatches); saveSubCols();
+  saveCustom(customWatches); saveWish(wishWatches); saveSubCols();
   showToast('Removed');
   navigate('list');
 }
@@ -5450,7 +5571,16 @@ async function runAIValue(){
 }
 
 async function runAIAutofill(fromForm){
-  const w = fromForm ? draft : findWatch(selectedId);
+  let w;
+  if(fromForm){
+    if(!draft) return;
+    // Read what's actually typed in the form right now (draft only updates on Save)
+    w = {...draft};
+    FORM_FIELDS.forEach(f=>{ const el=document.getElementById('f-'+f); if(el && el.value.trim()) w[f]=el.value.trim(); });
+    if(!w.brand && !w.model && !w.ref){ showToast('Enter a brand, model, or reference first'); return; }
+  } else {
+    w = findWatch(selectedId);
+  }
   if(!w) return;
   const btn = fromForm ? document.getElementById('formAiAutofill') : document.getElementById('aiAutofillBtn');
   const orig = btn.textContent;
