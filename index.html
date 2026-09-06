@@ -1889,6 +1889,7 @@ body{background:var(--bg);color:var(--fg)}
       <div class="form-field"><div class="field-label">Date acquired</div><input class="field-input" id="f-acquired" placeholder="2024-03-15" type="text"></div>
       <div class="form-field"><div class="field-label">Last serviced</div><input class="field-input" id="f-serviceLast" placeholder="2022-05-20 (optional)" type="text"></div>
       <div class="form-field"><div class="field-label">Service interval — years</div><input class="field-input" id="f-serviceInterval" placeholder="5 (optional)" type="text" inputmode="numeric"></div>
+      <div class="form-field"><div class="field-label">Retail price</div><input class="field-input" id="f-retail" placeholder="List / MSRP" type="text" inputmode="numeric"></div>
       <div class="form-field"><div class="field-label">Paid</div><input class="field-input" id="f-paid" placeholder="9150" type="text" inputmode="numeric"></div>
       <div class="form-field"><div class="field-label">Market value</div><input class="field-input" id="f-price" placeholder="" type="text" inputmode="numeric"></div>
       <div class="form-field"><div class="field-label">Value estimate (AI)</div><input class="field-input" id="f-valueEstimate" placeholder="" type="text"></div>
@@ -2615,7 +2616,9 @@ function composeRef(w){
   return 'NO REFERENCE';
 }
 function composeSpecLine(w){
-  return [w.casemat,w.size?w.size+'mm':null,w.movement].filter(Boolean).join(' · ');
+  const parts=[w.casemat,w.size?w.size+'mm':null,w.movement].filter(Boolean);
+  if(activeSub==='wish' && w.retail) parts.unshift('Retail '+fmtPrice(w.retail));
+  return parts.join(' · ');
 }
 
 // ── LIST RENDER ──
@@ -2649,7 +2652,7 @@ function getFilteredWatches(){
   }
   // Sort
   const arr = [...pool];
-  const val = w => Number(w.price) || Number(w.paid) || 0;
+  const val = w => Number(w.price) || Number(w.paid) || Number(w.retail) || 0;
   const wearCount = w => new Set((w.wearLog||[]).map(d => String(d).slice(0,10))).size;
   const lastWorn = w => w.lastWorn ? parseLocalDate(w.lastWorn).getTime() : 0;
   const sortKey = (activeSub==='wish' && activeSort==='brand-az' && !wishSortOverride) ? 'rank' : activeSort;
@@ -3336,7 +3339,9 @@ function openDetail(w){
     ['Acquired', w.acquired, ''],
     ['Last serviced', w.serviceLast, ''],
     ['Next service', svcStatus ? svcStatus.nextDate : '', ''],
+    ['Retail', fmtPrice(w.retail), ''],
     ['Paid', fmtPrice(w.paid), ''],
+    ['vs retail', (w.retail&&w.paid) ? (function(){ const d=Number(w.paid)-Number(w.retail); const pct=Math.round(Math.abs(d)/Number(w.retail)*100); return d===0?'At retail':(d<0?`${pct}% under`:`${pct}% over`); })() : '', ''],
     ['Value', fmtPrice(w.price), ''],
     ['Estimate', w.valueEstimate, ''],
   ];
@@ -3368,7 +3373,7 @@ function findWatch(id){
 }
 
 // ── ADD/EDIT FORM ──
-const FORM_FIELDS=['brand','series','model','ref','year','movement','complications','casemat','dial','strap','size','wr','pr','origin','serial','grade','source','dealer','acquired','serviceLast','serviceInterval','paid','price','valueEstimate','box','papers','finish','notes','soldDate','soldAmt'];
+const FORM_FIELDS=['brand','series','model','ref','year','movement','complications','casemat','dial','strap','size','wr','pr','origin','serial','grade','source','dealer','acquired','serviceLast','serviceInterval','retail','paid','price','valueEstimate','box','papers','finish','notes','soldDate','soldAmt'];
 
 // Which collection a watch currently lives in: 'main' | 'wish' | <subcol id> | null
 function locationOf(id){
@@ -3442,7 +3447,7 @@ function saveDraft(){
     const el=document.getElementById('f-'+f);
     if(!el) return;
     const v=el.value.trim();
-    if(['year','size','paid','price','pr','wr'].includes(f)) draft[f]=v?Number(v):'';
+    if(['year','size','retail','paid','price','pr','wr'].includes(f)) draft[f]=v?Number(String(v).replace(/[^0-9.]/g,'')):'';
     else draft[f]=v;
   });
   const prev = locationOf(draft.id);
@@ -5140,6 +5145,7 @@ function buildSaleSheet(){
     ['Water Resistance', w.wr ? w.wr+'m' : ''],
     ['Power Reserve', w.pr ? w.pr+'h' : ''],
     ['Origin', w.origin],
+    ['Retail', fmtPrice(w.retail)],
   ].filter(([,v]) => v);
 
   document.getElementById('saleBody').innerHTML = `
@@ -5236,6 +5242,7 @@ function buildSaleTextBlock(){
     ['Dial', w.dial], ['Strap', w.strap],
     ['Water Resistance', w.wr ? w.wr+'m' : ''], ['Power Reserve', w.pr ? w.pr+'h' : ''],
     ['Origin', w.origin],
+    ['Retail', fmtPrice(w.retail)],
   ].filter(([,v]) => v);
   specs.forEach(([l,v]) => lines.push(`${l}: ${v}`));
   if(saleState.notes){ lines.push(''); lines.push('Condition & Notes:'); lines.push(saleState.notes); }
@@ -5332,6 +5339,7 @@ function buildSaleCardMarkup(){
     ['Dial', w.dial], ['Strap', w.strap],
     ['Water Resistance', w.wr ? w.wr+'m' : ''], ['Power Reserve', w.pr ? w.pr+'h' : ''],
     ['Origin', w.origin],
+    ['Retail', fmtPrice(w.retail)],
   ].filter(([,v]) => v);
 
   const photoCols = Math.min(selectedRefs.length, 3);
@@ -5590,7 +5598,7 @@ async function runAIAutofill(fromForm){
     const filled = data.watch || data;
     if(fromForm){
       // Apply directly to form fields
-      const fields = ['brand','series','model','ref','movement','casemat','dial','strap','size','wr','pr','origin'];
+      const fields = ['brand','series','model','ref','movement','casemat','dial','strap','size','wr','pr','origin','retail'];
       fields.forEach(f=>{ if(filled[f] && !document.getElementById('f-'+f).value){ document.getElementById('f-'+f).value = filled[f]; } });
       showToast('Specs filled ✓');
     } else {
@@ -6139,6 +6147,7 @@ async function generatePassport(){
       ['Origin', w.origin],
       ['WR', w.wr ? w.wr+'m' : ''],
       ['PR', w.pr ? w.pr+'h' : ''],
+      ['Retail', fmtPrice(w.retail)],
       ['Paid', fmtPrice(w.paid)],
       ['Market', fmtPrice(w.price)],
     ].filter(([,v])=>v);
