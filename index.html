@@ -103,7 +103,7 @@ body{background:var(--bg);color:var(--fg)}
 
 /* ── SCREEN 1: COLLECTION LIST — SWISS MODERNIST ── */
 #screen-list .list-header{
-  padding:16px 140px 12px 20px;
+  padding:16px 20px 12px;
   display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end;
   border-bottom:2px solid var(--line-strong);
 }
@@ -118,13 +118,10 @@ body{background:var(--bg);color:var(--fg)}
 }
 .mode-toggle:hover{background:var(--fg);color:var(--bg)}
 
-.shell-actions{
-  position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:14px;z-index:40;
-  display:flex;gap:8px;align-items:center;
-}
-.shell-actions .mode-toggle{background:var(--bg)}
-.shell-actions.hidden{display:none}
-@media(min-width:769px){ .shell-actions{top:20px;right:24px} }
+.hdr-actions{display:flex;gap:8px;align-items:center;flex:none}
+.hdr-actions-hero{position:absolute;top:14px;right:14px;z-index:2}
+.hdr-actions-hero .mode-toggle{background:var(--bg)}
+.list-header-left{min-width:0}
 
 /* Jumbo count block (Swiss statement of scale) */
 .sw-jumbo{
@@ -453,7 +450,7 @@ body{background:var(--bg);color:var(--fg)}
 .btn-outline-pill:hover{background:var(--fg);color:var(--bg)}
 
 /* ── SCREEN 4: INSIGHTS ── */
-#screen-insights .insights-header{padding:16px 140px 12px 20px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end;border-bottom:2px solid var(--line-strong)}
+#screen-insights .insights-header{padding:16px 20px 12px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end;border-bottom:2px solid var(--line-strong)}
 .insights-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;padding:0;background:var(--line);border-bottom:1px solid var(--line)}
 @media(min-width:769px){
   .insights-stat-grid{grid-template-columns:repeat(4,1fr) !important}
@@ -983,7 +980,7 @@ body{background:var(--bg);color:var(--fg)}
 
 
 /* ── SCREEN 5: TOOLS ── */
-#screen-tools .tools-header{padding:16px 140px 12px 20px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end;border-bottom:2px solid var(--line-strong)}
+#screen-tools .tools-header{padding:16px 20px 12px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end;border-bottom:2px solid var(--line-strong)}
 .theme-cards{display:flex;flex-direction:column;gap:0;padding:0}
 .theme-card{
   padding:14px 20px;border:none;border-bottom:1px solid var(--line);
@@ -1527,7 +1524,7 @@ body{background:var(--bg);color:var(--fg)}
   .nav-btn-add svg{flex:none;width:12px;height:12px;stroke-width:2.2}
   .nav-btn:first-of-type{margin-top:16px}
 
-  #screen-list .list-header{padding:20px 160px 14px 32px}
+  #screen-list .list-header{padding:20px 32px 14px}
   .sw-jumbo{padding:32px 32px 26px}
   .sw-jumbo-num{font-size:120px}
   #screen-list .search-wrap{padding:0}
@@ -1565,10 +1562,10 @@ body{background:var(--bg);color:var(--fg)}
   .form-actions{padding:20px 32px}
   .photo-upload-btns{margin:10px 32px 0 !important}
 
-  #screen-insights .insights-header{padding:20px 160px 14px 32px}
+  #screen-insights .insights-header{padding:20px 32px 14px}
   .insights-section{padding:24px 32px}
 
-  #screen-tools .tools-header{padding:20px 160px 14px 32px}
+  #screen-tools .tools-header{padding:20px 32px 14px}
   .theme-cards{padding:0}
   .tool-list{padding:0}
   .tools-actions{padding:20px 32px}
@@ -1679,16 +1676,12 @@ body{background:var(--bg);color:var(--fg)}
 
 <!-- APP SHELL -->
 <div id="app">
-  <!-- Persistent header actions: visible on Home · Collection · Insights · Tools -->
-  <div class="shell-actions" id="shellActions">
-    <button class="mode-toggle" id="headerSetterBtn" title="Watch Setter">Set</button>
-    <button class="mode-toggle" id="modeToggle">Dark</button>
-  </div>
 
   <!-- ── SCREEN 0: HOME ── -->
   <div id="screen-home" class="screen active">
     <div class="home-hero" id="homeHero">
       <div class="home-hero-photo" id="homeHeroPhoto"></div>
+      <div class="hdr-actions hdr-actions-hero"><button class="mode-toggle hdr-set" title="Watch Setter">Set</button><button class="mode-toggle hdr-mode">Dark</button></div>
       <div class="home-hero-overlay">
         <div class="home-hero-eyebrow">— Today on view</div>
         <div class="home-hero-brand" id="homeHeroBrand"></div>
@@ -1721,6 +1714,7 @@ body{background:var(--bg);color:var(--fg)}
         <div class="t-screen">The Collection</div>
         <div class="t-subtitle" id="listCount">— pieces</div>
       </div>
+      <div class="hdr-actions"><button class="mode-toggle hdr-set" title="Watch Setter">Set</button><button class="mode-toggle hdr-mode">Dark</button></div>
     </div>
     <!-- Swiss jumbo stat header -->
     <div class="sw-jumbo">
@@ -1930,8 +1924,11 @@ body{background:var(--bg);color:var(--fg)}
   <!-- ── SCREEN 4: INSIGHTS ── -->
   <div id="screen-insights" class="screen">
     <div class="insights-header">
-      <div class="t-subtitle" id="insightsEyebrow">Personal Horology Archive</div>
-      <div class="t-screen">Insights</div>
+      <div class="list-header-left">
+        <div class="t-screen">Insights</div>
+        <div class="t-subtitle" id="insightsEyebrow">Personal Horology Archive</div>
+      </div>
+      <div class="hdr-actions"><button class="mode-toggle hdr-set" title="Watch Setter">Set</button><button class="mode-toggle hdr-mode">Dark</button></div>
     </div>
     <!-- Stat grid -->
     <div class="insights-stat-grid" id="insightsStatGrid"></div>
@@ -2000,8 +1997,11 @@ body{background:var(--bg);color:var(--fg)}
   <!-- ── SCREEN 5: TOOLS ── -->
   <div id="screen-tools" class="screen">
     <div class="tools-header">
-      <div class="t-screen">Tools</div>
-      <div class="t-subtitle" id="toolsSubtitle">Theme · Archive</div>
+      <div class="list-header-left">
+        <div class="t-screen">Tools</div>
+        <div class="t-subtitle" id="toolsSubtitle">Theme · Archive</div>
+      </div>
+      <div class="hdr-actions"><button class="mode-toggle hdr-set" title="Watch Setter">Set</button><button class="mode-toggle hdr-mode">Dark</button></div>
     </div>
     <!-- Appearance -->
     <div class="t-section-label section-pad" style="margin-bottom:0">Appearance</div>
@@ -2586,7 +2586,7 @@ function showToast(msg, dur=3000, action){
 function applyTheme(){
   document.documentElement.setAttribute('data-theme','archive'); // always archive palette
   document.documentElement.setAttribute('data-mode',dark?'dark':'light');
-  document.getElementById('modeToggle').textContent=dark?'Light':'Dark';
+  document.querySelectorAll('.hdr-mode').forEach(b=>b.textContent=dark?'Light':'Dark');
   document.getElementById('toolsSubtitle').textContent=`Layout · ${layout==='modern'?'Modern':'Classic'}`;
   // Update layout cards
   document.querySelectorAll('.theme-card').forEach(c=>{
@@ -2604,8 +2604,6 @@ function navigate(view){
   document.getElementById('screen-'+view).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.nav===view));
   currentView=view;
-  const shell=document.getElementById('shellActions');
-  if(shell) shell.classList.toggle('hidden', !['home','list','insights','tools'].includes(view));
   const screen = document.getElementById('screen-'+view);
   if(screen) screen.scrollTop = 0;
   if(view==='home') renderHome();
@@ -4897,7 +4895,7 @@ window.applyImport = function(mode){
 
 // ── EVENT WIRING ──
 // Mode toggle
-document.getElementById('modeToggle').addEventListener('click',()=>{ dark=!dark; applyTheme(); });
+document.querySelectorAll('.hdr-mode').forEach(b=>b.addEventListener('click',()=>{ dark=!dark; applyTheme(); }));
 document.querySelectorAll('.sw-vt').forEach(vt=>{
   vt.addEventListener('click',()=>{
     layout = vt.dataset.layout;
@@ -4943,7 +4941,7 @@ function renderHome(){
         if(src) heroPhoto.style.backgroundImage = `url("${src.replace(/"/g,'\\"')}")`;
       });
     }
-    hero.onclick = () => openDetail(w);
+    hero.onclick = (e) => { if(e.target.closest('.hdr-actions')) return; openDetail(w); };
     hero.style.cursor = 'pointer';
   } else {
     heroBrand.textContent = '';
@@ -5444,7 +5442,7 @@ document.getElementById('formExport').addEventListener('click',doExport);
 document.getElementById('searchInput').addEventListener('input',e=>{ query=e.target.value; renderList(); });
 
 // Watch setter
-document.getElementById('headerSetterBtn').addEventListener('click',openWatchSetter);
+document.querySelectorAll('.hdr-set').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); openWatchSetter(); }));
 document.getElementById('wsClose').addEventListener('click',closeWatchSetter);
 document.getElementById('wsMuteBtn').addEventListener('click',toggleMute);
 
