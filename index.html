@@ -4797,8 +4797,20 @@ window.applyImport = function(mode){
     }
   }
 
-  function showTapLayer(){ if(tapLayer){ tapLayer.style.display='flex'; setStatus('Tap to unlock'); if(tapHint) tapHint.textContent=`Tap anywhere for ${bioName}`; } }
-  function hideTapLayer(){ if(tapLayer){ tapLayer.style.display='none'; setStatus('Enter passcode'); } }
+  const isTouch = navigator.maxTouchPoints>0;
+  function showTapLayer(){
+    if(!tapLayer) return;
+    tapLayer.style.display='flex';
+    bioBtn.style.display='none';                       // no separate target — anywhere works
+    setStatus(isTouch ? 'Tap to unlock' : 'Click to unlock');
+    if(tapHint) tapHint.textContent = isTouch ? `Tap anywhere for ${bioName}` : `Click anywhere or press any key for ${bioName}`;
+  }
+  function hideTapLayer(){
+    if(!tapLayer) return;
+    tapLayer.style.display='none';
+    bioBtn.style.display='flex';                       // fallback button returns with the dial
+    setStatus('Enter passcode');
+  }
 
   bioBtn.addEventListener('click',()=>bioAttempt(true));
   if(setupBtn) setupBtn.addEventListener('click',bioSetup);
@@ -4811,6 +4823,15 @@ window.applyImport = function(mode){
     if(pinLock.style.display==='none' || locked) return;
     if(bioHint()) bioAttempt(false);
   });
+  // Any key while the layer is up → biometrics (keys are user activation on desktop Safari)
+  document.addEventListener('keydown',async e=>{
+    if(pinLock.style.display==='none' || locked) return;
+    if(!tapLayer || tapLayer.style.display==='none') return;
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    e.preventDefault();
+    const ok=await bioAttempt(true);
+    if(!ok && pinLock.style.display!=='none' && !locked) hideTapLayer();
+  }, true);
 
   async function refreshBioUI(){
     const reason=await bioUnavailableReason();
@@ -4886,6 +4907,7 @@ window.applyImport = function(mode){
       if(!ready) return;
       showTapLayer();
       if(document.visibilityState==='visible') setTimeout(()=>bioAttempt(false),350);
+      window.addEventListener('focus',()=>{ if(pinLock.style.display!=='none' && !locked && bioHint()) bioAttempt(false); });
     });
   }
 
