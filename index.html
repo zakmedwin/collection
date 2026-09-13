@@ -4717,25 +4717,41 @@ window.applyImport = function(mode){
   function setHint(v){ try{ v ? localStorage.setItem(BIO_KEY,'1') : localStorage.removeItem(BIO_KEY); }catch(_){} }
   function challenge(){ return crypto.getRandomValues(new Uint8Array(32)); }
 
-  // Try to unlock with ANY passkey for this domain (discoverable). No allowCredentials on purpose.
+  // One stable identity per domain: same user ID every time, so the OS REPLACES the passkey on
+  // re-enrollment instead of adding another "owner" to the picker.
+  const USER_ID = new TextEncoder().encode('thecollection.watch:owner');
+  const CRED_KEY='tc_bio_cred_id_v3';
+  function b64u(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+  function unb64u(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; return Uint8Array.from(atob(s),c=>c.charCodeAt(0)); }
+  function rememberCred(c){ try{ if(c&&c.rawId) localStorage.setItem(CRED_KEY,b64u(c.rawId)); }catch(_){} }
+
   async function passkeyGet(){
-    const a=await navigator.credentials.get({
-      publicKey:{ challenge:challenge(), rpId:RP_ID, userVerification:'required', timeout:60000 }
-    });
+    const base={ challenge:challenge(), rpId:RP_ID, userVerification:'required', timeout:60000 };
+    const saved=localStorage.getItem(CRED_KEY);
+    // 1) Ask for the exact credential we used last time → straight to Touch ID / Face ID, no picker
+    if(saved){
+      try{
+        const a=await navigator.credentials.get({ publicKey:{ ...base, allowCredentials:[{ type:'public-key', id:unb64u(saved), transports:['internal','hybrid'] }] } });
+        if(a){ rememberCred(a); return true; }
+      }catch(e){ if(e&&e.name==='NotAllowedError' && !document.hasFocus()) throw e; /* else fall through to discoverable */ }
+    }
+    // 2) Any passkey for this domain (first run in this browser, or the saved one is gone)
+    const a=await navigator.credentials.get({ publicKey:base });
+    if(a) rememberCred(a);
     return !!a;
   }
-  // Create a passkey for this domain
   async function passkeyCreate(){
     const c=await navigator.credentials.create({
       publicKey:{
         challenge:challenge(),
         rp:{ name:'The Collection', id:RP_ID },
-        user:{ id:crypto.getRandomValues(new Uint8Array(16)), name:'owner', displayName:'The Collection' },
+        user:{ id:USER_ID, name:'The Collection', displayName:'The Collection' },
         pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
         authenticatorSelection:{ authenticatorAttachment:'platform', userVerification:'required', residentKey:'required', requireResidentKey:true },
         timeout:60000, attestation:'none',
       }
     });
+    rememberCred(c);
     return !!c;
   }
 
@@ -4849,7 +4865,7 @@ window.applyImport = function(mode){
     const reason=await bioUnavailableReason();
     if(reason){ showToast(`Biometrics: ${reason}`); return; }
     if(bioHint()){
-      setHint(false); showToast(`${bioName} turned off here`); refreshBioUI(); if(typeof renderHome==='function') renderHome();
+      setHint(false); try{ localStorage.removeItem(CRED_KEY); }catch(_){} showToast(`${bioName} turned off here`); refreshBioUI(); if(typeof renderHome==='function') renderHome();
       return;
     }
     try{
