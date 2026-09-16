@@ -1234,6 +1234,22 @@ body{background:var(--bg);color:var(--fg)}
   height:16px;text-align:center;margin-top:22px;
 }
 .pin-error.bad{color:#ff8c8c}
+.pin-faceid{
+  position:relative;z-index:1;display:none;flex-direction:column;align-items:center;gap:8px;
+  background:transparent;border:none;color:var(--lock-paper);cursor:pointer;
+  margin-top:6px;padding:4px 10px;-webkit-tap-highlight-color:transparent;
+}
+.pin-faceid.show{display:flex}
+.pin-faceid-ring{
+  width:52px;height:52px;border:1px solid rgba(240,240,238,.55);
+  display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s,transform .15s;
+}
+.pin-faceid-ring svg{width:26px;height:26px}
+.pin-faceid:hover .pin-faceid-ring,.pin-faceid:active .pin-faceid-ring{background:var(--lock-paper);color:var(--lock-navy);border-color:var(--lock-paper)}
+.pin-faceid:active .pin-faceid-ring{transform:scale(.96)}
+.pin-faceid-label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(240,240,238,.75)}
+.pin-faceid.busy .pin-faceid-ring{animation:pinFaceIdPulse 1.1s ease-in-out infinite}
+@keyframes pinFaceIdPulse{0%,100%{box-shadow:0 0 0 0 rgba(240,240,238,.28)}50%{box-shadow:0 0 0 10px rgba(240,240,238,0)}}
 
 
 
@@ -1626,6 +1642,15 @@ body{background:var(--bg);color:var(--fg)}
   </div>
 
   <div class="pin-error" id="pinError"></div>
+  <button class="pin-faceid" id="pinFaceIdBtn" type="button" aria-label="Unlock with Face ID">
+    <span class="pin-faceid-ring">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 8V6a2 2 0 0 1 2-2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M20 16v2a2 2 0 0 1-2 2h-2"/><path d="M8 20H6a2 2 0 0 1-2-2v-2"/>
+        <path d="M9 9.5v1"/><path d="M15 9.5v1"/><path d="M12 9.5v3.5h-1"/><path d="M9.5 15.5a3.5 3.5 0 0 0 5 0"/>
+      </svg>
+    </span>
+    <span class="pin-faceid-label" id="pinFaceIdLabel">Face ID</span>
+  </button>
 </div>
 
 <!-- TOAST -->
@@ -2024,6 +2049,10 @@ body{background:var(--bg);color:var(--fg)}
       <div class="tool-item" id="tool-pin">
         <div class="t-tool-name">Security</div>
         <div class="t-helper">Change your PIN code</div>
+      </div>
+      <div class="tool-item" id="tool-faceid">
+        <div class="t-tool-name" id="toolFaceIdName">Face ID</div>
+        <div class="t-helper" id="toolFaceIdHelper">Checking this device…</div>
       </div>
     </div>
     <div style="height:24px"></div>
@@ -2496,6 +2525,7 @@ async function cloudLoad(){
     }
     if(data.wishWatches){ wishWatches=data.wishWatches; localStorage.setItem(WISH_KEY,JSON.stringify(wishWatches)); }
     if(data.photos){ photos={...photos,...data.photos}; try{localStorage.setItem(PHOTO_KEY,JSON.stringify(photos));}catch(e){} }
+    if(window.__faceId) window.__faceId.fromCloud(data.faceId);
     localStorage.setItem(CUSTOM_KEY,JSON.stringify(customWatches));
     return true;
   }catch(e){ return false; }
@@ -2507,7 +2537,7 @@ async function cloudSave(opts){
     const res=await fetch(WORKER_URL+'/collection',{
       method:'POST',
       headers:{'Content-Type':'application/json','X-Auth-Token':AUTH_TOKEN},
-      body:JSON.stringify({customWatches,subCols,wishWatches,photos}),
+      body:JSON.stringify({customWatches,subCols,wishWatches,photos,faceId:window.__faceId?window.__faceId.forCloud():undefined}),
       keepalive: !!(opts&&opts.keepalive)
     });
     if(res.ok) clearDirty();   // only forget the dirty flag once the cloud actually has it
@@ -4630,6 +4660,133 @@ window.applyImport = function(mode){
     } else if(e.key==='Enter' && entered.length===4){ tryUnlock(); }
   });
 
+
+  // ── FACE ID (WebAuthn passkey)
+  // Rules that keep Safari happy and avoid the passkey picker:
+  //  • exactly ONE WebAuthn call per tap, never chained, never automatic
+  //  • always ask for the ONE saved credential (allowCredentials), never "any passkey for this site"
+  //  • the credential ID syncs through the Worker, so Safari, the home-screen app and other devices all know it
+  //  • fixed user ID, so turning it on again replaces the passkey instead of adding another
+  const FID_KEY='tc_faceid_v4';   // {credId, at} when on · {off:true, at} when turned off · absent = unknown
+  const FID_USER_ID=new TextEncoder().encode('thecollection.watch:owner');
+  const FID_RP_ID=location.hostname.replace(/^www\./,'');
+  const fidBtn=document.getElementById('pinFaceIdBtn');
+  const fidLabel=document.getElementById('pinFaceIdLabel');
+  const fidUA=navigator.userAgent;
+  const fidIOS=/iPhone|iPad|iPod/.test(fidUA) || (/Macintosh/.test(fidUA) && navigator.maxTouchPoints>1);
+  const fidMac=/Macintosh/.test(fidUA) && !fidIOS;
+  const fidName= fidIOS ? 'Face ID' : fidMac ? 'Touch ID' : 'Biometrics';
+  let fidBusy=false;
+  let fidReason=null;   // null = not checked yet, '' = available, otherwise why not
+
+  function b64u(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+  function unb64u(str){ str=str.replace(/-/g,'+').replace(/_/g,'/'); while(str.length%4) str+='='; return Uint8Array.from(atob(str),c=>c.charCodeAt(0)); }
+  function fidRead(){ try{ const v=JSON.parse(localStorage.getItem(FID_KEY)||'null'); return v&&typeof v==='object'?v:null; }catch(e){ return null; } }
+  function fidWrite(v){ try{ localStorage.setItem(FID_KEY,JSON.stringify(v)); }catch(e){} }
+  function fidCredId(){ const v=fidRead(); return v&&v.credId ? v.credId : ''; }
+
+  async function fidCheck(){
+    try{
+      if(!window.isSecureContext) return 'Needs HTTPS';
+      if(!window.PublicKeyCredential || !PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) return 'Not supported in this browser';
+      return (await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()) ? '' : 'No Face ID or Touch ID on this device';
+    }catch(e){ return 'Not supported in this browser'; }
+  }
+
+  function fidFlash(msg){
+    pinError.textContent=msg; pinError.classList.add('bad');
+    setTimeout(()=>{ pinError.textContent=''; pinError.classList.remove('bad'); },2600);
+  }
+
+  function fidRefresh(){
+    const on=!!fidCredId();
+    const avail=fidReason==='';
+    fidLabel.textContent=fidName;
+    fidBtn.setAttribute('aria-label',`Unlock with ${fidName}`);
+    fidBtn.classList.toggle('show', on && avail);
+    const nameEl=document.getElementById('toolFaceIdName');
+    const helper=document.getElementById('toolFaceIdHelper');
+    if(nameEl) nameEl.textContent=fidName;
+    if(helper){
+      helper.textContent = fidReason===null ? 'Checking this device…'
+        : !avail ? `Not available · ${fidReason}`
+        : on ? `On · tap to turn off`
+        : `Off · tap to unlock with ${fidName} instead of your PIN`;
+    }
+  }
+
+  // Unlock: one tap → one request for the saved passkey
+  async function fidUnlock(){
+    if(locked || fidBusy) return;
+    const id=fidCredId();
+    if(!id){ fidRefresh(); return; }
+    fidBusy=true; fidBtn.classList.add('busy'); setStatus('Verifying…');
+    try{
+      const a=await navigator.credentials.get({ publicKey:{
+        challenge:crypto.getRandomValues(new Uint8Array(32)),
+        rpId:FID_RP_ID,
+        allowCredentials:[{ type:'public-key', id:unb64u(id), transports:['internal','hybrid'] }],
+        userVerification:'required',
+        timeout:60000,
+      }});
+      if(a){ succeed(); return; }
+    }catch(e){
+      if(!(e && (e.name==='NotAllowedError' || e.name==='AbortError'))) fidFlash(`${fidName} failed · use passcode`);
+      // NotAllowed = cancelled, or this passkey isn't on this device → quietly fall back to the dial
+    }finally{ fidBusy=false; fidBtn.classList.remove('busy'); }
+    setStatus('Enter passcode');
+  }
+
+  // Turn on: one tap → one create. Same user ID replaces any older passkey for this site.
+  async function fidEnable(){
+    const c=await navigator.credentials.create({ publicKey:{
+      challenge:crypto.getRandomValues(new Uint8Array(32)),
+      rp:{ name:'The Collection', id:FID_RP_ID },
+      user:{ id:FID_USER_ID, name:'The Collection', displayName:'The Collection' },
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+      authenticatorSelection:{ authenticatorAttachment:'platform', userVerification:'required', residentKey:'preferred' },
+      timeout:60000, attestation:'none',
+    }});
+    if(!c || !c.rawId) throw new Error('No credential returned');
+    fidWrite({ credId:b64u(c.rawId), at:Date.now() });
+  }
+  function fidDisable(){ fidWrite({ off:true, at:Date.now() }); }
+
+  fidBtn.addEventListener('click',fidUnlock);
+
+  const toolFid=document.getElementById('tool-faceid');
+  if(toolFid) toolFid.addEventListener('click',async()=>{
+    if(fidBusy) return;
+    if(fidReason===null) fidReason=await fidCheck();
+    if(fidReason){ showToast(`${fidName}: ${fidReason}`); fidRefresh(); return; }
+    if(fidCredId()){
+      fidDisable(); fidRefresh(); scheduleSave();
+      showToast(`${fidName} off · the old passkey can be deleted in the Passwords app`, 4500);
+      return;
+    }
+    fidBusy=true;
+    try{
+      await fidEnable();
+      fidRefresh(); scheduleSave();
+      showToast(`${fidName} on ✓`);
+    }catch(e){
+      showToast(e && e.name==='NotAllowedError' ? 'Cancelled' : `Couldn't turn on ${fidName} (${e&&e.name||'error'})`);
+    }finally{ fidBusy=false; }
+  });
+
+  // Cloud hooks (used by cloudLoad / cloudSave). Newest change wins.
+  window.__faceId={
+    forCloud(){ const v=fidRead(); if(!v) return undefined; return v.credId ? {credId:v.credId, at:v.at||0} : {off:true, at:v.at||0}; },
+    fromCloud(cv){
+      if(!cv || typeof cv!=='object') return;             // Worker never stored it → keep what this device has
+      const lv=fidRead();
+      const cAt=cv.at||0, lAt=(lv&&lv.at)||0;
+      if(!lv || cAt>lAt){ fidWrite(cv.credId ? {credId:cv.credId, at:cAt} : {off:true, at:cAt}); fidRefresh(); }
+      else if(lAt>cAt){ setTimeout(scheduleSave,0); }      // this device has the newer choice → push it up
+    }
+  };
+
+  fidCheck().then(r=>{ fidReason=r; fidRefresh(); });
 
   // ── Boot
   if(sessionStorage.getItem(SESSION_KEY)==='yes'){
