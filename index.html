@@ -4722,18 +4722,25 @@ window.applyImport = function(mode){
     const id=fidCredId();
     if(!id){ fidRefresh(); return; }
     fidBusy=true; fidBtn.classList.add('busy'); setStatus('Verifying…');
+    const t0=Date.now();
     try{
       const a=await navigator.credentials.get({ publicKey:{
         challenge:crypto.getRandomValues(new Uint8Array(32)),
         rpId:FID_RP_ID,
-        allowCredentials:[{ type:'public-key', id:unb64u(id), transports:['internal','hybrid'] }],
+        allowCredentials:[{ type:'public-key', id:unb64u(id), transports:['internal'] }],   // this device only — no "use another device" QR code
         userVerification:'required',
         timeout:60000,
       }});
       if(a){ succeed(); return; }
     }catch(e){
-      if(!(e && (e.name==='NotAllowedError' || e.name==='AbortError'))) fidFlash(`${fidName} failed · use passcode`);
-      // NotAllowed = cancelled, or this passkey isn't on this device → quietly fall back to the dial
+      const n=e&&e.name;
+      if(n==='NotAllowedError' && Date.now()-t0<1500){
+        // Rejected before a person could have cancelled → the passkey isn't on this device
+        fidFlash(`Not set up here · turn on in Tools`);
+      } else if(n!=='NotAllowedError' && n!=='AbortError'){
+        fidFlash(`${fidName} failed · use passcode`);
+      }
+      // A slower NotAllowed is a real cancel → quietly back to the dial
     }finally{ fidBusy=false; fidBtn.classList.remove('busy'); }
     setStatus('Enter passcode');
   }
