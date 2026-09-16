@@ -4675,7 +4675,8 @@ window.applyImport = function(mode){
   const fidUA=navigator.userAgent;
   const fidIOS=/iPhone|iPad|iPod/.test(fidUA) || (/Macintosh/.test(fidUA) && navigator.maxTouchPoints>1);
   const fidMac=/Macintosh/.test(fidUA) && !fidIOS;
-  const fidName= fidIOS ? 'Face ID' : fidMac ? 'Touch ID' : 'Biometrics';
+  const fidName= fidIOS ? 'Face ID / Touch ID' : fidMac ? 'Touch ID' : 'Biometrics';   // web can't tell Face ID from Touch ID on iOS
+  const fidBtnText= fidIOS ? 'Unlock' : fidName;
   let fidBusy=false;
   let fidReason=null;   // null = not checked yet, '' = available, otherwise why not
 
@@ -4701,7 +4702,7 @@ window.applyImport = function(mode){
   function fidRefresh(){
     const on=!!fidCredId();
     const avail=fidReason==='';
-    fidLabel.textContent=fidName;
+    fidLabel.textContent=fidBtnText;
     fidBtn.setAttribute('aria-label',`Unlock with ${fidName}`);
     fidBtn.classList.toggle('show', on && avail);
     const nameEl=document.getElementById('toolFaceIdName');
