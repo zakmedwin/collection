@@ -2813,6 +2813,15 @@ function toLocalDateStr(input){
   if(isNaN(d.getTime())) return '';
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
+// A wear "day" runs 4am → 4am, so a watch logged at 1am counts for the night before.
+const WEAR_DAY_CUTOFF_HOUR = 4;
+function wearDayStr(){
+  const d = new Date();
+  if(d.getHours() < WEAR_DAY_CUTOFF_HOUR) d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function isLateNight(){ return wearDayStr() !== todayLocalStr(); }
+
 function parseLocalDate(dateStr){
   // Parse "YYYY-MM-DD" as local midnight (not UTC).
   if(!dateStr) return null;
@@ -2826,8 +2835,7 @@ function getWatchStatus(w){
   if(!w.lastWorn) return { label:'', cls:'' };
   const wornLocal = parseLocalDate(w.lastWorn);
   if(!wornLocal) return { label:'', cls:'' };
-  const now = new Date();
-  const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayLocal = parseLocalDate(wearDayStr());
   const dayMs = 86400000;
   const diff = Math.floor((todayLocal.getTime() - wornLocal.getTime()) / dayMs);
   if(diff <= 0) return { label:'Today', cls:'hero' };
@@ -2871,7 +2879,7 @@ function addLongPressWearLog(el, w){
   const trigger = ()=>{
     pressed = true;
     if(navigator.vibrate) navigator.vibrate(30);
-    const todayStr = todayLocalStr();   // read the clock NOW, not when the card was drawn
+    const todayStr = wearDayStr();   // read the clock NOW, not when the card was drawn
     if((w.wearLog||[]).some(d => String(d).slice(0,10) === todayStr)){
       showToast('Already logged today');
     } else {
@@ -2942,7 +2950,8 @@ function renderWearingBlock(w){
   const wearCount = new Set((w.wearLog||[]).map(d => String(d).slice(0,10))).size;
   const lastWornStr = w.lastWorn ? fmtWearDate(w.lastWorn) : 'Never worn';
   const wornToday = status.label === 'Today';
-  const todayStr = todayLocalStr();
+  const todayStr = wearDayStr();
+  const lateNight = isLateNight();   // before 4am we're still logging the night before
   const recent = (w.wearLog||[]).slice(-6).reverse();
 
   el.innerHTML = `
@@ -2954,7 +2963,7 @@ function renderWearingBlock(w){
         <div class="wearing-stat"><div class="wearing-stat-l">Total wears</div><div class="wearing-stat-v">${wearCount}</div></div>
       </div>
       <div class="wearing-actions">
-        <button class="${wornToday?'btn-secondary':'btn-primary'}" id="wearTodayBtn">${wornToday?'✓ Worn today — tap to undo':'Wearing today'}</button>
+        <button class="${wornToday?'btn-secondary':'btn-primary'}" id="wearTodayBtn">${wornToday?'✓ Worn — tap to undo':(lateNight?`Wearing (${fmtJournalDay(todayStr)})`:'Wearing today')}</button>
         <label class="btn-secondary" for="wearDatePicker" style="cursor:pointer;position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;text-align:center">
           Log another day
           <input type="date" id="wearDatePicker" max="${todayStr}" style="position:absolute;inset:0;opacity:0;cursor:pointer;border:none;padding:0;margin:0;width:100%;height:100%">
@@ -2973,7 +2982,7 @@ function renderWearingBlock(w){
 
   document.getElementById('wearTodayBtn').addEventListener('click',()=>{
     // Read the clock NOW — this screen may have been drawn on an earlier day
-    const today = todayLocalStr();
+    const today = wearDayStr();
     const alreadyToday = (w.wearLog||[]).some(d => String(d).slice(0,10) === today);
     if(alreadyToday){
       // Toggle off — remove today's entry
@@ -3549,7 +3558,7 @@ function renderInsights(){
   // Wearing insights
   const wornWatches = watches.filter(w=>w.lastWorn);
   const now = new Date();
-  const todayStr = todayLocalStr();
+  const todayStr = wearDayStr();
   const wornToday = wornWatches.filter(w=>String(w.lastWorn).slice(0,10)===todayStr).length;
   const wornThisWeek = wornWatches.filter(w=>{
     const d = parseLocalDate(w.lastWorn);
@@ -3645,7 +3654,7 @@ function renderRotation(watches){
   const daysWithAnyWear = allDays.size;
 
   // Current streak: consecutive days up to today (or yesterday) where SOMETHING was worn
-  const today = todayLocalStr();
+  const today = wearDayStr();
   const dayMs = 86400000;
   const todayDate = parseLocalDate(today);
   let currentStreak = 0;
@@ -3723,7 +3732,7 @@ function renderHeatmap(watches){
   const dayMs = 86400000;
   const now = new Date();
   const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const todayKey = todayLocalStr();
+  const todayKey = wearDayStr();
 
   // Range: from the first logged wear, but at least 4 weeks and at most 13 weeks
   const minStart = new Date(todayLocal.getTime() - 27*dayMs);
@@ -4914,7 +4923,7 @@ function renderHome(){
   }
 
   // Neglected count
-  const today = todayLocalStr();
+  const today = wearDayStr();
   const todayDate = parseLocalDate(today);
   const dayMs = 86400000;
   const neglectedCount = watches.filter(w => {
@@ -6191,9 +6200,9 @@ async function generatePassport(){
 // ── DAY ROLLOVER ──
 // The app can sit open past midnight. When it comes back, redraw anything that says "today".
 (function watchForNewDay(){
-  let seenDay = todayLocalStr();
+  let seenDay = wearDayStr();
   function check(){
-    const now = todayLocalStr();
+    const now = wearDayStr();
     if(now === seenDay) return;
     seenDay = now;
     if(!logSheetDatePicked){
@@ -6230,9 +6239,9 @@ function buildWearIndex(){
 
 function journalDayLabel(dateStr){
   // Spell out the recent days so a misdated entry is obvious at a glance
-  const today = todayLocalStr();
+  const today = wearDayStr();
   if(dateStr === today) return `Today · ${fmtJournalDay(dateStr)}`;
-  const y = new Date(); y.setDate(y.getDate()-1);
+  const y = parseLocalDate(today); y.setDate(y.getDate()-1);
   if(dateStr === toLocalDateStr(y)) return `Yesterday · ${fmtJournalDay(dateStr)}`;
   return fmtJournalDay(dateStr);
 }
@@ -6344,12 +6353,12 @@ function closeJournal(){
 
 // ── MULTI-LOG SHEET ──
 let logSheetSelected = new Set();
-let logSheetDate = todayLocalStr();
+let logSheetDate = wearDayStr();
 let logSheetDatePicked = false;   // false = "today", re-read at apply time in case midnight passed
 
 function openLogSheet(){
   logSheetSelected = new Set();
-  logSheetDate = todayLocalStr();
+  logSheetDate = wearDayStr();
   logSheetDatePicked = false;
   document.getElementById('logSheetDate').value = logSheetDate;
   updateLogSheetDateLabel();
@@ -6365,7 +6374,7 @@ function closeLogSheet(){
 
 function updateLogSheetDateLabel(){
   const label = document.getElementById('logSheetDateLabel');
-  if(logSheetDate === todayLocalStr()) label.textContent = 'Today';
+  if(logSheetDate === wearDayStr()) label.textContent = isLateNight() ? `Today (${fmtJournalDay(logSheetDate)})` : 'Today';
   else label.textContent = fmtJournalDay(logSheetDate);
 }
 
@@ -6437,7 +6446,7 @@ function applyMultiLog(){
   const n = logSheetSelected.size;
   if(n === 0) return;
   // If the sheet still says "Today", that means today as of this tap — not as of when it opened
-  const date = logSheetDatePicked ? logSheetDate : todayLocalStr();
+  const date = logSheetDatePicked ? logSheetDate : wearDayStr();
   const previouslyUnlogged = []; // for undo — only these get unlogged
   logSheetSelected.forEach(id => {
     const w = customWatches.find(x => x.id === id);
@@ -6448,7 +6457,7 @@ function applyMultiLog(){
       previouslyUnlogged.push(id);
     }
   });
-  const dateLabel = date === todayLocalStr() ? 'today' : fmtJournalDay(date);
+  const dateLabel = date === wearDayStr() ? 'today' : fmtJournalDay(date);
   const newlyLogged = previouslyUnlogged.length;
   closeLogSheet();
   buildJournalContent(); // refresh journal
