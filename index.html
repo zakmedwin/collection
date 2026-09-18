@@ -2871,11 +2871,10 @@ function addLongPressWearLog(el, w){
   const trigger = ()=>{
     pressed = true;
     if(navigator.vibrate) navigator.vibrate(30);
-    const status = getWatchStatus(w);
-    if(status.label === 'Today'){
+    const todayStr = todayLocalStr();   // read the clock NOW, not when the card was drawn
+    if((w.wearLog||[]).some(d => String(d).slice(0,10) === todayStr)){
       showToast('Already logged today');
     } else {
-      const todayStr = todayLocalStr();
       logWear(w.id, todayStr);
       renderList();
       showToast('Logged: '+(w.model||w.series||w.brand||'watch'), 5000, {
@@ -2973,17 +2972,20 @@ function renderWearingBlock(w){
     </div>`;
 
   document.getElementById('wearTodayBtn').addEventListener('click',()=>{
-    if(wornToday){
+    // Read the clock NOW — this screen may have been drawn on an earlier day
+    const today = todayLocalStr();
+    const alreadyToday = (w.wearLog||[]).some(d => String(d).slice(0,10) === today);
+    if(alreadyToday){
       // Toggle off — remove today's entry
-      unlogWear(w.id, todayStr);
+      unlogWear(w.id, today);
       renderWearingBlock(w);
       showToast('Removed today\u2019s wear');
     } else {
-      logWear(w.id, todayStr);
+      logWear(w.id, today);
       renderWearingBlock(w);
-      showToast('Logged for today', 5000, {
+      showToast('Logged for '+fmtWearDate(today), 5000, {
         label:'Undo',
-        fn:()=>{ unlogWear(w.id, todayStr); renderWearingBlock(w); }
+        fn:()=>{ unlogWear(w.id, today); renderWearingBlock(w); }
       });
     }
   });
@@ -6186,6 +6188,31 @@ async function generatePassport(){
   w.document.close();
   showToast('Passport opened in new tab ✓');
 }
+// ── DAY ROLLOVER ──
+// The app can sit open past midnight. When it comes back, redraw anything that says "today".
+(function watchForNewDay(){
+  let seenDay = todayLocalStr();
+  function check(){
+    const now = todayLocalStr();
+    if(now === seenDay) return;
+    seenDay = now;
+    if(!logSheetDatePicked){
+      logSheetDate = now;
+      const input = document.getElementById('logSheetDate');
+      if(input) input.value = now;
+      if(document.getElementById('logSheetOverlay')?.classList.contains('open')){ updateLogSheetDateLabel(); buildLogSheetList(); }
+    }
+    try{ renderList(); }catch(e){}
+    try{ renderHome(); }catch(e){}
+    if(document.getElementById('journalOverlay')?.classList.contains('open')){ try{ buildJournalContent(); }catch(e){} }
+    const open = selectedId ? findWatch(selectedId) : null;
+    if(open && document.getElementById('wearingBlock')){ try{ renderWearingBlock(open); }catch(e){} }
+  }
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') check(); });
+  window.addEventListener('focus',check);
+  setInterval(check, 60000);
+})();
+
 // ── WEAR JOURNAL ──
 function buildWearIndex(){
   // { "2026-08-30": [watchId, watchId, ...] } — reverse chronological when sorted
@@ -6199,6 +6226,15 @@ function buildWearIndex(){
     });
   });
   return idx;
+}
+
+function journalDayLabel(dateStr){
+  // Spell out the recent days so a misdated entry is obvious at a glance
+  const today = todayLocalStr();
+  if(dateStr === today) return `Today · ${fmtJournalDay(dateStr)}`;
+  const y = new Date(); y.setDate(y.getDate()-1);
+  if(dateStr === toLocalDateStr(y)) return `Yesterday · ${fmtJournalDay(dateStr)}`;
+  return fmtJournalDay(dateStr);
 }
 
 function fmtJournalDay(dateStr){
@@ -6247,7 +6283,7 @@ async function buildJournalContent(){
       const count = watchIds.length;
       html += `<div class="journal-day">
         <div class="journal-day-head">
-          <div class="journal-day-date">${fmtJournalDay(dateStr)}</div>
+          <div class="journal-day-date">${journalDayLabel(dateStr)}</div>
           <div class="journal-day-count">${count} watch${count!==1?'es':''}</div>
         </div>
         <div class="journal-watches">
@@ -6309,10 +6345,12 @@ function closeJournal(){
 // ── MULTI-LOG SHEET ──
 let logSheetSelected = new Set();
 let logSheetDate = todayLocalStr();
+let logSheetDatePicked = false;   // false = "today", re-read at apply time in case midnight passed
 
 function openLogSheet(){
   logSheetSelected = new Set();
   logSheetDate = todayLocalStr();
+  logSheetDatePicked = false;
   document.getElementById('logSheetDate').value = logSheetDate;
   updateLogSheetDateLabel();
   buildLogSheetList();
@@ -6398,7 +6436,8 @@ function updateLogSheetCount(){
 function applyMultiLog(){
   const n = logSheetSelected.size;
   if(n === 0) return;
-  const date = logSheetDate;
+  // If the sheet still says "Today", that means today as of this tap — not as of when it opened
+  const date = logSheetDatePicked ? logSheetDate : todayLocalStr();
   const previouslyUnlogged = []; // for undo — only these get unlogged
   logSheetSelected.forEach(id => {
     const w = customWatches.find(x => x.id === id);
@@ -6431,6 +6470,7 @@ document.getElementById('logSheetApplyBtn').addEventListener('click', applyMulti
 document.getElementById('logSheetDate').addEventListener('change', (e) => {
   if(e.target.value){
     logSheetDate = e.target.value;
+    logSheetDatePicked = true;
     updateLogSheetDateLabel();
     buildLogSheetList(); // refresh "Already logged" markers
   }
