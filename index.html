@@ -2966,7 +2966,7 @@ function renderWearingBlock(w){
         <button class="${wornToday?'btn-secondary':'btn-primary'}" id="wearTodayBtn">${wornToday?'✓ Worn — tap to undo':(lateNight?`Wearing (${fmtJournalDay(todayStr)})`:'Wearing today')}</button>
         <label class="btn-secondary" for="wearDatePicker" style="cursor:pointer;position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;text-align:center">
           Log another day
-          <input type="date" id="wearDatePicker" max="${todayStr}" style="position:absolute;inset:0;opacity:0;cursor:pointer;border:none;padding:0;margin:0;width:100%;height:100%">
+          <input type="date" id="wearDatePicker" value="${todayStr}" max="${todayStr}" style="position:absolute;inset:0;opacity:0;cursor:pointer;border:none;padding:0;margin:0;width:100%;height:100%">
         </label>
       </div>
       ${recent.length ? `
@@ -2998,17 +2998,51 @@ function renderWearingBlock(w){
       });
     }
   });
+  // iOS fills a date field with today the moment the wheel opens, and fires 'change' for every
+  // spin of it. Logging on 'change' would record today and redraw this panel — which closes the
+  // wheel before a day can be picked. So: remember what's chosen, commit once the wheel is closed.
   const picker = document.getElementById('wearDatePicker');
-  picker.addEventListener('change',()=>{
-    if(!picker.value) return;
-    const chosen = picker.value;
+  let pickerPending = null;
+  let pickerDone = false;
+  const commitPicked = ()=>{
+    if(pickerDone) return;
+    const chosen = pickerPending;
+    pickerPending = null;
+    if(!chosen) return;
+    pickerDone = true;                      // this field is about to be replaced by the redraw
+    if((w.wearLog||[]).some(d => String(d).slice(0,10) === chosen)){
+      showToast(fmtWearDate(chosen)+' was already logged');
+      renderWearingBlock(w);
+      return;
+    }
     logWear(w.id, chosen);
     renderWearingBlock(w);
     showToast('Logged '+fmtWearDate(chosen), 5000, {
       label:'Undo',
       fn:()=>{ unlogWear(w.id, chosen); renderWearingBlock(w); }
     });
+  };
+  picker.addEventListener('change',()=>{
+    if(!picker.value) return;
+    pickerPending = picker.value;           // hold it — the wheel is still open
   });
+  picker.addEventListener('blur', commitPicked);            // wheel dismissed
+  picker.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); picker.blur(); } });
+  // Tapping anywhere else in the app also counts as "done with the wheel" (iOS doesn't always blur)
+  const outsideTap = e=>{
+    if(e.target===picker || e.target.closest('label[for="wearDatePicker"]')) return;
+    document.removeEventListener('pointerdown', outsideTap, true);
+    commitPicked();
+  };
+  picker.addEventListener('focus',()=>{ document.addEventListener('pointerdown', outsideTap, true); });
+  // Desktop calendars close without blurring, and have no wheel to scroll — commit shortly after the pick
+  if(!navigator.maxTouchPoints){
+    let pickerIdle = null;
+    picker.addEventListener('change',()=>{
+      clearTimeout(pickerIdle);
+      pickerIdle = setTimeout(commitPicked, 1000);
+    });
+  }
   el.querySelectorAll('.wear-log-remove').forEach(btn=>{
     btn.addEventListener('click',()=>{
       const d = btn.dataset.date;
